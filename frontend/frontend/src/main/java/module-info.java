@@ -7,4 +7,6 @@ module com.chatappfrontend.frontend {
 
     opens com.chatappfrontend.frontend to javafx.fxml;
     exports com.chatappfrontend.frontend;
+    exports com.chatappfrontend.frontend.controller;
+    opens com.chatappfrontend.frontend.controller to javafx.fxml;
 }

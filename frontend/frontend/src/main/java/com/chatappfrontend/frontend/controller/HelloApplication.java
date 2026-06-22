@@ -1,4 +1,4 @@
-package com.chatappfrontend.frontend;
+package com.chatappfrontend.frontend.controller;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
