@@ -13,12 +13,12 @@ public class BlockedUser {
     @Id
     @ManyToOne
     @JoinColumn(name = "blocker_id", nullable = false)
-    private User blocker;
+    private User blockerId;
 
     @Id
     @ManyToOne
     @JoinColumn(name = "blocked_id", nullable = false)
-    private User blocked;
+    private User blockedId;
 
     @Column(name = "blocked_at")
     private LocalDateTime blockedAt;
