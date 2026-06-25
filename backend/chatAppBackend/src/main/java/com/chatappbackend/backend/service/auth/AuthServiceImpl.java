@@ -9,6 +9,8 @@ import com.chatappbackend.backend.util.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 public class AuthServiceImpl implements AuthService{
     private final JwtUtil jwtUtil;
@@ -52,6 +54,7 @@ public class AuthServiceImpl implements AuthService{
         user.setEmail(requestRegister.getEmail());
         user.setPasswordHash(passwordEncoder.encode(requestRegister.getPassword()));
         user.setPhoneNumber(requestRegister.getPhoneNumber());
+        user.setCreatedAt(LocalDateTime.now());
 
         User savedUser = userRepository.save(user);
 
