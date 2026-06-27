@@ -34,7 +34,7 @@ CREATE TABLE messages(
     sender_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     message TEXT NOT NULL,
     reply_to_id BIGINT REFERENCES messages(id) ON DELETE SET NULL,
-    deleted_at TIMESTAMPTZ,
+    edited_at TIMESTAMPTZ,
     sent_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -61,6 +61,13 @@ CREATE TABLE message_reads(
     message_id BIGINT NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     read_at TIMESTAMPTZ DEFAULT NOW(),
+    PRIMARY KEY (message_id, user_id)
+);
+
+CREATE TABLE message_deletes(
+    message_id BIGINT NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    deleted_at TIMESTAMPTZ DEFAULT NOW(),
     PRIMARY KEY (message_id, user_id)
 );
 

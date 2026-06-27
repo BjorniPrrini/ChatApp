@@ -28,9 +28,9 @@ public class Message {
     @JoinColumn(name = "reply_to_id")
     private Message replyTo;
 
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
-
     @Column(name = "sent_at")
     private LocalDateTime sentAt;
+
+    @Column(name = "edited_at")
+    private LocalDateTime editedAt;
 }

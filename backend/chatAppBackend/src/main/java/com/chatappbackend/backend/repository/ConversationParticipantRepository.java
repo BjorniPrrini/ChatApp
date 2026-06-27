@@ -12,4 +12,5 @@ import java.util.Optional;
 public interface ConversationParticipantRepository extends JpaRepository<ConversationParticipant, ConversationParticipantId> {
     @Query("SELECT cp.user FROM ConversationParticipant cp WHERE cp.conversation.id = :conversationId AND cp.user.id != :userId")
     Optional<User> findOtherParticipant(@Param("conversationId") Long conversationId, @Param("userId") Long userId);
+    long countByConversationId(Long conversationId);
 }
