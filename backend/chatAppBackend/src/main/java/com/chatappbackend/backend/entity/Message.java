@@ -33,4 +33,7 @@ public class Message {
 
     @Column(name = "edited_at")
     private LocalDateTime editedAt;
+
+    @Column
+    private String status;
 }

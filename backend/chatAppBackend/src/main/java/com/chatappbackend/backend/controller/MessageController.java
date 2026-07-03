@@ -14,17 +14,17 @@ import java.time.LocalDateTime;
 @RestController
 @RequestMapping("/api/message")
 public class MessageController {
-    private final MessageService messageService;
+    private final MessageService service;
 
     public MessageController(MessageService messageService) {
-        this.messageService = messageService;
+        this.service = messageService;
     }
 
     @PostMapping("/sendMessage")
     public ResponseEntity<MessageResponseDTO> sendMessage(@RequestBody MessageRequestDTO request){
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        return ResponseEntity.ok(messageService.sendMessage(currentUser.getId(), request));
+        return ResponseEntity.ok(service.sendMessage(currentUser.getId(), request));
     }
 
     @GetMapping("/{conversationId}")
@@ -35,14 +35,14 @@ public class MessageController {
             before = LocalDateTime.now();
         }
 
-        return ResponseEntity.ok(messageService.getMessages(currentUser.getId(), conversationId, before));
+        return ResponseEntity.ok(service.getMessages(currentUser.getId(), conversationId, before));
     }
 
     @DeleteMapping("/{messageId}/me")
     public ResponseEntity<Void> deleteMessageForMe(@PathVariable Long messageId){
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        messageService.deleteMessageForMe(currentUser.getId(), messageId);
+        service.deleteMessageForMe(currentUser.getId(), messageId);
 
         return ResponseEntity.ok().build();
     }
@@ -51,7 +51,7 @@ public class MessageController {
     public ResponseEntity<Void> deleteMessageForEveryone(@PathVariable Long messageId){
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        messageService.deleteMessageForEveryone(currentUser.getId(), messageId);
+        service.deleteMessageForEveryone(currentUser.getId(), messageId);
 
         return ResponseEntity.ok().build();
     }
@@ -60,6 +60,6 @@ public class MessageController {
     public ResponseEntity<MessageResponseDTO> editMessage(@PathVariable Long messageId, @RequestParam String newMessage){
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        return ResponseEntity.ok(messageService.editMessage(currentUser.getId(), messageId, newMessage));
+        return ResponseEntity.ok(service.editMessage(currentUser.getId(), messageId, newMessage));
     }
 }

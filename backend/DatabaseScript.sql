@@ -35,6 +35,7 @@ CREATE TABLE messages(
     message TEXT NOT NULL,
     reply_to_id BIGINT REFERENCES messages(id) ON DELETE SET NULL,
     edited_at TIMESTAMPTZ,
+    status VARCHAR(20) DEFAULT 'sent',
     sent_at TIMESTAMPTZ DEFAULT NOW()
 );
 

@@ -45,6 +45,7 @@ public class MessageServiceImpl implements MessageService{
         message.setSender(user);
         message.setConversation(conversation);
         message.setSentAt(LocalDateTime.now());
+        message.setStatus("sent");
 
         if(request.getReplyToId() != null){
             Message replyTo = messageRepository.findById(request.getReplyToId()).orElseThrow(() -> new RuntimeException("Message not found"));
@@ -104,6 +105,10 @@ public class MessageServiceImpl implements MessageService{
             throw new RuntimeException("You can only delete your own message");
         }
 
+        if(message.getSentAt().isBefore(LocalDateTime.now().minusMinutes(1))){
+            throw new RuntimeException("You can't delete a message after 1 minutes");
+        }
+
         messageRepository.delete(message);
     }
 
@@ -133,7 +138,7 @@ public class MessageServiceImpl implements MessageService{
         response.setMessage(message.getMessage());
         response.setId(message.getId());
         response.setSentAt(message.getSentAt());
-        response.setStatus("Sent");
+        response.setStatus(message.getStatus());
         response.setSenderId(message.getSender().getId());
         response.setSenderName(message.getSender().getName());
         response.setSenderNickname(message.getSender().getNickname());
