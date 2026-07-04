@@ -1,8 +1,6 @@
 package com.chatappbackend.backend.controller;
 
-import com.chatappbackend.backend.dto.auth.AuthResponseDTO;
-import com.chatappbackend.backend.dto.auth.LoginRequestDTO;
-import com.chatappbackend.backend.dto.auth.RegisterRequestDTO;
+import com.chatappbackend.backend.dto.auth.*;
 import com.chatappbackend.backend.service.auth.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,5 +29,19 @@ public class AuthController {
         AuthResponseDTO response = service.register(request);
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@RequestBody ForgotPasswordRequestDTO request){
+        service.forgotPassword(request);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestBody ResetPasswordRequestDTO request){
+        service.resetPassword(request);
+
+        return ResponseEntity.ok().build();
     }
 }
