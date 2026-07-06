@@ -38,7 +38,7 @@ public class JwtUtil {
 
     }
 
-    public boolean isValid(String token) {
+    public boolean isValid(String token){
         try{
             Jwts.parser()
                     .verifyWith(getKey())
@@ -51,7 +51,7 @@ public class JwtUtil {
         }
     }
 
-    private SecretKey getKey() {
+    private SecretKey getKey(){
         byte[] bytes = Decoders.BASE64.decode(secret);
 
         return Keys.hmacShaKeyFor(bytes);
