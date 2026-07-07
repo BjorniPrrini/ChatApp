@@ -8,6 +8,7 @@ import com.chatappbackend.backend.entity.Message;
 import com.chatappbackend.backend.entity.MessageDelete;
 import com.chatappbackend.backend.entity.User;
 import com.chatappbackend.backend.repository.*;
+import com.chatappbackend.backend.service.blocked.BlockedUserService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -23,21 +24,28 @@ public class MessageServiceImpl implements MessageService{
     private final MessageRepository messageRepository;
     private final MessageDeleteRepository messageDeleteRepository;
     private final ConversationParticipantRepository conversationParticipantRepository;
-    private final BlockedUserRepository blockedUserRepository;
+    private final BlockedUserService blockedUserService;
 
-    public MessageServiceImpl(UserRepository userRepository, ConversationRepository conversationRepository, MessageRepository messageRepository, MessageDeleteRepository messageDeleteRepository, ConversationParticipantRepository conversationParticipantRepository, BlockedUserRepository blockedUserRepository){
+    public MessageServiceImpl(UserRepository userRepository, ConversationRepository conversationRepository, MessageRepository messageRepository, MessageDeleteRepository messageDeleteRepository, ConversationParticipantRepository conversationParticipantRepository, BlockedUserService blockedUserService){
         this.userRepository = userRepository;
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
         this.messageDeleteRepository = messageDeleteRepository;
         this.conversationParticipantRepository = conversationParticipantRepository;
-        this.blockedUserRepository = blockedUserRepository;
+        this.blockedUserService = blockedUserService;
     }
 
     @Override
     public MessageResponseDTO sendMessage(Long userId, MessageRequestDTO request) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+
         Conversation conversation = conversationRepository.findById(request.getConversationId()).orElseThrow(() -> new RuntimeException("Conversation not found"));
+
+        User otherUser = conversationParticipantRepository.findOtherParticipant(request.getConversationId(), userId).orElseThrow(() -> new RuntimeException("Participant not found"));
+
+        if(blockedUserService.isBlocked(userId, otherUser.getId())){
+            throw new RuntimeException("Cannot send message to this user");
+        }
 
         Message message = new Message();
 
