@@ -4,15 +4,21 @@ import com.chatappbackend.backend.entity.ConversationParticipant;
 import com.chatappbackend.backend.entity.ConversationParticipantId;
 import com.chatappbackend.backend.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface ConversationParticipantRepository extends JpaRepository<ConversationParticipant, ConversationParticipantId> {
     @Query("SELECT cp.user FROM ConversationParticipant cp WHERE cp.conversation.id = :conversationId AND cp.user.id != :userId")
     Optional<User> findOtherParticipant(@Param("conversationId") Long conversationId, @Param("userId") Long userId);
     long countByConversationId(Long conversationId);
-
-    Long user(User user);
+    @Modifying
+    @Transactional
+    @Query("UPDATE ConversationParticipant cp SET cp.deletedAt = :now WHERE cp.conversation.id = :conversationId AND cp.user.id = :userId")
+    void softDeleteForUser(@Param("conversationId") Long conversationId, @Param("userId") Long userId, @Param("now") LocalDateTime now);
+    long countByConversationIdAndDeletedAtIsNotNull(Long conversationId);
 }

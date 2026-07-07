@@ -85,6 +85,21 @@ public class ConversationServiceImpl implements ConversationService{
         return mapToDTO(conversation, otherParticipant);
     }
 
+    @Override
+    public void deleteConversation(Long userId, Long conversationId) {
+        Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new RuntimeException("Conversation not found"));
+
+        conversationParticipantRepository.softDeleteForUser(conversationId, userId, LocalDateTime.now());
+
+        long deletedParticipants = conversationParticipantRepository.countByConversationIdAndDeletedAtIsNotNull(conversationId);
+
+        long participantCount = conversationParticipantRepository.countByConversationId(conversationId);
+
+        if(deletedParticipants >= participantCount){
+            conversationRepository.deleteById(conversationId);
+        }
+    }
+
     private ConversationResponseDTO mapToDTO(Conversation conversation, User receiver){
         ConversationResponseDTO response = new ConversationResponseDTO();
 

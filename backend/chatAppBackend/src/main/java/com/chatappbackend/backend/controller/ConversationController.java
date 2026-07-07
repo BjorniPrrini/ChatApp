@@ -41,4 +41,13 @@ public class ConversationController {
 
         return ResponseEntity.ok(service.getConversationById(currentUser.getId(), conversationId));
     }
+
+    @DeleteMapping("/{conversationId}")
+    public ResponseEntity<Void> deleteConversation(@PathVariable Long conversationId){
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        service.deleteConversation(currentUser.getId(), conversationId);
+
+        return ResponseEntity.ok().build();
+    }
 }

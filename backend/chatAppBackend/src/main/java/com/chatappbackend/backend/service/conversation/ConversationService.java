@@ -9,4 +9,5 @@ public interface ConversationService {
     ConversationResponseDTO createConversation(Long userId, ConversationRequestDTO request);
     List<ConversationResponseDTO> getUserConversations(Long userId);
     ConversationResponseDTO getConversationById(Long userId, Long conversationId);
+    void deleteConversation(Long userId, Long conversationId);
 }
