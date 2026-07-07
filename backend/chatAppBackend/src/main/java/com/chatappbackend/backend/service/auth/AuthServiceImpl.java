@@ -3,6 +3,8 @@ package com.chatappbackend.backend.service.auth;
 import com.chatappbackend.backend.dto.auth.*;
 import com.chatappbackend.backend.entity.PasswordResetToken;
 import com.chatappbackend.backend.entity.User;
+import com.chatappbackend.backend.exception.BadRequestException;
+import com.chatappbackend.backend.exception.ResourceNotFoundException;
 import com.chatappbackend.backend.repository.PasswordResetTokenRepository;
 import com.chatappbackend.backend.repository.UserRepository;
 import com.chatappbackend.backend.util.JwtUtil;
@@ -32,10 +34,10 @@ public class AuthServiceImpl implements AuthService{
 
     @Override
     public AuthResponseDTO login(LoginRequestDTO requestLogin) {
-        User user = userRepository.findByEmail(requestLogin.getEmail()).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findByEmail(requestLogin.getEmail()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if(!passwordEncoder.matches(requestLogin.getPassword(), user.getPasswordHash())){
-            throw new RuntimeException("Invalid password");
+            throw new BadRequestException("Invalid password");
         }
 
         String token = jwtUtil.generateToken(user.getId());
@@ -46,11 +48,11 @@ public class AuthServiceImpl implements AuthService{
     @Override
     public AuthResponseDTO register(RegisterRequestDTO requestRegister) {
         if(userRepository.existsByEmail(requestRegister.getEmail())){
-            throw new RuntimeException("Email already in use");
+            throw new BadRequestException("Email already in use");
         }
 
         if(!requestRegister.getPassword().equals(requestRegister.getConfirmPassword())){
-            throw new RuntimeException("Passwords do not match");
+            throw new BadRequestException("Passwords do not match");
         }
 
         User user = new User();
@@ -72,7 +74,7 @@ public class AuthServiceImpl implements AuthService{
 
     @Override
     public void forgotPassword(ForgotPasswordRequestDTO request){
-        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new RuntimeException("User not foud"));
+        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         String randomDigit = String.format("%06d", new Random().nextInt(999999));
 
@@ -96,21 +98,21 @@ public class AuthServiceImpl implements AuthService{
 
     @Override
     public void resetPassword(ResetPasswordRequestDTO request){
-        PasswordResetToken passwordResetToken = passwordResetTokenRepository.findByToken(request.getToken()).orElseThrow(() -> new RuntimeException("Token not found"));
+        PasswordResetToken passwordResetToken = passwordResetTokenRepository.findByToken(request.getToken()).orElseThrow(() -> new ResourceNotFoundException("Token not found"));
 
         if(passwordResetToken.getExpiresAt().isBefore(LocalDateTime.now())){
-            throw new RuntimeException("Token has expired");
+            throw new BadRequestException("Token has expired");
         }
 
         if(passwordResetToken.getUsed().equals(true)){
-            throw new RuntimeException("Token has already been used before");
+            throw new BadRequestException("Token has already been used before");
         }
 
         if(!request.getNewPassword().equals(request.getConfirmPassword())){
-            throw new RuntimeException("Confirm password is different from ney password");
+            throw new BadRequestException("Confirm password is different from ney password");
         }
 
-        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
 

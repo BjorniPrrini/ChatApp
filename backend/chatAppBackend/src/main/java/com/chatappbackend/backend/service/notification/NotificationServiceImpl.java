@@ -3,6 +3,8 @@ package com.chatappbackend.backend.service.notification;
 import com.chatappbackend.backend.dto.notification.NotificationResponseDTO;
 import com.chatappbackend.backend.entity.Notification;
 import com.chatappbackend.backend.entity.User;
+import com.chatappbackend.backend.exception.ForbiddenException;
+import com.chatappbackend.backend.exception.ResourceNotFoundException;
 import com.chatappbackend.backend.repository.NotificationRepository;
 import com.chatappbackend.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -23,7 +25,7 @@ public class NotificationServiceImpl implements NotificationService{
 
     @Override
     public void notifyUser(Long userId, String type, String title, String content) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Notification notification = new Notification();
 
@@ -39,7 +41,7 @@ public class NotificationServiceImpl implements NotificationService{
 
     @Override
     public List<NotificationResponseDTO> getUserNotifications(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         List<Notification> notificationList = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
 
@@ -50,12 +52,11 @@ public class NotificationServiceImpl implements NotificationService{
 
     @Override
     public void markAsRead(Long userId, Long notificationId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
-
-        Notification notification = notificationRepository.findById(notificationId).orElseThrow(() -> new RuntimeException("Notification not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        Notification notification = notificationRepository.findById(notificationId).orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
 
         if(!notification.getUser().equals(user)){
-            throw new RuntimeException("This notification does not belong to the current user");
+            throw new ForbiddenException("This notification does not belong to the current user");
         }
 
         notification.setIsRead(true);

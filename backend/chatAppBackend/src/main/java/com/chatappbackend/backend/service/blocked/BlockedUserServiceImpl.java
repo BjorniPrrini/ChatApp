@@ -2,6 +2,8 @@ package com.chatappbackend.backend.service.blocked;
 
 import com.chatappbackend.backend.entity.BlockedUser;
 import com.chatappbackend.backend.entity.User;
+import com.chatappbackend.backend.exception.BadRequestException;
+import com.chatappbackend.backend.exception.ResourceNotFoundException;
 import com.chatappbackend.backend.repository.BlockedUserRepository;
 import com.chatappbackend.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -20,12 +22,11 @@ public class BlockedUserServiceImpl implements BlockedUserService{
 
     @Override
     public void blockUser(Long userId, Long otherUserId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
-
-        User targetUser = userRepository.findById(otherUserId).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User targetUser = userRepository.findById(otherUserId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if(blockedUserRepository.existsByBlockerIdAndBlockedId(user, targetUser)){
-            throw new RuntimeException("User is already blocked");
+            throw new BadRequestException("User is already blocked");
         }
 
         BlockedUser blockedUser = new BlockedUser();
@@ -39,12 +40,11 @@ public class BlockedUserServiceImpl implements BlockedUserService{
 
     @Override
     public void unblockUser(Long userId, Long otherUserId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
-
-        User targetUser = userRepository.findById(otherUserId).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User targetUser = userRepository.findById(otherUserId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if(!blockedUserRepository.existsByBlockerIdAndBlockedId(user, targetUser)){
-            throw new RuntimeException("User is not blocked");
+            throw new BadRequestException("User is not blocked");
         }
 
         blockedUserRepository.deleteByBlockerIdAndBlockedId(user, targetUser);
@@ -52,9 +52,8 @@ public class BlockedUserServiceImpl implements BlockedUserService{
 
     @Override
     public boolean isBlocked(Long userId, Long otherUserId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
-
-        User targetUser = userRepository.findById(otherUserId).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User targetUser = userRepository.findById(otherUserId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         return blockedUserRepository.existsByBlockerIdAndBlockedId(user, targetUser) || blockedUserRepository.existsByBlockerIdAndBlockedId(targetUser, user);
     }

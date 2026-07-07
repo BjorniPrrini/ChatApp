@@ -7,6 +7,9 @@ import com.chatappbackend.backend.entity.Conversation;
 import com.chatappbackend.backend.entity.Message;
 import com.chatappbackend.backend.entity.MessageDelete;
 import com.chatappbackend.backend.entity.User;
+import com.chatappbackend.backend.exception.BadRequestException;
+import com.chatappbackend.backend.exception.ForbiddenException;
+import com.chatappbackend.backend.exception.ResourceNotFoundException;
 import com.chatappbackend.backend.repository.*;
 import com.chatappbackend.backend.service.blocked.BlockedUserService;
 import org.springframework.data.domain.PageRequest;
@@ -37,14 +40,12 @@ public class MessageServiceImpl implements MessageService{
 
     @Override
     public MessageResponseDTO sendMessage(Long userId, MessageRequestDTO request) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
-
-        Conversation conversation = conversationRepository.findById(request.getConversationId()).orElseThrow(() -> new RuntimeException("Conversation not found"));
-
-        User otherUser = conversationParticipantRepository.findOtherParticipant(request.getConversationId(), userId).orElseThrow(() -> new RuntimeException("Participant not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        Conversation conversation = conversationRepository.findById(request.getConversationId()).orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
+        User otherUser = conversationParticipantRepository.findOtherParticipant(request.getConversationId(), userId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
 
         if(blockedUserService.isBlocked(userId, otherUser.getId())){
-            throw new RuntimeException("Cannot send message to this user");
+            throw new BadRequestException("Cannot send message to this user");
         }
 
         Message message = new Message();
@@ -56,7 +57,7 @@ public class MessageServiceImpl implements MessageService{
         message.setStatus("sent");
 
         if(request.getReplyToId() != null){
-            Message replyTo = messageRepository.findById(request.getReplyToId()).orElseThrow(() -> new RuntimeException("Message not found"));
+            Message replyTo = messageRepository.findById(request.getReplyToId()).orElseThrow(() -> new ResourceNotFoundException("Message not found"));
 
             message.setReplyTo(replyTo);
         }
@@ -86,9 +87,8 @@ public class MessageServiceImpl implements MessageService{
 
     @Override
     public void deleteMessageForMe(Long userId, Long messageId) {
-        Message message = messageRepository.findById(messageId).orElseThrow(() -> new RuntimeException("Message not found"));
-
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        Message message = messageRepository.findById(messageId).orElseThrow(() -> new ResourceNotFoundException("Message not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         MessageDelete messageDelete = new MessageDelete();
 
@@ -99,7 +99,6 @@ public class MessageServiceImpl implements MessageService{
         messageDeleteRepository.save(messageDelete);
 
         long deleteCount = messageDeleteRepository.countByMessage(message);
-
         long participantCount = conversationParticipantRepository.countByConversationId(message.getConversation().getId());
 
         if(deleteCount >= participantCount){
@@ -109,14 +108,14 @@ public class MessageServiceImpl implements MessageService{
 
     @Override
     public void deleteMessageForEveryone(Long userId, Long messageId) {
-        Message message = messageRepository.findById(messageId).orElseThrow(() -> new RuntimeException("Message not found"));
+        Message message = messageRepository.findById(messageId).orElseThrow(() -> new ResourceNotFoundException("Message not found"));
 
         if(!message.getSender().getId().equals(userId)){
-            throw new RuntimeException("You can only delete your own message");
+            throw new ForbiddenException("You can only delete your own message");
         }
 
         if(message.getSentAt().isBefore(LocalDateTime.now().minusMinutes(1))){
-            throw new RuntimeException("You can't delete a message after 1 minutes");
+            throw new BadRequestException("You can't delete a message after 1 minutes");
         }
 
         messageRepository.delete(message);
@@ -124,14 +123,14 @@ public class MessageServiceImpl implements MessageService{
 
     @Override
     public MessageResponseDTO editMessage(Long userId, Long messageId, String newMessage) {
-        Message message = messageRepository.findById(messageId).orElseThrow(() -> new RuntimeException("Message not found"));
+        Message message = messageRepository.findById(messageId).orElseThrow(() -> new ResourceNotFoundException("Message not found"));
 
         if(!Objects.equals(message.getSender().getId(), userId)){
-            throw new RuntimeException("You are not this message sender");
+            throw new ForbiddenException("You are not this message sender");
         }
 
         if(message.getSentAt().isBefore(LocalDateTime.now().minusMinutes(15))){
-            throw new RuntimeException("You can't edit a message after 15 minutes");
+            throw new BadRequestException("You can't edit a message after 15 minutes");
         }
 
         message.setMessage(newMessage);

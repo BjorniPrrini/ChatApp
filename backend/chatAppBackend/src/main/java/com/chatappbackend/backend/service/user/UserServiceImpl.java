@@ -3,6 +3,9 @@ package com.chatappbackend.backend.service.user;
 import com.chatappbackend.backend.dto.user.UserRequestDTO;
 import com.chatappbackend.backend.dto.user.UserResponseDTO;
 import com.chatappbackend.backend.entity.User;
+import com.chatappbackend.backend.exception.BadRequestException;
+import com.chatappbackend.backend.exception.ForbiddenException;
+import com.chatappbackend.backend.exception.ResourceNotFoundException;
 import com.chatappbackend.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,7 +17,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -31,20 +33,19 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public UserResponseDTO getUserById(Long id){
-        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         return mapToDTO(user);
     }
 
     @Override
     public UserResponseDTO updateProfile(Long id, UserRequestDTO request) {
-        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         user.setName(request.getName());
         user.setSurname(request.getSurname());
         user.setNickname(request.getNickname());
         user.setPhoneNumber(request.getPhoneNumber());
-        user.setCreatedAt(LocalDateTime.now());
 
         User savedUser = userRepository.save(user);
 
@@ -53,14 +54,14 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public void changePassword(Long id, String currentPassword, String newPassword, String confirmPassword) {
-        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if(!newPassword.equals(confirmPassword)){
-            throw new RuntimeException("New password does not mach confirm password");
+            throw new BadRequestException("New password does not mach confirm password");
         }
 
         if(!passwordEncoder.matches(currentPassword, user.getPasswordHash())){
-            throw new RuntimeException("Current password is incorrect");
+            throw new BadRequestException("Current password is incorrect");
         }
 
         user.setPasswordHash(passwordEncoder.encode(newPassword));
@@ -88,7 +89,7 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public UserResponseDTO updateProfilePicture(Long userId, MultipartFile file) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         String originalFilename = file.getOriginalFilename();
 
@@ -106,13 +107,13 @@ public class UserServiceImpl implements UserService{
             Path filePath = uploadPath.resolve(generatedName).normalize();
 
             if(!filePath.startsWith(uploadPath)){
-                throw new RuntimeException("Invalid file path");
+                throw new ForbiddenException("Invalid file path");
             }
 
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to save file");
+            throw new BadRequestException("Failed to save file");
         }
 
         user.setProfilePicture("uploads/avatars/" + generatedName);
