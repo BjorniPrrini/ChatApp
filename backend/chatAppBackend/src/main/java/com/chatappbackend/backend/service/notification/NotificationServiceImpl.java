@@ -44,7 +44,7 @@ public class NotificationServiceImpl implements NotificationService{
         List<Notification> notificationList = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
 
         return notificationList.stream()
-                .map(notification -> mapToDTO(notification))
+                .map(notification -> mapToDto(notification))
                 .collect(Collectors.toList());
     }
 
@@ -68,7 +68,7 @@ public class NotificationServiceImpl implements NotificationService{
         notificationRepository.markAllAsReadByUserId(userId);
     }
 
-    private NotificationResponseDTO mapToDTO(Notification notification){
+    private NotificationResponseDTO mapToDto(Notification notification){
         NotificationResponseDTO notificationResponse = new NotificationResponseDTO();
 
         notificationResponse.setContent(notification.getContent());
