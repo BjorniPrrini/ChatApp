@@ -3,6 +3,7 @@ package com.chatappbackend.backend.controller;
 import com.chatappbackend.backend.dto.message.MessageRequestDTO;
 import com.chatappbackend.backend.dto.message.MessageResponseDTO;
 import com.chatappbackend.backend.repository.ConversationParticipantRepository;
+import com.chatappbackend.backend.repository.MessageRepository;
 import com.chatappbackend.backend.service.message.MessageService;
 import com.chatappbackend.backend.service.notification.NotificationService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -17,12 +18,14 @@ public class WebSocketController {
     private final SimpMessagingTemplate messagingTemplate;
     private final NotificationService notificationService;
     private final ConversationParticipantRepository conversationParticipantRepository;
+    private final MessageRepository messageRepository;
 
-    public WebSocketController(MessageService service, SimpMessagingTemplate messagingTemplate, NotificationService notificationService, ConversationParticipantRepository conversationParticipantRepository) {
+    public WebSocketController(MessageService service, SimpMessagingTemplate messagingTemplate, NotificationService notificationService, ConversationParticipantRepository conversationParticipantRepository, MessageRepository messageRepository) {
         this.service = service;
         this.messagingTemplate = messagingTemplate;
         this.notificationService = notificationService;
         this.conversationParticipantRepository = conversationParticipantRepository;
+        this.messageRepository = messageRepository;
     }
 
     @MessageMapping("/chat.send")
@@ -36,6 +39,7 @@ public class WebSocketController {
         conversationParticipantRepository.findOtherParticipant(request.getConversationId(), userId)
                 .ifPresent(receiver -> {
                     notificationService.notifyUser(receiver.getId(), "NEW_MESSAGE", "New message from " + message.getSenderName(), message.getMessage());
+                    messageRepository.markAsDelivered(message.getId());
                 });
     }
 }

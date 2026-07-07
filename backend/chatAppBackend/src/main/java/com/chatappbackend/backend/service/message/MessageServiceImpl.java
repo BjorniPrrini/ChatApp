@@ -68,6 +68,8 @@ public class MessageServiceImpl implements MessageService{
 
     @Override
     public MessagePageDTO getMessages(Long userId, Long conversationId, LocalDateTime before) {
+        messageRepository.markMessagesAsRead(conversationId, userId);
+
         List<Message> messages = messageRepository.findMessages(conversationId, before, PageRequest.of(0, 50));
 
         List<MessageResponseDTO> messagesResponse = messages.stream()

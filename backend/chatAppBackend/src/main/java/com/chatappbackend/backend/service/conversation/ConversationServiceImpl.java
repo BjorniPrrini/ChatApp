@@ -8,6 +8,7 @@ import com.chatappbackend.backend.entity.User;
 import com.chatappbackend.backend.repository.ConversationParticipantRepository;
 import com.chatappbackend.backend.repository.ConversationRepository;
 import com.chatappbackend.backend.repository.UserRepository;
+import com.chatappbackend.backend.service.blocked.BlockedUserServiceImpl;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -20,17 +21,23 @@ public class ConversationServiceImpl implements ConversationService{
     private final ConversationRepository conversationRepository;
     private final ConversationParticipantRepository conversationParticipantRepository;
     private final UserRepository userRepository;
+    private final BlockedUserServiceImpl blockedUserService;
 
-    public ConversationServiceImpl(ConversationRepository conversationRepository, ConversationParticipantRepository conversationParticipantRepository, UserRepository userRepository){
+    public ConversationServiceImpl(ConversationRepository conversationRepository, ConversationParticipantRepository conversationParticipantRepository, UserRepository userRepository, BlockedUserServiceImpl blockedUserService){
         this.conversationRepository = conversationRepository;
         this.conversationParticipantRepository = conversationParticipantRepository;
         this.userRepository = userRepository;
+        this.blockedUserService = blockedUserService;
     }
 
     @Override
     public ConversationResponseDTO createConversation(Long userId, ConversationRequestDTO request) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
         User receiver = userRepository.findById(request.getReceiverId()).orElseThrow(() -> new RuntimeException("Receiver not found"));
+
+        if(blockedUserService.isBlocked(userId, receiver.getId())){
+            throw new RuntimeException("This user is blocked");
+        }
 
         Optional<Conversation> existing = conversationRepository.findDMBetweenUsers(userId, request.getReceiverId());
 
