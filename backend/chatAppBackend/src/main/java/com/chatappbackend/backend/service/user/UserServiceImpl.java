@@ -4,11 +4,19 @@ import com.chatappbackend.backend.dto.user.UserRequestDTO;
 import com.chatappbackend.backend.dto.user.UserResponseDTO;
 import com.chatappbackend.backend.entity.User;
 import com.chatappbackend.backend.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -73,6 +81,45 @@ public class UserServiceImpl implements UserService{
         return users.stream()
                 .map(user -> mapToDTO(user))
                 .collect(Collectors.toList());
+    }
+
+    @Value("${file.upload-dir}")
+    private String directoryName;
+
+    @Override
+    public UserResponseDTO updateProfilePicture(Long userId, MultipartFile file) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+
+        String originalFilename = file.getOriginalFilename();
+
+        String extension = originalFilename.substring(originalFilename.lastIndexOf(".")).replaceAll("[^a-zA-Z0-9.]", "");
+
+        String generatedName = UUID.randomUUID() + extension;
+
+        Path uploadPath = Paths.get(directoryName + "avatars/").toAbsolutePath().normalize();
+
+        try {
+            if(!Files.exists(uploadPath)){
+                Files.createDirectories(uploadPath);
+            }
+
+            Path filePath = uploadPath.resolve(generatedName).normalize();
+
+            if(!filePath.startsWith(uploadPath)){
+                throw new RuntimeException("Invalid file path");
+            }
+
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save file");
+        }
+
+        user.setProfilePicture("uploads/avatars/" + generatedName);
+
+        User savedUser = userRepository.save(user);
+
+        return mapToDTO(savedUser);
     }
 
     private UserResponseDTO mapToDTO(User user) {

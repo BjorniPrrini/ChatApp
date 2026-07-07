@@ -8,6 +8,7 @@ import com.chatappbackend.backend.service.user.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -48,5 +49,12 @@ public class UserController {
     @GetMapping("/searchUsers")
     public ResponseEntity<List<UserResponseDTO>> searchUsers(@RequestParam String searchTerm){
         return ResponseEntity.ok(service.searchUsers(searchTerm));
+    }
+
+    @PutMapping("/profile-picture")
+    public ResponseEntity<UserResponseDTO> updateProfilePicture(@RequestParam MultipartFile file){
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        return ResponseEntity.ok(service.updateProfilePicture(currentUser.getId(), file));
     }
 }
