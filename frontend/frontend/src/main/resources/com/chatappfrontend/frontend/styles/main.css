@@ -1,0 +1,58 @@
+.root {
+    -fx-background-color: #0d0d0d;
+    -fx-font-family: "Segoe UI";
+}
+
+.app-title {
+    -fx-font-size: 42px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffffff;
+}
+
+.subtitle {
+    -fx-font-size: 16px;
+    -fx-text-fill: #888888;
+}
+
+.text-field, .password-field {
+    -fx-background-color: #1a1a1a;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #555555;
+    -fx-border-color: #00ff88;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 12;
+    -fx-effect: dropshadow(gaussian, #00ff88, 5, 0.2, 0, 0);
+}
+
+.primary-button {
+    -fx-background-color: #00ff88;
+    -fx-text-fill: #000000;
+    -fx-font-weight: bold;
+    -fx-border-color: #00ff88;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 12;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, #00ff88, 2, 0.1, 0, 0);
+}
+
+.primary-button:hover {
+    -fx-background-color: #0d0d0d;
+    -fx-text-fill: #00ff88;
+    -fx-effect: dropshadow(gaussian, #00ff88, 5, 0.2, 0, 0);
+}
+
+.hyperlink {
+    -fx-text-fill: #00ff88;
+    -fx-border-color: transparent;
+}
+
+.hyperlink:hover {
+    -fx-text-fill: #00cc6a;
+}
+
+.error-label {
+    -fx-text-fill: #ff4444;
+    -fx-font-size: 13px;
+}

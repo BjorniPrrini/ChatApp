@@ -4,6 +4,9 @@ module com.chatappfrontend.frontend {
 
     requires org.controlsfx.controls;
     requires net.synedra.validatorfx;
+    requires static lombok;
+    requires java.net.http;
+    requires com.fasterxml.jackson.databind;
 
     opens com.chatappfrontend.frontend to javafx.fxml;
     exports com.chatappfrontend.frontend;
