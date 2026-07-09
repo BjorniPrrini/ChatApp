@@ -3,11 +3,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<BorderPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.chatappfrontend.frontend.controller.LoginController"
-            stylesheets="@../styles/main.css">
-
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.chatappfrontend.frontend.controller.LoginController" stylesheets="@../styles/main.css">
     <center>
         <VBox alignment="CENTER" spacing="15">
             <padding>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.geometry.Insets?>
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.chatappfrontend.frontend.controller.RegistrationController" stylesheets="@../styles/main.css">
+    <center>
+        <VBox alignment="CENTER" spacing="15">
+            <padding>
+                <Insets top="50" bottom="50" left="100" right="100"/>
+            </padding>
+
+            <Label text="BP-Chat" styleClass="app-title"/>
+            <Label text="Welcome" styleClass="subtitle"/>
+
+            <TextField fx:id="nameField" promptText="Name" maxWidth="350"/>
+            <TextField fx:id="surnameField" promptText="Surname" maxWidth="350"/>
+            <TextField fx:id="nicknameField" promptText="Nickname - Optional" maxWidth="350"/>
+            <TextField fx:id="emailField" promptText="Email" maxWidth="350"/>
+            <PasswordField fx:id="passwordField" promptText="Password" maxWidth="350"/>
+            <PasswordField fx:id="confirmPasswordField" promptText="Confirm password" maxWidth="350"/>
+            <TextField fx:id="phoneNumberField" promptText="Phone number" maxWidth="350"/>
+
+            <Label fx:id="errorLabel" styleClass="error-label" visible="false" maxWidth="350"/>
+
+            <Button fx:id="registerButton" text="Register" maxWidth="350" onAction="#handleRegister" styleClass="primary-button"/>
+
+            <ProgressIndicator fx:id="loadingSpinner" visible="false" maxWidth="30"/>
+
+            <Hyperlink text="Already have an account? Login" onAction="#handleLogin"/>
+        </VBox>
+    </center>
+</BorderPane>

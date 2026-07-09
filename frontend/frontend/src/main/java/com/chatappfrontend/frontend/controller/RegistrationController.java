@@ -1,47 +1,78 @@
 package com.chatappfrontend.frontend.controller;
 
-import com.chatappfrontend.frontend.service.AuthService;
 import com.chatappfrontend.frontend.model.AuthResponseDTO;
-
+import com.chatappfrontend.frontend.service.AuthService;
 import com.chatappfrontend.frontend.util.SceneManager;
 import com.chatappfrontend.frontend.util.SessionManager;
-
 import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.util.Duration;
 
-public class LoginController {
+public class RegistrationController {
+    @FXML
+    private TextField nameField;
+    @FXML
+    private TextField surnameField;
+    @FXML
+    private TextField nicknameField;
     @FXML
     private TextField emailField;
     @FXML
     private PasswordField passwordField;
     @FXML
-    private Button loginButton;
+    private PasswordField confirmPasswordField;
+    @FXML
+    private TextField phoneNumberField;
     @FXML
     private Label errorLabel;
+    @FXML
+    private Button registerButton;
     @FXML
     private ProgressIndicator loadingSpinner;
 
     @FXML
-    public void handleLogin() throws Exception {
+    public void handleRegister(){
+        String name = nameField.getText().trim();
+        String surname = surnameField.getText().trim();
+        String nickname = nicknameField.getText().trim();
         String email = emailField.getText().trim();
         String password = passwordField.getText().trim();
+        String confirmPassword = confirmPasswordField.getText().trim();
+        String phoneNumber = phoneNumberField.getText().trim();
 
-        if(email.isEmpty() || password.isEmpty()){
+        if(name.isEmpty() || surname.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()){
             showError("Empty fields");
 
             return;
         }
 
+        if(!password.equals(confirmPassword)){
+            showError("Confirm password does not mach password");
+
+            return;
+        }
+
+        if(password.length() < 8){
+            showError("Password length should be 8 characters or more");
+
+            return;
+        }
+
+        if(!email.contains("@")){
+            showError("Not a valid email");
+
+            return;
+        }
+
         loadingSpinner.setVisible(true);
-        loginButton.setDisable(true);
+        registerButton.setDisable(true);
         errorLabel.setVisible(false);
 
         try {
             AuthService authService = new AuthService();
 
-            AuthResponseDTO response = authService.login(email, password);
+            AuthResponseDTO response = authService.register(name, surname, email, password, confirmPassword, nickname, phoneNumber);
 
             SessionManager.getInstance().setToken(response.getToken());
             SessionManager.getInstance().setUserId(response.getId());
@@ -50,28 +81,19 @@ public class LoginController {
 
             SceneManager.switchTo("chat.fxml");
         } catch (Exception e) {
-            showError("Invalid email or password");
+            showError("Registration failed");
         } finally {
             loadingSpinner.setVisible(false);
-            loginButton.setDisable(false);
+            registerButton.setDisable(false);
         }
     }
 
     @FXML
-    public void handleRegister(){
+    public void handleLogin(){
         try {
-            SceneManager.switchTo("register-page.fxml");
+            SceneManager.switchTo("login-page.fxml");
         } catch (Exception e) {
-            showError("Can't load registration page");
-        }
-    }
-
-    @FXML
-    public void handleForgotPassword(){
-        try {
-            SceneManager.switchTo("forgot-password.fxml");
-        } catch (Exception e) {
-            showError("Can't load page");
+            showError("Can't load login page");
         }
     }
 

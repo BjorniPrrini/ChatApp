@@ -7,6 +7,7 @@ module com.chatappfrontend.frontend {
     requires static lombok;
     requires java.net.http;
     requires com.fasterxml.jackson.databind;
+    requires java.desktop;
 
     opens com.chatappfrontend.frontend to javafx.fxml;
     exports com.chatappfrontend.frontend;
