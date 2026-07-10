@@ -26,7 +26,7 @@
 
             <Button fx:id="registerButton" text="Register" maxWidth="350" onAction="#handleRegister" styleClass="primary-button"/>
 
-            <ProgressIndicator fx:id="loadingSpinner" visible="false" maxWidth="30"/>
+            <ProgressIndicator fx:id="loadingSpinner" visible="false" maxWidth="30" managed="false"/>
 
             <Hyperlink text="Already have an account? Login" onAction="#handleLogin"/>
         </VBox>

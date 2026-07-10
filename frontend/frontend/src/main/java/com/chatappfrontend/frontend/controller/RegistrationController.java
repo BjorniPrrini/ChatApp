@@ -66,6 +66,7 @@ public class RegistrationController {
         }
 
         loadingSpinner.setVisible(true);
+        loadingSpinner.setManaged(true);
         registerButton.setDisable(true);
         errorLabel.setVisible(false);
 
@@ -84,6 +85,7 @@ public class RegistrationController {
             showError("Registration failed");
         } finally {
             loadingSpinner.setVisible(false);
+            loadingSpinner.setManaged(false);
             registerButton.setDisable(false);
         }
     }
@@ -97,13 +99,13 @@ public class RegistrationController {
         }
     }
 
-    private void showError(String message) {
+    private void showError(String message){
         errorLabel.setText(message);
         errorLabel.setVisible(true);
 
         PauseTransition pause = new PauseTransition(Duration.seconds(5));
 
-        pause.setOnFinished(event -> errorLabel.setVisible(false));
+        pause.setOnFinished(_ -> errorLabel.setVisible(false));
         pause.play();
     }
 }

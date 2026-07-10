@@ -55,4 +55,39 @@ public class AuthService {
             throw new Exception("Register failed: " + response.body());
         }
     }
+
+    public void forgotPassword(String email) throws Exception{
+        String body = String.format("{\"email\":\"%s\"}", email);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/forgot-password"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() != 200){
+            throw new Exception("Failed to send reset code");
+        }
+    }
+
+    public void resetPassword(String email, String token, String newPassword, String confirmPassword) throws Exception{
+        String body = String.format(
+                "{\"email\":\"%s\",\"token\":\"%s\",\"newPassword\":\"%s\",\"confirmPassword\":\"%s\"}",
+                email, token, newPassword, confirmPassword
+        );
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/reset-password"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() != 200){
+            throw new Exception("Failed to reset password");
+        }
+    }
 }

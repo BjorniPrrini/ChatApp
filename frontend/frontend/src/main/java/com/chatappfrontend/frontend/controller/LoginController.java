@@ -60,7 +60,7 @@ public class LoginController {
     @FXML
     public void handleRegister(){
         try {
-            SceneManager.switchTo("register-page.fxml");
+            SceneManager.switchTo("registration-page.fxml");
         } catch (Exception e) {
             showError("Can't load registration page");
         }
@@ -75,13 +75,13 @@ public class LoginController {
         }
     }
 
-    private void showError(String message) {
+    private void showError(String message){
         errorLabel.setText(message);
         errorLabel.setVisible(true);
 
         PauseTransition pause = new PauseTransition(Duration.seconds(5));
 
-        pause.setOnFinished(event -> errorLabel.setVisible(false));
+        pause.setOnFinished(_ -> errorLabel.setVisible(false));
         pause.play();
     }
 }
