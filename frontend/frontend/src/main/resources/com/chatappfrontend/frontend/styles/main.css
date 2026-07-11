@@ -56,3 +56,131 @@
     -fx-text-fill: #ff4444;
     -fx-font-size: 13px;
 }
+
+.chat-background {
+    -fx-background-color: #0d0d0d;
+}
+
+.icon-bar {
+    -fx-background-color: rgba(10, 10, 10, 0.95);
+    -fx-border-color: #00ff88;
+    -fx-border-width: 0 1 0 0;
+    -fx-effect: dropshadow(gaussian, #00ff88, 5, 0.2, 0, 0);
+}
+
+.icon-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #888888;
+    -fx-font-size: 20px;
+    -fx-cursor: hand;
+    -fx-padding: 10;
+    -fx-background-radius: 8;
+}
+
+.icon-button:hover {
+    -fx-text-fill: #00ff88;
+    -fx-background-color: rgba(0, 255, 136, 0.1);
+}
+
+.logout-button:hover {
+    -fx-text-fill: #ff4444;
+    -fx-background-color: rgba(255, 68, 68, 0.1);
+}
+
+.fixed-panel {
+    -fx-background-color: rgba(15, 15, 15, 0.95);
+    -fx-border-color: #1a1a1a;
+    -fx-border-width: 0 1 0 0;
+}
+
+.panel-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffffff;
+    -fx-padding: 0 0 10 0;
+}
+
+.search-field {
+    -fx-background-color: #1a1a1a;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #555555;
+    -fx-border-color: #333333;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-padding: 8 12;
+}
+
+.conversation-list {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.settings-button {
+    -fx-background-color: #1a1a1a;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #333333;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10 15;
+    -fx-cursor: hand;
+    -fx-max-width: infinity;
+}
+
+.settings-button:hover {
+    -fx-border-color: #00ff88;
+    -fx-text-fill: #00ff88;
+}
+
+.chat-area {
+    -fx-background-color: transparent;
+}
+
+.chat-header {
+    -fx-background-color: rgba(15, 15, 15, 0.9);
+    -fx-border-color: #1a1a1a;
+    -fx-border-width: 0 0 1 0;
+}
+
+.chat-name {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffffff;
+}
+
+.messages-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.messages-container {
+    -fx-background-color: transparent;
+}
+
+.message-input-area {
+    -fx-background-color: rgba(15, 15, 15, 0.9);
+    -fx-border-color: #1a1a1a;
+    -fx-border-width: 1 0 0 0;
+}
+
+.message-input {
+    -fx-background-color: #1a1a1a;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #555555;
+    -fx-border-color: #333333;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-padding: 10 15;
+}
+
+.message-input:focused {
+    -fx-border-color: #00ff88;
+    -fx-effect: dropshadow(gaussian, #00ff88, 5, 0.2, 0, 0);
+}
+
+.notification-label {
+    -fx-background-color: rgba(255, 68, 68, 0.9);
+    -fx-text-fill: #ffffff;
+    -fx-padding: 8 15;
+    -fx-background-radius: 5;
+    -fx-max-width: infinity;
+}

@@ -80,7 +80,7 @@ public class RegistrationController {
             SessionManager.getInstance().setNickname(response.getNickname());
             SessionManager.getInstance().setProfilePicture(response.getProfilePicture());
 
-            SceneManager.switchTo("chat.fxml");
+            SceneManager.switchTo("chat-page.fxml");
         } catch (Exception e) {
             showError("Registration failed");
         } finally {
@@ -106,6 +106,7 @@ public class RegistrationController {
         PauseTransition pause = new PauseTransition(Duration.seconds(5));
 
         pause.setOnFinished(_ -> errorLabel.setVisible(false));
+
         pause.play();
     }
 }

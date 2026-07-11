@@ -26,10 +26,14 @@ public class AuthService {
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        if(response.statusCode() == 200){
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
             return objectMapper.readValue(response.body(), AuthResponseDTO.class);
+        }else if(response.statusCode() == 401){
+            throw new Exception("Invalid email or password");
+        }else if(response.statusCode() == 404){
+            throw new Exception("User not found");
         }else{
-            throw new Exception("Login failed: " + response.body());
+            throw new Exception("Login failed: " + response.statusCode());
         }
     }
 
@@ -49,10 +53,14 @@ public class AuthService {
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        if(response.statusCode() == 200){
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
             return objectMapper.readValue(response.body(), AuthResponseDTO.class);
+        }else if(response.statusCode() == 400){
+            throw new Exception("Email already in use");
+        }else if(response.statusCode() == 409){
+            throw new Exception("User already exists");
         }else{
-            throw new Exception("Register failed: " + response.body());
+            throw new Exception("Registration failed: " + response.statusCode());
         }
     }
 
@@ -67,8 +75,10 @@ public class AuthService {
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        if(response.statusCode() != 200){
-            throw new Exception("Failed to send reset code");
+        if (response.statusCode() == 404){
+            throw new Exception("Email not found");
+        }else{
+            throw new Exception("Failed to send reset code: " + response.statusCode());
         }
     }
 
@@ -86,8 +96,12 @@ public class AuthService {
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        if(response.statusCode() != 200){
-            throw new Exception("Failed to reset password");
+        if(response.statusCode() == 400){
+            throw new Exception("Invalid or expired token");
+        }else if(response.statusCode() == 404){
+            throw new Exception("User not found");
+        }else{
+            throw new Exception("Failed to reset password: " + response.statusCode());
         }
     }
 }

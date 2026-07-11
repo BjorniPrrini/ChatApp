@@ -48,7 +48,7 @@ public class LoginController {
             SessionManager.getInstance().setNickname(response.getNickname());
             SessionManager.getInstance().setProfilePicture(response.getProfilePicture());
 
-            SceneManager.switchTo("chat.fxml");
+            SceneManager.switchTo("chat-page.fxml");
         } catch (Exception e) {
             showError("Invalid email or password");
         } finally {

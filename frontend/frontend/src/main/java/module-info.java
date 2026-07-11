@@ -10,7 +10,9 @@ module com.chatappfrontend.frontend {
     requires java.desktop;
 
     opens com.chatappfrontend.frontend to javafx.fxml;
+    opens com.chatappfrontend.frontend.controller to javafx.fxml;
+    opens com.chatappfrontend.frontend.model to com.fasterxml.jackson.databind;
+
     exports com.chatappfrontend.frontend;
     exports com.chatappfrontend.frontend.controller;
-    opens com.chatappfrontend.frontend.controller to javafx.fxml;
 }
