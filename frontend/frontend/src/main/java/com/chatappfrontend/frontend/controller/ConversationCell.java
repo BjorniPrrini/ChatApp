@@ -1,6 +1,6 @@
 package com.chatappfrontend.frontend.controller;
 
-import com.chatappfrontend.frontend.model.ConversationDTO;
+import com.chatappfrontend.frontend.model.ConversationResponseDTO;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -9,9 +9,9 @@ import javafx.scene.layout.VBox;
 
 import javafx.scene.image.ImageView;
 
-public class ConversationCell extends ListCell<ConversationDTO> {
+public class ConversationCell extends ListCell<ConversationResponseDTO> {
     @Override
-    protected void updateItem(ConversationDTO conversation, boolean empty) {
+    protected void updateItem(ConversationResponseDTO conversation, boolean empty) {
         super.updateItem(conversation, empty);
 
         if(empty || conversation == null){

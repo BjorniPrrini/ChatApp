@@ -1,10 +1,10 @@
 package com.chatappfrontend.frontend.controller;
 
-import com.chatappfrontend.frontend.model.ConversationDTO;
-import com.chatappfrontend.frontend.model.MessageDTO;
-import com.chatappfrontend.frontend.model.MessagePageDTO;
+import com.chatappfrontend.frontend.model.*;
 import com.chatappfrontend.frontend.service.ConversationService;
+import com.chatappfrontend.frontend.service.FriendService;
 import com.chatappfrontend.frontend.service.MessageService;
+import com.chatappfrontend.frontend.service.UserService;
 import com.chatappfrontend.frontend.util.SceneManager;
 import com.chatappfrontend.frontend.util.SessionManager;
 import javafx.animation.PauseTransition;
@@ -20,6 +20,18 @@ import java.util.List;
 
 public class ChatPageController {
     @FXML
+    public Button friendsIconButton;
+    @FXML
+    public VBox friendsPanel;
+    @FXML
+    public TextField friendSearchField;
+    @FXML
+    public ListView<UserResponseDTO> searchResultsList;
+    @FXML
+    public ListView<FriendResponseDTO> friendRequestsList;
+    @FXML
+    public ListView<FriendResponseDTO> friendsList;
+    @FXML
     private Label notificationLabel;
     @FXML
     private Pane backgroundPane;
@@ -34,7 +46,7 @@ public class ChatPageController {
     @FXML
     private TextField searchField;
     @FXML
-    private ListView<ConversationDTO> conversationList;
+    private ListView<ConversationResponseDTO> conversationList;
     @FXML
     private VBox settingsPanel;
     @FXML
@@ -59,14 +71,41 @@ public class ChatPageController {
         loadConversations();
 
         conversationList.setOnMouseClicked(_ -> {
-            ConversationDTO selected = conversationList.getSelectionModel().getSelectedItem();
+            ConversationResponseDTO selected = conversationList.getSelectionModel().getSelectedItem();
+
             if(selected != null){
                 openConversation(selected);
             }
         });
+
+        friendRequestsList.setCellFactory(_ -> new FriendRequestCell());
+        friendsList.setCellFactory(_ -> new FriendRequestCell());
+
+        friendSearchField.textProperty().addListener((_, _, newValue) -> {
+            if(newValue.length() >= 2){
+                searchUsers(newValue);
+            }else{
+                searchResultsList.getItems().clear();
+            }
+        });
     }
 
-    private void openConversation(ConversationDTO selected){
+    private void searchUsers(String term){
+        try {
+            UserService userService = new UserService();
+
+            List<UserResponseDTO> users = userService.searchUsers(term);
+
+            searchResultsList.setCellFactory(_ -> new UserCell());
+
+            searchResultsList.getItems().clear();
+            searchResultsList.getItems().addAll(users);
+        } catch (Exception e) {
+            showError("No users found");
+        }
+    }
+
+    private void openConversation(ConversationResponseDTO selected){
         currentConversationId = selected.getConversationId();
 
         chatNameLabel.setText(selected.getNickname() != null ? selected.getNickname() : selected.getName() + " " + selected.getSurname());
@@ -78,9 +117,9 @@ public class ChatPageController {
 
             MessagePageDTO messagePage = messageService.getMessages(currentConversationId, null);
 
-            List<MessageDTO> messages = messagePage.getMessages();
+            List<MessageResponseDTO> messages = messagePage.getMessages();
 
-            for(MessageDTO message : messages){
+            for(MessageResponseDTO message : messages){
                 HBox bubble = createMessageBubble(message);
 
                 messagesContainer.getChildren().add(bubble);
@@ -90,7 +129,7 @@ public class ChatPageController {
         }
     }
 
-    private HBox createMessageBubble(MessageDTO message){
+    private HBox createMessageBubble(MessageResponseDTO message){
         HBox hBox = new HBox();
         Label label = new Label(message.getMessage());
 
@@ -111,18 +150,19 @@ public class ChatPageController {
 
     @FXML
     public void showConversations(){
-        conversationsPanel.setVisible(true);
-        conversationsPanel.setManaged(true);
-        settingsPanel.setVisible(false);
-        settingsPanel.setManaged(false);
+        showPanel(conversationsPanel);
     }
 
     @FXML
     public void showSettings(){
-        settingsPanel.setVisible(true);
-        settingsPanel.setManaged(true);
-        conversationsPanel.setVisible(false);
-        conversationsPanel.setManaged(false);
+        showPanel(settingsPanel);
+    }
+
+    @FXML
+    public void showFriends() {
+        showPanel(friendsPanel);
+        loadFriendRequests();
+        loadFriends();
     }
 
     @FXML
@@ -140,7 +180,7 @@ public class ChatPageController {
         try {
             ConversationService service = new ConversationService();
 
-            List<ConversationDTO> conversations = service.getConversations();
+            List<ConversationResponseDTO> conversations = service.getConversations();
 
             conversationList.getItems().clear();
             conversationList.getItems().addAll(conversations);
@@ -151,14 +191,43 @@ public class ChatPageController {
 
     @FXML
     public void handleChangePassword(){
+
     }
 
     @FXML
     public void handleEditProfile(){
+
     }
 
     @FXML
     public void handleProfilePicture(){
+
+    }
+
+    public void loadFriendRequests(){
+        try {
+            FriendService friendService = new FriendService();
+
+            List<FriendResponseDTO> friendRequests = friendService.getFriendRequests();
+
+            friendRequestsList.getItems().clear();
+            friendRequestsList.getItems().addAll(friendRequests);
+        } catch (Exception e) {
+            showError("Couldn't get friend requests");
+        }
+    }
+
+    public void loadFriends(){
+        try {
+            FriendService friendService = new FriendService();
+
+            List<FriendResponseDTO> friends = friendService.getFriends();
+
+            friendsList.getItems().clear();
+            friendsList.getItems().addAll(friends);
+        } catch (Exception e) {
+            showError("Couldn't get friends");
+        }
     }
 
     @FXML
@@ -182,7 +251,8 @@ public class ChatPageController {
 
             messageService.sendMessage(currentConversationId, message);
 
-            MessageDTO newMessage = new MessageDTO();
+            MessageResponseDTO newMessage = new MessageResponseDTO();
+
             newMessage.setSenderId(SessionManager.getInstance().getUserId());
             newMessage.setMessage(message);
 
@@ -193,6 +263,22 @@ public class ChatPageController {
         } catch (Exception e) {
             showError("Couldn't send message");
         }
+    }
+
+    private void hideAllPanels(){
+        conversationsPanel.setVisible(false);
+        conversationsPanel.setManaged(false);
+        settingsPanel.setVisible(false);
+        settingsPanel.setManaged(false);
+        friendsPanel.setVisible(false);
+        friendsPanel.setManaged(false);
+    }
+
+    private void showPanel(VBox panel){
+        hideAllPanels();
+
+        panel.setVisible(true);
+        panel.setManaged(true);
     }
 
     private void showError(String message){

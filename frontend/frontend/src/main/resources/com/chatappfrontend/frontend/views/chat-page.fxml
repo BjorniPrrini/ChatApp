@@ -12,10 +12,11 @@
 
             <Button fx:id="chatsIconButton" text="💬" styleClass="icon-button" onAction="#showConversations"/>
             <Button fx:id="settingsIconButton" text="⚙️" styleClass="icon-button" onAction="#showSettings"/>
+            <Button fx:id="friendsIconButton" text="👥" styleClass="icon-button" onAction="#showFriends"/>
 
             <Region VBox.vgrow="ALWAYS"/>
 
-            <Button text="⏻" styleClass="icon-button logout-button" onAction="#handleLogout"/>
+            <Button text="⏻" styleClass="logout-button" onAction="#handleLogout"/>
         </VBox>
 
         <VBox fx:id="fixedPanel" styleClass="fixed-panel" prefWidth="280">
@@ -37,6 +38,21 @@
                 <Button text="Change Password" styleClass="settings-button" onAction="#handleChangePassword"/>
                 <Button text="Edit Profile" styleClass="settings-button" onAction="#handleEditProfile"/>
                 <Button text="Upload Profile Picture" styleClass="settings-button" onAction="#handleProfilePicture"/>
+            </VBox>
+
+            <VBox fx:id="friendsPanel" visible="false" managed="false" VBox.vgrow="ALWAYS">
+                <padding><Insets top="15" left="10" right="10" bottom="10"/></padding>
+
+                <Label text="Friends" styleClass="panel-title"/>
+
+                <TextField fx:id="friendSearchField" promptText="Search users..." styleClass="search-field"/>
+                <ListView fx:id="searchResultsList" prefHeight="150" styleClass="conversation-list"/>
+
+                <Label text="Friend Requests" styleClass="panel-title"/>
+                <ListView fx:id="friendRequestsList" prefHeight="150" styleClass="conversation-list"/>
+
+                <Label text="My Friends" styleClass="panel-title"/>
+                <ListView fx:id="friendsList" VBox.vgrow="ALWAYS" styleClass="conversation-list"/>
             </VBox>
         </VBox>
 

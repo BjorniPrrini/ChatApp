@@ -8,6 +8,6 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 public class MessagePageDTO {
-    private List<MessageDTO> messages;
+    private List<MessageResponseDTO> messages;
     private boolean hasMore;
 }
