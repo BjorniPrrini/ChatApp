@@ -14,4 +14,6 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, Lo
     Optional<FriendRequest> findBySenderIdAndReceiverId(Long senderId, Long receiverId);
     @Query("SELECT fr FROM FriendRequest fr WHERE (fr.sender.id = :userId OR fr.receiver.id = :userId) AND fr.status = 'accepted'")
     List<FriendRequest> findAcceptedFriendships(@Param("userId") Long userId);
+    @Query("SELECT COUNT(fr) > 0 FROM FriendRequest fr WHERE ((fr.sender.id = :userId AND fr.receiver.id = :otherId) OR (fr.sender.id = :otherId AND fr.receiver.id = :userId)) AND fr.status = 'accepted'")
+    boolean areFriends(@Param("userId") Long userId, @Param("otherId") Long otherId);
 }

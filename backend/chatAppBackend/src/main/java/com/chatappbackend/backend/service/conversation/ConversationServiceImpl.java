@@ -9,6 +9,7 @@ import com.chatappbackend.backend.exception.BadRequestException;
 import com.chatappbackend.backend.exception.ResourceNotFoundException;
 import com.chatappbackend.backend.repository.ConversationParticipantRepository;
 import com.chatappbackend.backend.repository.ConversationRepository;
+import com.chatappbackend.backend.repository.FriendRequestRepository;
 import com.chatappbackend.backend.repository.UserRepository;
 import com.chatappbackend.backend.service.blocked.BlockedUserService;
 import org.springframework.stereotype.Service;
@@ -24,12 +25,14 @@ public class ConversationServiceImpl implements ConversationService{
     private final ConversationParticipantRepository conversationParticipantRepository;
     private final UserRepository userRepository;
     private final BlockedUserService blockedUserService;
+    private final FriendRequestRepository friendRequestRepository;
 
-    public ConversationServiceImpl(ConversationRepository conversationRepository, ConversationParticipantRepository conversationParticipantRepository, UserRepository userRepository, BlockedUserService blockedUserService){
+    public ConversationServiceImpl(ConversationRepository conversationRepository, ConversationParticipantRepository conversationParticipantRepository, UserRepository userRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository){
         this.conversationRepository = conversationRepository;
         this.conversationParticipantRepository = conversationParticipantRepository;
         this.userRepository = userRepository;
         this.blockedUserService = blockedUserService;
+        this.friendRequestRepository = friendRequestRepository;
     }
 
     @Override
@@ -39,6 +42,10 @@ public class ConversationServiceImpl implements ConversationService{
 
         if(blockedUserService.isBlocked(userId, receiver.getId())){
             throw new BadRequestException("This user is blocked");
+        }
+
+        if(!friendRequestRepository.areFriends(userId, receiver.getId())){
+            throw new BadRequestException("You must be friends to message this user");
         }
 
         Optional<Conversation> existing = conversationRepository.findDMBetweenUsers(userId, request.getReceiverId());

@@ -28,14 +28,16 @@ public class MessageServiceImpl implements MessageService{
     private final MessageDeleteRepository messageDeleteRepository;
     private final ConversationParticipantRepository conversationParticipantRepository;
     private final BlockedUserService blockedUserService;
+    private final FriendRequestRepository friendRequestRepository;
 
-    public MessageServiceImpl(UserRepository userRepository, ConversationRepository conversationRepository, MessageRepository messageRepository, MessageDeleteRepository messageDeleteRepository, ConversationParticipantRepository conversationParticipantRepository, BlockedUserService blockedUserService){
+    public MessageServiceImpl(UserRepository userRepository, ConversationRepository conversationRepository, MessageRepository messageRepository, MessageDeleteRepository messageDeleteRepository, ConversationParticipantRepository conversationParticipantRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository){
         this.userRepository = userRepository;
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
         this.messageDeleteRepository = messageDeleteRepository;
         this.conversationParticipantRepository = conversationParticipantRepository;
         this.blockedUserService = blockedUserService;
+        this.friendRequestRepository = friendRequestRepository;
     }
 
     @Override
@@ -46,6 +48,10 @@ public class MessageServiceImpl implements MessageService{
 
         if(blockedUserService.isBlocked(userId, otherUser.getId())){
             throw new BadRequestException("Cannot send message to this user");
+        }
+
+        if(!friendRequestRepository.areFriends(userId, otherUser.getId())){
+            throw new BadRequestException("You must be friends to message this user");
         }
 
         Message message = new Message();
