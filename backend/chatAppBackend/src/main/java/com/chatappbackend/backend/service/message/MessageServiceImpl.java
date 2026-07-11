@@ -64,7 +64,7 @@ public class MessageServiceImpl implements MessageService{
 
         Message savedMessage = messageRepository.save(message);
 
-        return mapToDto(savedMessage);
+        return mapToDTO(savedMessage);
     }
 
     @Override
@@ -74,7 +74,7 @@ public class MessageServiceImpl implements MessageService{
         List<Message> messages = messageRepository.findMessages(conversationId, before, PageRequest.of(0, 50));
 
         List<MessageResponseDTO> messagesResponse = messages.stream()
-                .map(message -> mapToDto(message))
+                .map(this::mapToDTO)
                 .collect(Collectors.toList());
 
         MessagePageDTO messagesDto = new MessagePageDTO();
@@ -138,10 +138,10 @@ public class MessageServiceImpl implements MessageService{
 
         Message savedMessage = messageRepository.save(message);
 
-        return mapToDto(savedMessage);
+        return mapToDTO(savedMessage);
     }
 
-    private MessageResponseDTO mapToDto(Message message){
+    private MessageResponseDTO mapToDTO(Message message){
         MessageResponseDTO response = new MessageResponseDTO();
 
         response.setMessage(message.getMessage());

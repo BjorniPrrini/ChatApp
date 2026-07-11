@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/notification")
@@ -20,26 +21,24 @@ public class NotificationController {
 
     @GetMapping("/notifications")
     public ResponseEntity<List<NotificationResponseDTO>> getAllNotifications(){
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        return ResponseEntity.ok(service.getUserNotifications(currentUser.getId()));
+        return ResponseEntity.ok(service.getUserNotifications(getUser().getId()));
     }
 
     @PutMapping("/{notificationId}/read")
     public ResponseEntity<Void> maskAsRead(@PathVariable Long notificationId){
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        service.markAsRead(currentUser.getId(), notificationId);
+        service.markAsRead(getUser().getId(), notificationId);
 
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/read-all")
     public ResponseEntity<Void> maskAllAsRead(){
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        service.markAllAsRead(currentUser.getId());
+        service.markAllAsRead(getUser().getId());
 
         return ResponseEntity.ok().build();
+    }
+
+    private User getUser(){
+        return (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
     }
 }

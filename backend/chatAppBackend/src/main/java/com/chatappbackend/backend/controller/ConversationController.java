@@ -9,6 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/conversation")
@@ -21,33 +22,29 @@ public class ConversationController {
 
     @PostMapping("/createConversation")
     public ResponseEntity<ConversationResponseDTO> createConversation(@RequestBody ConversationRequestDTO request){
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        ConversationResponseDTO response = service.createConversation(currentUser.getId(), request);
+        ConversationResponseDTO response = service.createConversation(getUser().getId(), request);
 
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/getUserConversations")
     public ResponseEntity<List<ConversationResponseDTO>> getUserConversations(){
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        return ResponseEntity.ok(service.getUserConversations(currentUser.getId()));
+        return ResponseEntity.ok(service.getUserConversations(getUser().getId()));
     }
 
     @GetMapping("/{conversationId}")
     public  ResponseEntity<ConversationResponseDTO> getConversationById(@PathVariable Long conversationId){
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        return ResponseEntity.ok(service.getConversationById(currentUser.getId(), conversationId));
+        return ResponseEntity.ok(service.getConversationById(getUser().getId(), conversationId));
     }
 
     @DeleteMapping("/{conversationId}")
     public ResponseEntity<Void> deleteConversation(@PathVariable Long conversationId){
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        service.deleteConversation(currentUser.getId(), conversationId);
+        service.deleteConversation(getUser().getId(), conversationId);
 
         return ResponseEntity.ok().build();
+    }
+
+    private User getUser(){
+        return (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
     }
 }

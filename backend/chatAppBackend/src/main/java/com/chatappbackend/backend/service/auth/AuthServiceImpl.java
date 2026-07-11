@@ -42,7 +42,7 @@ public class AuthServiceImpl implements AuthService{
 
         String token = jwtUtil.generateToken(user.getId());
 
-        return buildResponse(user, token);
+        return mapToDTO(user, token);
     }
 
     @Override
@@ -70,7 +70,7 @@ public class AuthServiceImpl implements AuthService{
 
         String token = jwtUtil.generateToken(savedUser.getId());
 
-        return buildResponse(user, token);
+        return mapToDTO(user, token);
     }
 
     @Override
@@ -124,7 +124,7 @@ public class AuthServiceImpl implements AuthService{
         passwordResetTokenRepository.save(passwordResetToken);
     }
 
-    private AuthResponseDTO buildResponse(User user, String token){
+    private AuthResponseDTO mapToDTO(User user, String token){
         AuthResponseDTO response = new AuthResponseDTO();
 
         response.setToken(token);

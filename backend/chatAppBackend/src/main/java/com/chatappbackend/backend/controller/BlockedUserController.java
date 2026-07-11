@@ -6,6 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Objects;
+
 @RestController
 @RequestMapping("/api/block")
 public class BlockedUserController {
@@ -17,19 +19,19 @@ public class BlockedUserController {
 
     @PostMapping("/{otherUserId}")
     public ResponseEntity<Void> blockUser(@PathVariable Long otherUserId){
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        service.blockUser(currentUser.getId(), otherUserId);
+        service.blockUser(getUser().getId(), otherUserId);
 
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{otherUserId}")
     public ResponseEntity<Void> unblockUser(@PathVariable Long otherUserId){
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        service.unblockUser(currentUser.getId(), otherUserId);
+        service.unblockUser(getUser().getId(), otherUserId);
 
         return ResponseEntity.ok().build();
+    }
+
+    private User getUser(){
+        return (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
     }
 }

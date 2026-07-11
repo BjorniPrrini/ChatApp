@@ -10,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/message")
@@ -22,44 +23,38 @@ public class MessageController {
 
     @PostMapping("/sendMessage")
     public ResponseEntity<MessageResponseDTO> sendMessage(@RequestBody MessageRequestDTO request){
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        return ResponseEntity.ok(service.sendMessage(currentUser.getId(), request));
+        return ResponseEntity.ok(service.sendMessage(getUser().getId(), request));
     }
 
     @GetMapping("/{conversationId}")
     public ResponseEntity<MessagePageDTO> getMessages(@PathVariable Long conversationId, @RequestParam(required = false) LocalDateTime before){
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
         if(before == null){
             before = LocalDateTime.now();
         }
 
-        return ResponseEntity.ok(service.getMessages(currentUser.getId(), conversationId, before));
+        return ResponseEntity.ok(service.getMessages(getUser().getId(), conversationId, before));
     }
 
     @DeleteMapping("/{messageId}/me")
     public ResponseEntity<Void> deleteMessageForMe(@PathVariable Long messageId){
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        service.deleteMessageForMe(currentUser.getId(), messageId);
+        service.deleteMessageForMe(getUser().getId(), messageId);
 
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{messageId}/everyone")
     public ResponseEntity<Void> deleteMessageForEveryone(@PathVariable Long messageId){
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        service.deleteMessageForEveryone(currentUser.getId(), messageId);
+        service.deleteMessageForEveryone(getUser().getId(), messageId);
 
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{messageId}")
     public ResponseEntity<MessageResponseDTO> editMessage(@PathVariable Long messageId, @RequestParam String newMessage){
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(service.editMessage(getUser().getId(), messageId, newMessage));
+    }
 
-        return ResponseEntity.ok(service.editMessage(currentUser.getId(), messageId, newMessage));
+    private User getUser(){
+        return (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
     }
 }

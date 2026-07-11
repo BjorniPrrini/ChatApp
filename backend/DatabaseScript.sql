@@ -98,6 +98,16 @@ CREATE TABLE notifications(
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE friend_requests (
+    id BIGSERIAL PRIMARY KEY,
+    sender_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    receiver_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    status VARCHAR(20) DEFAULT 'pending',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(sender_id, receiver_id),
+    CHECK (sender_id <> receiver_id)
+);
+
 CREATE INDEX idx_messages_conversation
     ON messages(conversation_id, sent_at DESC);
 

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/users")
@@ -23,25 +24,19 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<UserResponseDTO> getUserById(){
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        return ResponseEntity.ok(service.getUserById(currentUser.getId()));
+        return ResponseEntity.ok(service.getUserById(getUser().getId()));
     }
 
     @PutMapping("/updateProfile")
     public ResponseEntity<UserResponseDTO> changeProfile(@RequestBody UserRequestDTO request){
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        UserResponseDTO response = service.updateProfile(currentUser.getId(), request);
+        UserResponseDTO response = service.updateProfile(getUser().getId(), request);
 
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/changePassword")
     public ResponseEntity<Void> changePassword(@RequestBody ChangePasswordRequestDTO request){
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        service.changePassword(currentUser.getId(), request.getCurrentPassword(), request.getNewPassword(), request.getConfirmPassword());
+        service.changePassword(getUser().getId(), request.getCurrentPassword(), request.getNewPassword(), request.getConfirmPassword());
 
         return ResponseEntity.ok().build();
     }
@@ -53,8 +48,10 @@ public class UserController {
 
     @PutMapping("/profile-picture")
     public ResponseEntity<UserResponseDTO> updateProfilePicture(@RequestParam MultipartFile file){
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(service.updateProfilePicture(getUser().getId(), file));
+    }
 
-        return ResponseEntity.ok(service.updateProfilePicture(currentUser.getId(), file));
+    private User getUser(){
+        return (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
     }
 }

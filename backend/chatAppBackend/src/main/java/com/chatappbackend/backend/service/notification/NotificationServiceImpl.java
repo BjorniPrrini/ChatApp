@@ -41,12 +41,10 @@ public class NotificationServiceImpl implements NotificationService{
 
     @Override
     public List<NotificationResponseDTO> getUserNotifications(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
         List<Notification> notificationList = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
 
         return notificationList.stream()
-                .map(notification -> mapToDto(notification))
+                .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
 

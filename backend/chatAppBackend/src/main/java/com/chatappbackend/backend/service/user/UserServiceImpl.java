@@ -80,7 +80,7 @@ public class UserServiceImpl implements UserService{
         }
 
         return users.stream()
-                .map(user -> mapToDTO(user))
+                .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
 
