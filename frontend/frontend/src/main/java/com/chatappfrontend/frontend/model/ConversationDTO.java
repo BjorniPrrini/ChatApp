@@ -1,8 +1,10 @@
 package com.chatappfrontend.frontend.model;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class ConversationDTO {
     private Long conversationId;
     private Long otherUserId;

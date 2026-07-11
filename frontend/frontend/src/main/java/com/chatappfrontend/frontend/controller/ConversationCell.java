@@ -31,8 +31,7 @@ public class ConversationCell extends ListCell<ConversationDTO> {
         Label lastMessageLabel = new Label();
         lastMessageLabel.setStyle("-fx-text-fill: #888888; -fx-font-size: 12px;");
 
-        String displayName = conversation.getNickname() != null && !conversation.getNickname().isEmpty() ? conversation.getNickname()
-                : conversation.getName() + " " + conversation.getSurname();
+        String displayName = conversation.getNickname() != null && !conversation.getNickname().isEmpty() ? conversation.getNickname() : conversation.getName() + " " + conversation.getSurname();
 
         nameLabel.setText(displayName);
         lastMessageLabel.setText(conversation.getLastMessage() != null ? conversation.getLastMessage() : "No messages yet");
