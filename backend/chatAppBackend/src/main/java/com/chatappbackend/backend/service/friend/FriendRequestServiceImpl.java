@@ -21,12 +21,14 @@ public class FriendRequestServiceImpl implements FriendRequestService{
     private final BlockedUserService blockedUserService;
     private final FriendRequestRepository friendRequestRepository;
     private final NotificationService notificationService;
+    private final FriendRequestService friendRequestService;
 
-    public FriendRequestServiceImpl(UserRepository userRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository, NotificationService notificationService) {
+    public FriendRequestServiceImpl(UserRepository userRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository, NotificationService notificationService, FriendRequestService friendRequestService) {
         this.userRepository = userRepository;
         this.blockedUserService = blockedUserService;
         this.friendRequestRepository = friendRequestRepository;
         this.notificationService = notificationService;
+        this.friendRequestService = friendRequestService;
     }
 
     @Override
@@ -162,6 +164,13 @@ public class FriendRequestServiceImpl implements FriendRequestService{
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void removeFriend(Long userId, Long friendId) {
+        FriendRequest friendRequest = friendRequestRepository.findAcceptedFriendship(userId, friendId).orElseThrow(() -> new ResourceNotFoundException("Friendship not found"));;
+
+        friendRequestRepository.delete(friendRequest);
     }
 
     private FriendResponseDTO mapToDTO(FriendRequest friendRequest){

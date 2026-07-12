@@ -60,6 +60,13 @@ public class FriendRequestController {
         return ResponseEntity.ok(friendRequestService.getSuggestedFriends(getUser().getId()));
     }
 
+    @DeleteMapping("/remove/{friendId}")
+    public ResponseEntity<Void> removeFriend(@PathVariable Long friendId){
+        friendRequestService.removeFriend(getUser().getId(), friendId);
+
+        return ResponseEntity.ok().build();
+    }
+
     private User getUser(){
         return (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
     }

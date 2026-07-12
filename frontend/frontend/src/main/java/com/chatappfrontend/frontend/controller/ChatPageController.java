@@ -88,18 +88,42 @@ public class ChatPageController {
             loadFriends();
         }));
 
-        friendsList.setCellFactory(_ -> new FriendsCell(otherUserId -> {
-            try {
-                ConversationService conversationService = new ConversationService();
+        friendsList.setCellFactory(_ -> new FriendsCell(
+                friendId -> {
+                    try {
+                        ConversationService conversationService = new ConversationService();
 
-                ConversationResponseDTO conversation = conversationService.createConversation(otherUserId);
+                        ConversationResponseDTO conversation = conversationService.createConversation(friendId);
 
-                showPanel(conversationsPanel);
-                openConversation(conversation);
-            } catch (Exception e) {
-                showError("Could not start conversation");
-            }
-        }));
+                        showPanel(conversationsPanel);
+                        openConversation(conversation);
+                    } catch (Exception e) {
+                        showError("Could not start conversation");
+                    }
+                },
+                friendId -> {
+                    try {
+                        FriendService friendService = new FriendService();
+
+                        friendService.removeFriend(SessionManager.getInstance().getUserId(), friendId);
+
+                        showPanel(friendsPanel);
+                    } catch (Exception e) {
+                        showError("Could not remove friend");
+                    }
+                },
+                friendId -> {
+                    try {
+                        FriendService friendService = new FriendService();
+
+                        friendService.blockFriend(friendId);
+
+                        showPanel(friendsPanel);
+                    } catch (Exception e) {
+                        showError("Could not block user");
+                    }
+                }
+        ));
 
         friendSearchField.setOnKeyPressed(event -> {
             if(event.getCode() == javafx.scene.input.KeyCode.ENTER){

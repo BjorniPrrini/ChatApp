@@ -6,6 +6,7 @@ import com.chatappfrontend.frontend.util.JsonMapper;
 import com.chatappfrontend.frontend.util.SessionManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -169,6 +170,52 @@ public class FriendService {
             return objectMapper.readValue(response.body(), objectMapper.getTypeFactory().constructCollectionType(List.class, FriendResponseDTO.class));
         }else{
             throw new Exception("Failed to get sent requests: " + response.statusCode());
+        }
+    }
+
+    public void removeFriend(Long userId, Long friendId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/remove/" + friendId))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .DELETE()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return;
+        }else if(response.statusCode() == 401){
+            throw new Exception("Unauthorized - please login again");
+        }else if(response.statusCode() == 403){
+            throw new Exception("Forbidden");
+        }else if(response.statusCode() == 404){
+            throw new Exception("Not found");
+        }else{
+            throw new Exception("Request failed: " + response.statusCode());
+        }
+    }
+
+    public void blockFriend(Long friendId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(AppConfig.get("api.base.url") + "/api/block/" + friendId))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return;
+        }else if(response.statusCode() == 401){
+            throw new Exception("Unauthorized - please login again");
+        }else if(response.statusCode() == 403){
+            throw new Exception("Forbidden");
+        }else if(response.statusCode() == 404){
+            throw new Exception("Not found");
+        }else{
+            throw new Exception("Request failed: " + response.statusCode());
         }
     }
 }

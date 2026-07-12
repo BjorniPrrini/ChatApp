@@ -12,4 +12,5 @@ public interface FriendRequestService {
     List<FriendResponseDTO> getFriends(Long userId);
     List<FriendResponseDTO> getSuggestedFriends(Long userId);
     List<FriendResponseDTO> getSentRequests(Long userId);
+    void removeFriend(Long userId, Long friendId);
 }

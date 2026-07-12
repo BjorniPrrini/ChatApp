@@ -6,11 +6,17 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 
-public class FriendsCell extends ListCell<FriendResponseDTO> {
-    private final java.util.function.Consumer<Long> onStartChat;
+import java.util.function.Consumer;
 
-    public FriendsCell(java.util.function.Consumer<Long> onStartChat) {
+public class FriendsCell extends ListCell<FriendResponseDTO> {
+    private final Consumer<Long> onStartChat;
+    private final Consumer<Long> onRemoveFriend;
+    private final Consumer<Long> onBlockFriend;
+
+    public FriendsCell(Consumer<Long> onStartChat, Consumer<Long> onRemoveFriend, Consumer<Long> onBlockFriend) {
         this.onStartChat = onStartChat;
+        this.onRemoveFriend = onRemoveFriend;
+        this.onBlockFriend = onBlockFriend;
     }
 
     @Override
@@ -44,7 +50,7 @@ public class FriendsCell extends ListCell<FriendResponseDTO> {
 
             MenuItem startChat = new MenuItem("Start Chat");
 
-            startChat.setOnAction(e -> {
+            startChat.setOnAction(_ -> {
                 Long currentUserId = SessionManager.getInstance().getUserId();
 
                 Long otherUserId;
@@ -60,8 +66,23 @@ public class FriendsCell extends ListCell<FriendResponseDTO> {
 
             MenuItem removeFriend = new MenuItem("Remove Friend");
 
+            removeFriend.setOnAction(_ -> {
+                Long currentUserID = SessionManager.getInstance().getUserId();
+
+                Long otherUserId = friend.getSenderId().equals(currentUserID) ? friend.getReceiverId() : friend.getSenderId();
+
+                onRemoveFriend.accept(otherUserId);
+            });
 
             MenuItem block = new MenuItem("Block");
+
+            block.setOnAction(_ -> {
+                Long currentUserId = SessionManager.getInstance().getUserId();
+
+                Long otherUserId = friend.getSenderId().equals(currentUserId) ? friend.getReceiverId() : friend.getSenderId();
+
+                onBlockFriend.accept(otherUserId);
+            });
 
             contextMenu.getItems().addAll(startChat, removeFriend, block);
             contextMenu.show(openMenu, javafx.geometry.Side.BOTTOM, 0, 0);
