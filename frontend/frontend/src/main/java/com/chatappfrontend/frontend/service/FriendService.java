@@ -2,6 +2,7 @@ package com.chatappfrontend.frontend.service;
 
 import com.chatappfrontend.frontend.model.FriendResponseDTO;
 import com.chatappfrontend.frontend.util.AppConfig;
+import com.chatappfrontend.frontend.util.JsonMapper;
 import com.chatappfrontend.frontend.util.SessionManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -13,7 +14,7 @@ import java.util.List;
 
 public class FriendService {
     private final HttpClient httpClient = HttpClient.newHttpClient();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapper.get();
     private static final String BASE_URL = AppConfig.get("api.base.url") + "/api/friends";
 
     public List<FriendResponseDTO> getFriends() throws Exception {
@@ -151,6 +152,23 @@ public class FriendService {
             throw new Exception("Not found");
         }else{
             throw new Exception("Request failed: " + response.statusCode());
+        }
+    }
+
+    public List<FriendResponseDTO> getSentRequests() throws Exception{
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/sent"))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .GET()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return objectMapper.readValue(response.body(), objectMapper.getTypeFactory().constructCollectionType(List.class, FriendResponseDTO.class));
+        }else{
+            throw new Exception("Failed to get sent requests: " + response.statusCode());
         }
     }
 }

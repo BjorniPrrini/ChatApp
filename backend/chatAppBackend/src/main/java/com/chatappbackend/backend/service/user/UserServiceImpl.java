@@ -70,16 +70,17 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public List<UserResponseDTO> searchUsers(String searchTerm) {
+    public List<UserResponseDTO> searchUsers(String searchTerm, Long currentUserId) {
         List<User> users;
 
         if(searchTerm.contains("@")){
             users = userRepository.findByEmailContainingIgnoreCase(searchTerm);
         }else{
-            users = userRepository.findByNicknameContainingIgnoreCase(searchTerm);
+            users = userRepository.searchByNicknameOrName(searchTerm);
         }
 
         return users.stream()
+                .filter(u -> !u.getId().equals(currentUserId))
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }

@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 @Data
 public class FriendResponseDTO {
     private Long senderId;
+    private Long receiverId;
     private Long requestId;
     private String name;
     private String surname;

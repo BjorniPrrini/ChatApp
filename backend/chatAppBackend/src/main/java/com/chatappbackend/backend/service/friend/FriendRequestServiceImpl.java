@@ -42,6 +42,10 @@ public class FriendRequestServiceImpl implements FriendRequestService{
             throw new BadRequestException("Request already sent");
         }
 
+        if(userId.equals(receiverId)){
+            throw new BadRequestException("You cannot send a friend request to yourself");
+        }
+
         FriendRequest friendRequest = new FriendRequest();
 
         friendRequest.setSender(user);
@@ -152,10 +156,19 @@ public class FriendRequestServiceImpl implements FriendRequestService{
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<FriendResponseDTO> getSentRequests(Long userId) {
+        return friendRequestRepository.findBySenderIdAndStatus(userId, "pending")
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
     private FriendResponseDTO mapToDTO(FriendRequest friendRequest){
         FriendResponseDTO response = new FriendResponseDTO();
 
         response.setRequestId(friendRequest.getId());
+        response.setReceiverId(friendRequest.getReceiver().getId());
         response.setSenderId(friendRequest.getSender().getId());
         response.setName(friendRequest.getSender().getName());
         response.setSurname(friendRequest.getSender().getSurname());

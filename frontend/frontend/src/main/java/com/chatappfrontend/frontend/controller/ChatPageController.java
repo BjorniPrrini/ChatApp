@@ -1,13 +1,11 @@
 package com.chatappfrontend.frontend.controller;
 
 import com.chatappfrontend.frontend.model.*;
-import com.chatappfrontend.frontend.service.ConversationService;
-import com.chatappfrontend.frontend.service.FriendService;
-import com.chatappfrontend.frontend.service.MessageService;
-import com.chatappfrontend.frontend.service.UserService;
+import com.chatappfrontend.frontend.service.*;
 import com.chatappfrontend.frontend.util.SceneManager;
 import com.chatappfrontend.frontend.util.SessionManager;
 import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -16,21 +14,23 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ChatPageController {
     @FXML
-    public Button friendsIconButton;
+    private Button friendsIconButton;
     @FXML
-    public VBox friendsPanel;
+    private VBox friendsPanel;
     @FXML
-    public TextField friendSearchField;
+    private TextField friendSearchField;
     @FXML
-    public ListView<UserResponseDTO> searchResultsList;
+    private ListView<UserResponseDTO> searchResultsList;
     @FXML
-    public ListView<FriendResponseDTO> friendRequestsList;
+    private ListView<FriendResponseDTO> friendRequestsList;
     @FXML
-    public ListView<FriendResponseDTO> friendsList;
+    private ListView<FriendResponseDTO> friendsList;
     @FXML
     private Label notificationLabel;
     @FXML
@@ -63,10 +63,15 @@ public class ChatPageController {
     private TextField messageInput;
 
     private Long currentConversationId;
+    private final WebSocketService webSocketService = new WebSocketService();
+    private Set<Long> friendIds = new HashSet<>();
+    private Set<Long> pendingIds = new HashSet<>();
 
     @FXML
     public void initialize(){
         conversationList.setCellFactory(_ -> new ConversationCell());
+
+        searchResultsList.setCellFactory(_ -> new UserCell(friendIds, pendingIds));
 
         loadConversations();
 
@@ -78,16 +83,39 @@ public class ChatPageController {
             }
         });
 
-        friendRequestsList.setCellFactory(_ -> new FriendRequestCell());
-        friendsList.setCellFactory(_ -> new FriendRequestCell());
+        friendRequestsList.setCellFactory(_ -> new FriendRequestCell(() -> {
+            loadFriendRequests();
+            loadFriends();
+        }));
 
-        friendSearchField.textProperty().addListener((_, _, newValue) -> {
-            if(newValue.length() >= 2){
-                searchUsers(newValue);
-            }else{
-                searchResultsList.getItems().clear();
+        friendsList.setCellFactory(_ -> new FriendsCell(otherUserId -> {
+            try {
+                ConversationService conversationService = new ConversationService();
+
+                ConversationResponseDTO conversation = conversationService.createConversation(otherUserId);
+
+                showPanel(conversationsPanel);
+                openConversation(conversation);
+            } catch (Exception e) {
+                showError("Could not start conversation");
+            }
+        }));
+
+        friendSearchField.setOnKeyPressed(event -> {
+            if(event.getCode() == javafx.scene.input.KeyCode.ENTER){
+                String term = friendSearchField.getText().trim();
+
+                if(term.length() >= 2){
+                    searchUsers(term);
+                }
             }
         });
+
+        try {
+            webSocketService.connect();
+        } catch (Exception e) {
+            showError("Could not connect to real time service");
+        }
     }
 
     private void searchUsers(String term){
@@ -96,17 +124,28 @@ public class ChatPageController {
 
             List<UserResponseDTO> users = userService.searchUsers(term);
 
-            searchResultsList.setCellFactory(_ -> new UserCell());
+            users = users.stream()
+                    .filter(u -> !u.getId().equals(SessionManager.getInstance().getUserId()))
+                    .toList();
 
             searchResultsList.getItems().clear();
             searchResultsList.getItems().addAll(users);
         } catch (Exception e) {
-            showError("No users found");
+            showError("User not found");
         }
     }
 
     private void openConversation(ConversationResponseDTO selected){
         currentConversationId = selected.getConversationId();
+
+        webSocketService.unsubscribe();
+        webSocketService.subscribe(currentConversationId, message -> {
+            Platform.runLater(() -> {
+                HBox bubble = createMessageBubble(message);
+
+                messagesContainer.getChildren().add(bubble);
+            });
+        });
 
         chatNameLabel.setText(selected.getNickname() != null ? selected.getNickname() : selected.getName() + " " + selected.getSurname());
 
@@ -159,7 +198,26 @@ public class ChatPageController {
     }
 
     @FXML
-    public void showFriends() {
+    public void showFriends(){
+        try {
+            FriendService friendService = new FriendService();
+
+            friendIds.clear();
+            pendingIds.clear();
+
+            Long currentUserId = SessionManager.getInstance().getUserId();
+
+            friendService.getFriends().forEach(f -> {
+                Long friendId = f.getSenderId().equals(currentUserId) ? f.getReceiverId() : f.getSenderId();
+
+                friendIds.add(friendId);
+            });
+
+            friendService.getSentRequests().forEach(f -> pendingIds.add(f.getReceiverId()));
+        } catch (Exception e) {
+            showError("Could not load friend status");
+        }
+
         showPanel(friendsPanel);
         loadFriendRequests();
         loadFriends();
@@ -167,6 +225,8 @@ public class ChatPageController {
 
     @FXML
     public void handleLogout(){
+        webSocketService.disconnect();
+
         SessionManager.getInstance().clear();
 
         try {
@@ -204,11 +264,16 @@ public class ChatPageController {
 
     }
 
-    public void loadFriendRequests(){
+    private void loadFriendRequests() {
         try {
             FriendService friendService = new FriendService();
 
             List<FriendResponseDTO> friendRequests = friendService.getFriendRequests();
+
+            friendRequestsList.setCellFactory(_ -> new FriendRequestCell(() -> {
+                loadFriendRequests();
+                loadFriends();
+            }));
 
             friendRequestsList.getItems().clear();
             friendRequestsList.getItems().addAll(friendRequests);

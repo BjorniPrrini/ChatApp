@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface MessageRepository extends JpaRepository<Message, Long> {
-    @Query("SELECT m FROM Message m WHERE m.conversation.id = :conversationId AND m.sentAt < :before ORDER BY m.sentAt DESC")
+    @Query("SELECT m FROM Message m WHERE m.conversation.id = :conversationId AND m.sentAt < :before ORDER BY m.sentAt ASC")
     List<Message> findMessages(@Param("conversationId") Long conversationId, @Param("before") LocalDateTime before, Pageable pageable);
     @Modifying
     @Transactional

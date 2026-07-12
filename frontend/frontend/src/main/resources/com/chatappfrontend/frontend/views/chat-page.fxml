@@ -19,7 +19,7 @@
             <Button text="⏻" styleClass="logout-button" onAction="#handleLogout"/>
         </VBox>
 
-        <VBox fx:id="fixedPanel" styleClass="fixed-panel" prefWidth="280">
+        <VBox fx:id="fixedPanel" styleClass="fixed-panel" prefWidth="300">
             <VBox fx:id="conversationsPanel" VBox.vgrow="ALWAYS">
                 <padding><Insets top="15" left="10" right="10" bottom="10"/></padding>
 
@@ -41,17 +41,27 @@
             </VBox>
 
             <VBox fx:id="friendsPanel" visible="false" managed="false" VBox.vgrow="ALWAYS">
-                <padding><Insets top="15" left="10" right="10" bottom="10"/></padding>
+                <padding>
+                    <Insets top="15" left="10" right="10" bottom="10"/>
+                </padding>
 
                 <Label text="Friends" styleClass="panel-title"/>
+                <Label text="Find Friends" styleClass="section-title"/>
 
-                <TextField fx:id="friendSearchField" promptText="Search users..." styleClass="search-field"/>
-                <ListView fx:id="searchResultsList" prefHeight="150" styleClass="conversation-list"/>
+                <TextField fx:id="friendSearchField" promptText="Search people..." styleClass="search-field"/>
 
-                <Label text="Friend Requests" styleClass="panel-title"/>
+                <ListView fx:id="searchResultsList" prefHeight="180" styleClass="conversation-list"/>
+
+                <Separator/>
+
+                <Label text="Friend Requests" styleClass="section-title"/>
+
                 <ListView fx:id="friendRequestsList" prefHeight="150" styleClass="conversation-list"/>
 
-                <Label text="My Friends" styleClass="panel-title"/>
+                <Separator/>
+
+                <Label text="My Friends" styleClass="section-title"/>
+
                 <ListView fx:id="friendsList" VBox.vgrow="ALWAYS" styleClass="conversation-list"/>
             </VBox>
         </VBox>

@@ -2,6 +2,7 @@ package com.chatappfrontend.frontend.service;
 
 import com.chatappfrontend.frontend.model.MessagePageDTO;
 import com.chatappfrontend.frontend.util.AppConfig;
+import com.chatappfrontend.frontend.util.JsonMapper;
 import com.chatappfrontend.frontend.util.SessionManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 
 public class MessageService {
     private final HttpClient httpClient = HttpClient.newHttpClient();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapper.get();
     private final static String BASE_URL = AppConfig.get("api.base.url") + "/api/message";
 
     public MessagePageDTO getMessages(Long conversationId, LocalDateTime before) throws IOException, InterruptedException {

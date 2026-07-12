@@ -43,7 +43,7 @@ public class UserController {
 
     @GetMapping("/searchUsers")
     public ResponseEntity<List<UserResponseDTO>> searchUsers(@RequestParam String searchTerm){
-        return ResponseEntity.ok(service.searchUsers(searchTerm));
+        return ResponseEntity.ok(service.searchUsers(searchTerm, getUser().getId()));
     }
 
     @PutMapping("/profile-picture")

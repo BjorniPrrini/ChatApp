@@ -2,6 +2,7 @@ package com.chatappfrontend.frontend.service;
 
 import com.chatappfrontend.frontend.model.UserResponseDTO;
 import com.chatappfrontend.frontend.util.AppConfig;
+import com.chatappfrontend.frontend.util.JsonMapper;
 import com.chatappfrontend.frontend.util.SessionManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -13,12 +14,12 @@ import java.util.List;
 
 public class UserService {
     private final HttpClient httpClient = HttpClient.newHttpClient();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapper.get();
     private static final String BASE_URL = AppConfig.get("api.base.url") + "/api/users";
 
     public List<UserResponseDTO> searchUsers(String searchTerm) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/searchUsers?searchTerm=" + searchTerm))
+                .uri(URI.create(BASE_URL + "/searchUsers?searchTerm=" + java.net.URLEncoder.encode(searchTerm, java.nio.charset.StandardCharsets.UTF_8)))
                 .header("Content-Type", "application/json")
                 .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
                 .GET()

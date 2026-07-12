@@ -7,8 +7,6 @@ import javafx.scene.control.ListCell;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
-import javafx.scene.image.ImageView;
-
 public class ConversationCell extends ListCell<ConversationResponseDTO> {
     @Override
     protected void updateItem(ConversationResponseDTO conversation, boolean empty) {
@@ -16,32 +14,35 @@ public class ConversationCell extends ListCell<ConversationResponseDTO> {
 
         if(empty || conversation == null){
             setGraphic(null);
+            setStyle("-fx-background-color: transparent;");
 
             return;
         }
 
-        ImageView avatar = new ImageView(conversation.getProfilePicture());
+        String displayName = conversation.getName().substring(0, 1).toUpperCase() + conversation.getName().substring(1).toLowerCase() + " " + conversation.getSurname().substring(0, 1).toUpperCase() + conversation.getSurname().substring(1).toLowerCase();
 
-        avatar.setFitWidth(45);
-        avatar.setFitHeight(45);
+        Label avatar = new Label(displayName.substring(0, 1).toUpperCase());
 
-        Label nameLabel = new Label();
-        nameLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: white;");
+        avatar.setStyle("-fx-background-color: #00ff88; -fx-text-fill: black; -fx-font-weight: bold; " + "-fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 20; -fx-alignment: center;");
 
-        Label lastMessageLabel = new Label();
-        lastMessageLabel.setStyle("-fx-text-fill: #888888; -fx-font-size: 12px;");
+        Label nameLabel = new Label(displayName);
 
-        String displayName = conversation.getNickname() != null && !conversation.getNickname().isEmpty() ? conversation.getNickname() : conversation.getName() + " " + conversation.getSurname();
+        nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px;");
 
-        nameLabel.setText(displayName);
-        lastMessageLabel.setText(conversation.getLastMessage() != null ? conversation.getLastMessage() : "No messages yet");
+        String lastMsg = conversation.getLastMessage() != null ? conversation.getLastMessage() : "No messages yet";
+
+        Label lastMessageLabel = new Label(lastMsg);
+
+        lastMessageLabel.setStyle("-fx-text-fill: #888888; -fx-font-size: 11px;");
 
         VBox textBox = new VBox(3, nameLabel, lastMessageLabel);
 
         HBox cell = new HBox(10, avatar, textBox);
 
         cell.setAlignment(Pos.CENTER_LEFT);
+        cell.setStyle("-fx-padding: 8 5;");
 
         setGraphic(cell);
+        setStyle("-fx-background-color: transparent;");
     }
 }

@@ -11,7 +11,7 @@ public class App extends Application {
     public void start(Stage stage) throws Exception {
         SceneManager.setStage(stage);
 
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/chatappfrontend/frontend/views/chat-page.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/chatappfrontend/frontend/views/login-page.fxml"));
 
         Scene scene = new Scene(loader.load());
 

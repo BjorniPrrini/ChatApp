@@ -184,3 +184,19 @@
     -fx-background-radius: 5;
     -fx-max-width: infinity;
 }
+
+.list-cell:empty {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.section-title {
+    -fx-text-fill: #00ff88;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 0 5 0;
+}
+
+.separator {
+    -fx-background-color: #00ff88;
+}

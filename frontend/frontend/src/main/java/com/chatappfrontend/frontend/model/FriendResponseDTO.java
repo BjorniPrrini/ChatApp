@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class FriendResponseDTO {
     private Long senderId;
+    private Long receiverId;
     private Long requestId;
     private String name;
     private String surname;

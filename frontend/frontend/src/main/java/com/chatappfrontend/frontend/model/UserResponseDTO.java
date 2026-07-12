@@ -1,9 +1,8 @@
 package com.chatappfrontend.frontend.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -15,6 +14,7 @@ public class UserResponseDTO {
     private String email;
     private String profilePicture;
     private String phoneNumber;
+    @JsonProperty("online")
     private boolean isOnline;
-    private LocalDateTime createdAt;
+    private String createdAt;
 }

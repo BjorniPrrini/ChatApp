@@ -2,6 +2,7 @@ package com.chatappfrontend.frontend.service;
 
 import com.chatappfrontend.frontend.model.ConversationResponseDTO;
 import com.chatappfrontend.frontend.util.AppConfig;
+import com.chatappfrontend.frontend.util.JsonMapper;
 import com.chatappfrontend.frontend.util.SessionManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -13,7 +14,7 @@ import java.util.List;
 
 public class ConversationService {
     private final HttpClient httpClient = HttpClient.newHttpClient();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapper.get();
     private static final String BASE_URL = AppConfig.get("api.base.url") + "/api/conversation";
 
     public List<ConversationResponseDTO> getConversations() throws Exception{
@@ -36,6 +37,27 @@ public class ConversationService {
             throw new Exception("Not found");
         }else{
             throw new Exception("Request failed: " + response.statusCode());
+        }
+    }
+
+    public ConversationResponseDTO createConversation(Long receiverId) throws Exception{
+        String body = String.format("{\"receiverId\":%d}", receiverId);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/createConversation"))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return objectMapper.readValue(response.body(), ConversationResponseDTO.class);
+        }else if (response.statusCode() == 401) {
+            throw new Exception("Unauthorized");
+        }else{
+            throw new Exception("Failed to create conversation: " + response.statusCode());
         }
     }
 }

@@ -19,6 +19,11 @@ public class FriendRequestController {
         this.friendRequestService = friendRequestService;
     }
 
+    @GetMapping("/sent")
+    public ResponseEntity<List<FriendResponseDTO>> getSentRequests(){
+        return ResponseEntity.ok(friendRequestService.getSentRequests(getUser().getId()));
+    }
+
     @PostMapping("/send/{receiverId}")
     public ResponseEntity<Void> sendFriendRequest(@PathVariable Long receiverId){
         friendRequestService.sendFriendRequest(getUser().getId(), receiverId);

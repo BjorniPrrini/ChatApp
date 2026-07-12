@@ -11,4 +11,5 @@ public interface FriendRequestService {
     List<FriendResponseDTO> getFriendRequests(Long userId);
     List<FriendResponseDTO> getFriends(Long userId);
     List<FriendResponseDTO> getSuggestedFriends(Long userId);
+    List<FriendResponseDTO> getSentRequests(Long userId);
 }

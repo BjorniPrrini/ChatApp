@@ -10,6 +10,6 @@ public interface UserService {
     UserResponseDTO getUserById(Long id);
     UserResponseDTO updateProfile(Long id, UserRequestDTO request);
     void changePassword(Long id, String currentPassword, String newPassword, String confirmPassword);
-    List<UserResponseDTO> searchUsers(String searchTerm);
+    List<UserResponseDTO> searchUsers(String searchTerm, Long currentUserId);
     UserResponseDTO updateProfilePicture(Long userId, MultipartFile file);
 }
