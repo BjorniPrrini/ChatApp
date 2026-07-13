@@ -173,7 +173,7 @@ public class ChatPageController {
 
                 if(i != 0){
                     items.remove(i);
-                    items.add(0, c);
+                    items.addFirst(c);
                 }
 
                 conversationList.refresh();
