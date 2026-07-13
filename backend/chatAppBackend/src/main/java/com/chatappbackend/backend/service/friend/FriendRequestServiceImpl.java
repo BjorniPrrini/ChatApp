@@ -21,14 +21,12 @@ public class FriendRequestServiceImpl implements FriendRequestService{
     private final BlockedUserService blockedUserService;
     private final FriendRequestRepository friendRequestRepository;
     private final NotificationService notificationService;
-    private final FriendRequestService friendRequestService;
 
-    public FriendRequestServiceImpl(UserRepository userRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository, NotificationService notificationService, FriendRequestService friendRequestService) {
+    public FriendRequestServiceImpl(UserRepository userRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository, NotificationService notificationService) {
         this.userRepository = userRepository;
         this.blockedUserService = blockedUserService;
         this.friendRequestRepository = friendRequestRepository;
         this.notificationService = notificationService;
-        this.friendRequestService = friendRequestService;
     }
 
     @Override

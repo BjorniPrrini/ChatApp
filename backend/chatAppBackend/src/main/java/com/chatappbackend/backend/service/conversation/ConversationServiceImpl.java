@@ -4,13 +4,11 @@ import com.chatappbackend.backend.dto.conversation.ConversationRequestDTO;
 import com.chatappbackend.backend.dto.conversation.ConversationResponseDTO;
 import com.chatappbackend.backend.entity.Conversation;
 import com.chatappbackend.backend.entity.ConversationParticipant;
+import com.chatappbackend.backend.entity.Message;
 import com.chatappbackend.backend.entity.User;
 import com.chatappbackend.backend.exception.BadRequestException;
 import com.chatappbackend.backend.exception.ResourceNotFoundException;
-import com.chatappbackend.backend.repository.ConversationParticipantRepository;
-import com.chatappbackend.backend.repository.ConversationRepository;
-import com.chatappbackend.backend.repository.FriendRequestRepository;
-import com.chatappbackend.backend.repository.UserRepository;
+import com.chatappbackend.backend.repository.*;
 import com.chatappbackend.backend.service.blocked.BlockedUserService;
 import org.springframework.stereotype.Service;
 
@@ -26,13 +24,15 @@ public class ConversationServiceImpl implements ConversationService{
     private final UserRepository userRepository;
     private final BlockedUserService blockedUserService;
     private final FriendRequestRepository friendRequestRepository;
+    private final MessageRepository messageRepository;
 
-    public ConversationServiceImpl(ConversationRepository conversationRepository, ConversationParticipantRepository conversationParticipantRepository, UserRepository userRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository){
+    public ConversationServiceImpl(ConversationRepository conversationRepository, ConversationParticipantRepository conversationParticipantRepository, UserRepository userRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository, MessageRepository messageRepository){
         this.conversationRepository = conversationRepository;
         this.conversationParticipantRepository = conversationParticipantRepository;
         this.userRepository = userRepository;
         this.blockedUserService = blockedUserService;
         this.friendRequestRepository = friendRequestRepository;
+        this.messageRepository = messageRepository;
     }
 
     @Override
@@ -126,8 +126,16 @@ public class ConversationServiceImpl implements ConversationService{
         response.setProfilePicture(receiver.getProfilePicture());
         response.setOnline(receiver.isOnline());
         response.setGroup(false);
-        response.setLastMessage(null);
-        response.setLastMessageAt(null);
+
+        Optional<Message> lastMessage = messageRepository.findTopByConversationIdOrderBySentAtDesc(conversation.getId());
+
+        if(lastMessage.isPresent()){
+            response.setLastMessage(lastMessage.get().getMessage());
+            response.setLastMessageAt(lastMessage.get().getSentAt());
+        }else{
+            response.setLastMessage(null);
+            response.setLastMessageAt(null);
+        }
 
         return response;
     }

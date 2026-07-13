@@ -6,6 +6,7 @@ import com.chatappfrontend.frontend.util.SceneManager;
 import com.chatappfrontend.frontend.util.SessionManager;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -14,6 +15,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -159,6 +161,30 @@ public class ChatPageController {
         }
     }
 
+    private void updateConversationPreview(Long conversationId, String messageText, LocalDateTime sentAt){
+        ObservableList<ConversationResponseDTO> items = conversationList.getItems();
+
+        for(int i = 0; i < items.size(); i++){
+            ConversationResponseDTO c = items.get(i);
+
+            if(c.getConversationId().equals(conversationId)){
+                c.setLastMessage(messageText);
+                c.setLastMessageAt(sentAt);
+
+                if(i != 0){
+                    items.remove(i);
+                    items.add(0, c);
+                }
+
+                conversationList.refresh();
+
+                return;
+            }
+        }
+
+        loadConversations();
+    }
+
     private void openConversation(ConversationResponseDTO selected){
         currentConversationId = selected.getConversationId();
 
@@ -168,6 +194,8 @@ public class ChatPageController {
                 HBox bubble = createMessageBubble(message);
 
                 messagesContainer.getChildren().add(bubble);
+
+                updateConversationPreview(currentConversationId, message.getMessage(), message.getSentAt());
             });
         });
 
@@ -266,6 +294,22 @@ public class ChatPageController {
 
             List<ConversationResponseDTO> conversations = service.getConversations();
 
+            conversations.sort((a, b) -> {
+                if(a.getLastMessageAt() == null && b.getLastMessageAt() == null){
+                    return 0;
+                }
+
+                if(a.getLastMessageAt() == null){
+                    return 1;
+                }
+
+                if(b.getLastMessageAt() == null){
+                    return -1;
+                }
+
+                return b.getLastMessageAt().compareTo(a.getLastMessageAt());
+            });
+
             conversationList.getItems().clear();
             conversationList.getItems().addAll(conversations);
         } catch (Exception e) {
@@ -349,6 +393,8 @@ public class ChatPageController {
             messagesContainer.getChildren().add(bubble);
 
             messageInput.clear();
+
+            updateConversationPreview(currentConversationId, message, java.time.LocalDateTime.now());
         } catch (Exception e) {
             showError("Couldn't send message");
         }

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface MessageRepository extends JpaRepository<Message, Long> {
     @Query("SELECT m FROM Message m WHERE m.conversation.id = :conversationId AND m.sentAt < :before ORDER BY m.sentAt ASC")
@@ -22,4 +23,5 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @Transactional
     @Query("UPDATE Message m SET m.status = 'delivered' WHERE m.id = :messageId")
     void markAsDelivered(@Param("messageId") Long messageId);
+    Optional<Message> findTopByConversationIdOrderBySentAtDesc(Long conversationId);
 }
