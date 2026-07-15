@@ -65,6 +65,10 @@ public class MessageServiceImpl implements MessageService{
         if(request.getReplyToId() != null){
             Message replyTo = messageRepository.findById(request.getReplyToId()).orElseThrow(() -> new ResourceNotFoundException("Message not found"));
 
+            if(!replyTo.getConversation().getId().equals(conversation.getId())){
+                throw new BadRequestException("Reply message does not belong to this conversation");
+            }
+
             message.setReplyTo(replyTo);
         }
 

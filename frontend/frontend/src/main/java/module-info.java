@@ -17,4 +17,6 @@ module com.chatappfrontend.frontend {
 
     exports com.chatappfrontend.frontend;
     exports com.chatappfrontend.frontend.controller;
+    exports com.chatappfrontend.frontend.cell;
+    opens com.chatappfrontend.frontend.cell to javafx.fxml;
 }

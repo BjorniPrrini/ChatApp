@@ -1,15 +1,21 @@
 package com.chatappfrontend.frontend.controller;
 
+import com.chatappfrontend.frontend.cell.ConversationCell;
+import com.chatappfrontend.frontend.cell.FriendRequestCell;
+import com.chatappfrontend.frontend.cell.FriendsCell;
+import com.chatappfrontend.frontend.cell.UserCell;
 import com.chatappfrontend.frontend.model.*;
 import com.chatappfrontend.frontend.service.*;
 import com.chatappfrontend.frontend.util.SceneManager;
 import com.chatappfrontend.frontend.util.SessionManager;
+
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -63,11 +69,14 @@ public class ChatPageController {
     private HBox messageInputArea;
     @FXML
     private TextField messageInput;
+    @FXML
+    private VBox replyPreviewBox;
 
     private Long currentConversationId;
     private final WebSocketService webSocketService = new WebSocketService();
     private Set<Long> friendIds = new HashSet<>();
     private Set<Long> pendingIds = new HashSet<>();
+    private MessageResponseDTO replyingTo;
 
     @FXML
     public void initialize(){
@@ -137,6 +146,16 @@ public class ChatPageController {
             }
         });
 
+        messageInput.setOnKeyPressed(event -> {
+            if(event.getCode() == KeyCode.ENTER){
+                handleSendMessage();
+            }
+        });
+
+        messagesContainer.heightProperty().addListener((_, _, _) -> {
+            messagesScrollPane.setVvalue(1.0);
+        });
+
         try {
             webSocketService.connect();
         } catch (Exception e) {
@@ -191,9 +210,15 @@ public class ChatPageController {
         webSocketService.unsubscribe();
         webSocketService.subscribe(currentConversationId, message -> {
             Platform.runLater(() -> {
-                HBox bubble = createMessageBubble(message);
+                boolean alreadyShown = messagesContainer.getChildren().stream().anyMatch(node -> message.getId().equals(node.getProperties().get("messageId")));
 
-                messagesContainer.getChildren().add(bubble);
+                if(!alreadyShown){
+                    HBox bubble = createMessageBubble(message);
+
+                    bubble.getProperties().put("messageId", message.getId());
+
+                    messagesContainer.getChildren().add(bubble);
+                }
 
                 updateConversationPreview(currentConversationId, message.getMessage(), message.getSentAt());
             });
@@ -221,22 +246,126 @@ public class ChatPageController {
     }
 
     private HBox createMessageBubble(MessageResponseDTO message){
-        HBox hBox = new HBox();
-        Label label = new Label(message.getMessage());
 
-        if(message.getSenderId().equals(SessionManager.getInstance().getUserId())){
-            label.setStyle("-fx-background-color: #00ff88; -fx-text-fill: #000000; -fx-padding: 8 12; -fx-background-radius: 15;");
+        HBox hBox = new HBox();
+
+        VBox bubble = new VBox();
+        bubble.setSpacing(5);
+        bubble.setMaxWidth(400);
+
+
+        boolean isMyMessage = message.getSenderId().equals(SessionManager.getInstance().getUserId());
+
+        if(message.getReplyToId() != null){
+            Label replyLabel = new Label(message.getReplyToMessage());
+
+            replyLabel.setWrapText(true);
+            replyLabel.setMaxWidth(300);
+
+            replyLabel.setStyle("-fx-background-color: #555555;" + "-fx-text-fill: #dddddd;" + "-fx-padding: 6 8;" + "-fx-background-radius: 8;" + "-fx-font-size: 12px;");
+
+            bubble.getChildren().add(replyLabel);
+        }
+
+        Label messageLabel = new Label(message.getMessage());
+
+        messageLabel.setWrapText(true);
+        messageLabel.setMaxWidth(400);
+
+        if(isMyMessage){
+            messageLabel.setStyle("-fx-background-color: #00ff88;" + "-fx-text-fill: black;" + "-fx-padding: 8 12;" + "-fx-background-radius: 15;");
 
             hBox.setAlignment(Pos.CENTER_RIGHT);
         }else{
-            label.setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff; -fx-padding: 8 12; -fx-background-radius: 15;");
+            messageLabel.setStyle("-fx-background-color: #1a1a1a;" + "-fx-text-fill: white;" + "-fx-padding: 8 12;" + "-fx-background-radius: 15;");
 
             hBox.setAlignment(Pos.CENTER_LEFT);
         }
 
-        hBox.getChildren().add(label);
+        bubble.getChildren().add(messageLabel);
+
+        ContextMenu contextMenu = new ContextMenu();
+
+        MenuItem reply = new MenuItem("Reply");
+
+        reply.setOnAction(_ -> handleReply(message));
+
+        contextMenu.getItems().add(reply);
+
+        if(isMyMessage){
+            MenuItem edit = new MenuItem("Edit");
+
+            edit.setOnAction(_ -> handleEdit(message));
+
+            MenuItem deleteForMe = new MenuItem("Delete for me");
+
+            deleteForMe.setOnAction(_ -> handleDeleteForMe(message, hBox));
+
+            MenuItem deleteForEveryone = new MenuItem("Delete for everyone");
+
+            deleteForEveryone.setOnAction(_ -> handleDeleteForEveryone(message, hBox));
+
+            contextMenu.getItems().addAll(edit, deleteForMe, deleteForEveryone);
+        }else{
+            MenuItem deleteForMe = new MenuItem("Delete for me");
+
+            deleteForMe.setOnAction(_ -> handleDeleteForMe(message, hBox));
+
+            contextMenu.getItems().add(deleteForMe);
+        }
+
+        messageLabel.setContextMenu(contextMenu);
+
+        hBox.getChildren().add(bubble);
 
         return hBox;
+    }
+
+    private void handleReply(MessageResponseDTO message){
+        replyingTo = message;
+
+        replyPreviewBox.getChildren().clear();
+
+        Label replyLabel = new Label("Replying to: " + message.getMessage());
+
+        replyLabel.setWrapText(true);
+        replyLabel.setMaxWidth(350);
+
+        replyLabel.setStyle("-fx-background-color: #333333;" + "-fx-text-fill: white;" + "-fx-padding: 8;" + "-fx-background-radius: 8;");
+
+        Button cancelButton = new Button("X");
+
+        cancelButton.setOnAction(e -> cancelReply());
+
+        HBox preview = new HBox(10);
+        preview.setAlignment(Pos.CENTER_LEFT);
+
+        preview.getChildren().addAll(replyLabel, cancelButton);
+
+        replyPreviewBox.getChildren().add(preview);
+
+        replyPreviewBox.setVisible(true);
+        replyPreviewBox.setManaged(true);
+
+        messageInput.requestFocus();
+    }
+
+    private void cancelReply(){
+        replyingTo = null;
+
+        replyPreviewBox.getChildren().clear();
+
+        replyPreviewBox.setVisible(false);
+        replyPreviewBox.setManaged(false);
+    }
+
+    private void handleEdit(MessageResponseDTO message){
+    }
+
+    private void handleDeleteForMe(MessageResponseDTO message, HBox bubble){
+    }
+
+    private void handleDeleteForEveryone(MessageResponseDTO message, HBox bubble){
     }
 
     @FXML
@@ -382,20 +511,25 @@ public class ChatPageController {
         try {
             MessageService messageService = new MessageService();
 
-            messageService.sendMessage(currentConversationId, message);
+            MessageResponseDTO sent;
 
-            MessageResponseDTO newMessage = new MessageResponseDTO();
+            if(replyingTo != null){
+                sent = messageService.replyMessage(currentConversationId, replyingTo.getId(), message);
+            }else{
+                sent = messageService.sendMessage(currentConversationId, message);
+            }
 
-            newMessage.setSenderId(SessionManager.getInstance().getUserId());
-            newMessage.setMessage(message);
+            HBox bubble = createMessageBubble(sent);
 
-            HBox bubble = createMessageBubble(newMessage);
             messagesContainer.getChildren().add(bubble);
+
+            updateConversationPreview(currentConversationId, sent.getMessage(), sent.getSentAt());
 
             messageInput.clear();
 
-            updateConversationPreview(currentConversationId, message, java.time.LocalDateTime.now());
-        } catch (Exception e) {
+            cancelReply();
+
+        } catch (Exception e){
             showError("Couldn't send message");
         }
     }

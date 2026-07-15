@@ -80,6 +80,8 @@
                 </VBox>
             </ScrollPane>
 
+            <VBox fx:id="replyPreviewBox" visible="false" managed="false"/>
+
             <HBox fx:id="messageInputArea" styleClass="message-input-area" alignment="CENTER" spacing="10">
                 <padding><Insets top="10" bottom="10" left="15" right="15"/></padding>
                 <TextField fx:id="messageInput" promptText="Type a message..." HBox.hgrow="ALWAYS" styleClass="message-input"/>

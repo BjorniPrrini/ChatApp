@@ -1,4 +1,4 @@
-package com.chatappfrontend.frontend.controller;
+package com.chatappfrontend.frontend.cell;
 
 import com.chatappfrontend.frontend.model.FriendResponseDTO;
 import com.chatappfrontend.frontend.util.SessionManager;
