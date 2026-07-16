@@ -14,6 +14,7 @@ import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
@@ -77,6 +78,9 @@ public class ChatPageController {
     private Set<Long> friendIds = new HashSet<>();
     private Set<Long> pendingIds = new HashSet<>();
     private MessageResponseDTO replyingTo;
+    private LocalDateTime oldestLoadedMessageTime;
+    private boolean hasMoreMessages = true;
+    private boolean isLoadingMore = false;
 
     @FXML
     public void initialize(){
@@ -156,6 +160,12 @@ public class ChatPageController {
             messagesScrollPane.setVvalue(1.0);
         });
 
+        messagesScrollPane.vvalueProperty().addListener((_, _, newValue) -> {
+            if(newValue.doubleValue() <= 0.05 && hasMoreMessages && !isLoadingMore){
+                loadOlderMessages();
+            }
+        });
+
         try {
             webSocketService.connect();
         } catch (Exception e) {
@@ -206,6 +216,9 @@ public class ChatPageController {
 
     private void openConversation(ConversationResponseDTO selected){
         currentConversationId = selected.getConversationId();
+        oldestLoadedMessageTime = null;
+        hasMoreMessages = true;
+        isLoadingMore = false;
 
         webSocketService.unsubscribe();
         webSocketService.subscribe(currentConversationId, message -> {
@@ -214,8 +227,6 @@ public class ChatPageController {
 
                 if(!alreadyShown){
                     HBox bubble = createMessageBubble(message);
-
-                    bubble.getProperties().put("messageId", message.getId());
 
                     messagesContainer.getChildren().add(bubble);
                 }
@@ -240,19 +251,27 @@ public class ChatPageController {
 
                 messagesContainer.getChildren().add(bubble);
             }
+
+            if(!messages.isEmpty()){
+                oldestLoadedMessageTime = messages.get(0).getSentAt();
+            }
+
+            hasMoreMessages = messagePage.isHasMore();
         } catch (Exception e){
             showError("Couldn't get the messages");
         }
     }
 
     private HBox createMessageBubble(MessageResponseDTO message){
-
         HBox hBox = new HBox();
 
+        hBox.getProperties().put("messageId", message.getId());
+        hBox.getProperties().put("messageObj", message);
+
         VBox bubble = new VBox();
+
         bubble.setSpacing(5);
         bubble.setMaxWidth(400);
-
 
         boolean isMyMessage = message.getSenderId().equals(SessionManager.getInstance().getUserId());
 
@@ -360,12 +379,111 @@ public class ChatPageController {
     }
 
     private void handleEdit(MessageResponseDTO message){
+        TextInputDialog textInputDialog = new TextInputDialog(message.getMessage());
+
+        textInputDialog.setTitle("Edit message");
+        textInputDialog.setHeaderText(null);
+        textInputDialog.setContentText("Edit your message:");
+
+        textInputDialog.showAndWait().ifPresent(newText -> {
+            String trimmed = newText.trim();
+
+            if(trimmed.isEmpty() || trimmed.equals(message.getMessage())){
+                return;
+            }
+
+            try {
+                MessageService messageService = new MessageService();
+
+                MessageResponseDTO edited = messageService.editMessage(message.getId(), trimmed);
+
+                message.setMessage(edited.getMessage());
+
+                refreshMessageBubble(message);
+
+                if(isLastMessageInContainer(message.getId())){
+                    updateConversationPreview(currentConversationId, edited.getMessage(), edited.getSentAt());
+                }
+            } catch (Exception e) {
+                showError("Couldn't edit message");
+            }
+        });
     }
 
     private void handleDeleteForMe(MessageResponseDTO message, HBox bubble){
+        deleteAndSync(message, bubble, () -> {
+            try {
+                new MessageService().deleteMessageForMe(message.getId());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     private void handleDeleteForEveryone(MessageResponseDTO message, HBox bubble){
+        deleteAndSync(message, bubble, () -> {
+            try {
+                new MessageService().deleteMessageForEveryone(message.getId());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    private void deleteAndSync(MessageResponseDTO message, HBox bubble, Runnable deleteCall){
+        try {
+            boolean wasLast = isLastMessageInContainer(message.getId());
+
+            deleteCall.run();
+
+            messagesContainer.getChildren().remove(bubble);
+
+            if(wasLast){
+                syncPreviewToNewLastMessage();
+            }
+        } catch (Exception e) {
+            showError("Couldn't delete message");
+        }
+    }
+
+    private boolean isLastMessageInContainer(Long messageId){
+        if(messagesContainer.getChildren().isEmpty()){
+            return false;
+        }
+
+        Node lastNode = messagesContainer.getChildren().get(messagesContainer.getChildren().size() - 1);
+
+        return messageId.equals(lastNode.getProperties().get("messageId"));
+    }
+
+    private void syncPreviewToNewLastMessage(){
+        if(messagesContainer.getChildren().isEmpty()){
+            updateConversationPreview(currentConversationId, "", null);
+
+            return;
+        }
+
+        Node lastNode = messagesContainer.getChildren().get(messagesContainer.getChildren().size() - 1);
+
+        MessageResponseDTO lastMessage = (MessageResponseDTO) lastNode.getProperties().get("messageObj");
+
+        if(lastMessage != null){
+            updateConversationPreview(currentConversationId, lastMessage.getMessage(), lastMessage.getSentAt());
+        }
+    }
+
+    private void refreshMessageBubble(MessageResponseDTO message){
+        for(int i = 0; i < messagesContainer.getChildren().size(); i++){
+            Node node = messagesContainer.getChildren().get(i);
+
+            if(message.getId().equals(node.getProperties().get("messageId"))){
+                HBox newBubble = createMessageBubble(message);
+
+                messagesContainer.getChildren().set(i, newBubble);
+
+                return;
+            }
+        }
     }
 
     @FXML
@@ -531,6 +649,60 @@ public class ChatPageController {
 
         } catch (Exception e){
             showError("Couldn't send message");
+        }
+    }
+
+    private void loadOlderMessages(){
+        if(currentConversationId == null || oldestLoadedMessageTime == null){
+            return;
+        }
+
+        isLoadingMore = true;
+
+        try {
+            MessageService messageService = new MessageService();
+
+            MessagePageDTO messagePage = messageService.getMessages(currentConversationId, oldestLoadedMessageTime);
+
+            List<MessageResponseDTO> olderMessages = messagePage.getMessages();
+
+            if(olderMessages.isEmpty()){
+                hasMoreMessages = false;
+                isLoadingMore = false;
+
+                return;
+            }
+
+            double heightBefore = messagesContainer.getHeight();
+
+            for(int i = 0; i < olderMessages.size(); i++){
+                HBox bubble = createMessageBubble(olderMessages.get(i));
+
+                messagesContainer.getChildren().add(i, bubble);
+            }
+
+            oldestLoadedMessageTime = olderMessages.get(0).getSentAt();
+            hasMoreMessages = messagePage.isHasMore();
+
+            Platform.runLater(() -> {
+                double heightAfter = messagesContainer.getHeight();
+                double addedHeight = heightAfter - heightBefore;
+
+                double currentVvalue = messagesScrollPane.getVvalue();
+                double totalHeight = messagesContainer.getHeight() - messagesScrollPane.getViewportBounds().getHeight();
+
+                if(totalHeight > 0){
+                    double currentPixelOffset = currentVvalue * (totalHeight - addedHeight);
+                    double newVvalue = (currentPixelOffset + addedHeight) / totalHeight;
+
+                    messagesScrollPane.setVvalue(newVvalue);
+                }
+
+                isLoadingMore = false;
+            });
+        } catch (Exception e) {
+            showError("Couldn't load older messages");
+            isLoadingMore = false;
         }
     }
 

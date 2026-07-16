@@ -83,4 +83,53 @@ public class MessageService {
             throw new Exception("Failed to send message: " + response.statusCode());
         }
     }
+
+    public MessageResponseDTO editMessage(Long messageId, String newMessage) throws Exception {
+        Map<String, Object> body = new HashMap<>();
+
+        body.put("newMessage", newMessage);
+
+        String jsonBody = objectMapper.writeValueAsString(body);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/" + messageId))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .PUT(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return objectMapper.readValue(response.body(), MessageResponseDTO.class);
+        }else if(response.statusCode() == 401){
+            throw new Exception("Unauthorized");
+        }else{
+            throw new Exception("Failed to edit message: " + response.statusCode());
+        }
+    }
+
+    public void deleteMessage(Long messageId, String scope) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/" + messageId + "/" + scope))
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .DELETE()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() == 401){
+            throw new Exception("Unauthorized");
+        }else if(response.statusCode() < 200 || response.statusCode() >= 300){
+            throw new Exception("Failed to delete message: " + response.statusCode());
+        }
+    }
+
+    public void deleteMessageForMe(Long messageId) throws Exception {
+        deleteMessage(messageId, "me");
+    }
+
+    public void deleteMessageForEveryone(Long messageId) throws Exception {
+        deleteMessage(messageId, "everyone");
+    }
 }

@@ -1,5 +1,6 @@
 package com.chatappbackend.backend.controller;
 
+import com.chatappbackend.backend.dto.message.EditMessageRequestDTO;
 import com.chatappbackend.backend.dto.message.MessagePageDTO;
 import com.chatappbackend.backend.dto.message.MessageRequestDTO;
 import com.chatappbackend.backend.dto.message.MessageResponseDTO;
@@ -50,8 +51,8 @@ public class MessageController {
     }
 
     @PutMapping("/{messageId}")
-    public ResponseEntity<MessageResponseDTO> editMessage(@PathVariable Long messageId, @RequestParam String newMessage){
-        return ResponseEntity.ok(service.editMessage(getUser().getId(), messageId, newMessage));
+    public ResponseEntity<MessageResponseDTO> editMessage(@PathVariable Long messageId, @RequestBody EditMessageRequestDTO request){
+        return ResponseEntity.ok(service.editMessage(getUser().getId(), messageId, request.getNewMessage()));
     }
 
     private User getUser(){
