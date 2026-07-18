@@ -1,5 +1,6 @@
 package com.chatappbackend.backend.service.message;
 
+import com.chatappbackend.backend.dto.message.MessageEventDTO;
 import com.chatappbackend.backend.dto.message.MessagePageDTO;
 import com.chatappbackend.backend.dto.message.MessageRequestDTO;
 import com.chatappbackend.backend.dto.message.MessageResponseDTO;
@@ -13,6 +14,7 @@ import com.chatappbackend.backend.exception.ResourceNotFoundException;
 import com.chatappbackend.backend.repository.*;
 import com.chatappbackend.backend.service.blocked.BlockedUserService;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -30,8 +32,9 @@ public class MessageServiceImpl implements MessageService{
     private final ConversationParticipantRepository conversationParticipantRepository;
     private final BlockedUserService blockedUserService;
     private final FriendRequestRepository friendRequestRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public MessageServiceImpl(UserRepository userRepository, ConversationRepository conversationRepository, MessageRepository messageRepository, MessageDeleteRepository messageDeleteRepository, ConversationParticipantRepository conversationParticipantRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository){
+    public MessageServiceImpl(UserRepository userRepository, ConversationRepository conversationRepository, MessageRepository messageRepository, MessageDeleteRepository messageDeleteRepository, ConversationParticipantRepository conversationParticipantRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository, SimpMessagingTemplate messagingTemplate){
         this.userRepository = userRepository;
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
@@ -39,6 +42,7 @@ public class MessageServiceImpl implements MessageService{
         this.conversationParticipantRepository = conversationParticipantRepository;
         this.blockedUserService = blockedUserService;
         this.friendRequestRepository = friendRequestRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @Override
@@ -75,7 +79,11 @@ public class MessageServiceImpl implements MessageService{
 
         Message savedMessage = messageRepository.save(message);
 
-        return mapToDTO(savedMessage);
+        MessageResponseDTO dto = mapToDTO(savedMessage);
+
+        messagingTemplate.convertAndSend("/topic/conversation." + conversation.getId(), new MessageEventDTO("NEW", conversation.getId(), dto.getId(), dto));
+
+        return dto;
     }
 
     @Override
@@ -131,7 +139,11 @@ public class MessageServiceImpl implements MessageService{
             throw new BadRequestException("You can't delete a message after 1 minutes");
         }
 
+        Long conversationId = message.getConversation().getId();
+
         messageRepository.delete(message);
+
+        messagingTemplate.convertAndSend("/topic/conversation." + conversationId, new MessageEventDTO("DELETE", conversationId, messageId, null));
     }
 
     @Override
@@ -151,7 +163,11 @@ public class MessageServiceImpl implements MessageService{
 
         Message savedMessage = messageRepository.save(message);
 
-        return mapToDTO(savedMessage);
+        MessageResponseDTO dto = mapToDTO(savedMessage);
+
+        messagingTemplate.convertAndSend("/topic/conversation." + savedMessage.getConversation().getId(), new MessageEventDTO("EDIT", savedMessage.getConversation().getId(), savedMessage.getId(), dto));
+
+        return dto;
     }
 
     private MessageResponseDTO mapToDTO(Message message){

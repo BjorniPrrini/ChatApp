@@ -1,6 +1,6 @@
 package com.chatappfrontend.frontend.service;
 
-import com.chatappfrontend.frontend.model.MessageResponseDTO;
+import com.chatappfrontend.frontend.model.MessageEventDTO;
 import com.chatappfrontend.frontend.util.AppConfig;
 import com.chatappfrontend.frontend.util.JsonMapper;
 import com.chatappfrontend.frontend.util.SessionManager;
@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 public class WebSocketService {
     private WebSocket webSocket;
     private final ObjectMapper objectMapper = JsonMapper.get();
-    private Consumer<MessageResponseDTO> messageHandler;
+    private Consumer<MessageEventDTO> messageHandler;
     private String currentSubscription;
 
     public void connect() throws Exception{
@@ -31,7 +31,7 @@ public class WebSocketService {
 
                     @Override
                     public void onOpen(WebSocket ws){
-                        String connectFrame = "CONNECT\naccept-version:1.2\nheart-beat:0,0\n\n\0";
+                        String connectFrame = "CONNECT\naccept-version:1.2\nheart-beat:0,0\nAuthorization:Bearer " + token + "\n\n\0";
 
                         ws.sendText(connectFrame, true);
                         ws.request(1);
@@ -56,6 +56,8 @@ public class WebSocketService {
 
                     @Override
                     public CompletionStage<?> onClose(WebSocket ws, int statusCode, String reason){
+                        System.out.println("WebSocket closed — status: " + statusCode + ", reason: " + reason);
+
                         return CompletableFuture.completedFuture(null);
                     }
 
@@ -78,19 +80,21 @@ public class WebSocketService {
                 String body = frame.substring(bodyStart).replace("\0", "");
 
                 try {
-                    MessageResponseDTO message = objectMapper.readValue(body, MessageResponseDTO.class);
+                    MessageEventDTO event = objectMapper.readValue(body, MessageEventDTO.class);
 
                     if(messageHandler != null){
-                        messageHandler.accept(message);
+                        messageHandler.accept(event);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
+        }else if(frame.startsWith("ERROR")){
+            System.err.println("STOMP ERROR frame received:\n" + frame);
         }
     }
 
-    public void subscribe(Long conversationId, Consumer<MessageResponseDTO> onMessage){
+    public void subscribe(Long conversationId, Consumer<MessageEventDTO> onMessage){
         this.messageHandler = onMessage;
         this.currentSubscription = "/topic/conversation." + conversationId;
 

@@ -221,17 +221,41 @@ public class ChatPageController {
         isLoadingMore = false;
 
         webSocketService.unsubscribe();
-        webSocketService.subscribe(currentConversationId, message -> {
+        webSocketService.subscribe(currentConversationId, event -> {
             Platform.runLater(() -> {
-                boolean alreadyShown = messagesContainer.getChildren().stream().anyMatch(node -> message.getId().equals(node.getProperties().get("messageId")));
+                switch(event.getType()){
+                    case "NEW" -> {
+                        MessageResponseDTO message = event.getMessage();
 
-                if(!alreadyShown){
-                    HBox bubble = createMessageBubble(message);
+                        boolean alreadyShown = messagesContainer.getChildren().stream().anyMatch(node -> message.getId().equals(node.getProperties().get("messageId")));
 
-                    messagesContainer.getChildren().add(bubble);
+                        if(!alreadyShown){
+                            HBox bubble = createMessageBubble(message);
+
+                            messagesContainer.getChildren().add(bubble);
+                        }
+
+                        updateConversationPreview(currentConversationId, message.getMessage(), message.getSentAt());
+                    }
+                    case "EDIT" -> {
+                        MessageResponseDTO message = event.getMessage();
+
+                        refreshMessageBubble(message);
+
+                        if(isLastMessageInContainer(message.getId())){
+                            updateConversationPreview(currentConversationId, message.getMessage(), message.getSentAt());
+                        }
+                    }
+                    case "DELETE" -> {
+                        boolean wasLast = isLastMessageInContainer(event.getMessageId());
+
+                        messagesContainer.getChildren().removeIf(node -> event.getMessageId().equals(node.getProperties().get("messageId")));
+
+                        if(wasLast){
+                            syncPreviewToNewLastMessage();
+                        }
+                    }
                 }
-
-                updateConversationPreview(currentConversationId, message.getMessage(), message.getSentAt());
             });
         });
 

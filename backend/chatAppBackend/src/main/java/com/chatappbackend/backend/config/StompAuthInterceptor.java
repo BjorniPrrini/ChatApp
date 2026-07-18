@@ -23,7 +23,13 @@ public class StompAuthInterceptor implements ChannelInterceptor {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
 
         if(accessor.getCommand() == StompCommand.CONNECT){
-            String token = accessor.getFirstNativeHeader("Authorization");
+            String authHeader = accessor.getFirstNativeHeader("Authorization");
+
+            if(authHeader == null || !authHeader.startsWith("Bearer ")){
+                throw new MessagingException("Invalid token");
+            }
+
+            String token = authHeader.substring(7);
 
             boolean valid = jwtUtil.isValid(token);
 
