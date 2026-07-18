@@ -14,13 +14,19 @@
             <Label text="Welcome" styleClass="subtitle"/>
 
             <TextField fx:id="emailField" promptText="Email" maxWidth="350"/>
-            <PasswordField fx:id="passwordField" promptText="Password" maxWidth="350"/>
+
+            <StackPane maxWidth="350">
+                <PasswordField fx:id="passwordField" promptText="Password"/>
+                <TextField fx:id="passwordVisibleField" promptText="Password" visible="false" managed="false"/>
+            </StackPane>
+
+            <Hyperlink fx:id="togglePasswordLink" text="Show password" onAction="#handleTogglePassword"/>
 
             <Label fx:id="errorLabel" styleClass="error-label" visible="false" maxWidth="350"/>
 
             <Button fx:id="loginButton" text="Login" maxWidth="350" onAction="#handleLogin" styleClass="primary-button"/>
 
-            <ProgressIndicator fx:id="loadingSpinner" visible="false" maxWidth="30"/>
+            <ProgressIndicator fx:id="loadingSpinner" visible="false" managed="false" maxWidth="30"/>
 
             <Hyperlink text="Forgot password?" onAction="#handleForgotPassword"/>
 

@@ -2,8 +2,10 @@ package com.chatappfrontend.frontend.controller;
 
 import com.chatappfrontend.frontend.model.AuthResponseDTO;
 import com.chatappfrontend.frontend.service.AuthService;
+import com.chatappfrontend.frontend.util.EmailHistoryManager;
 import com.chatappfrontend.frontend.util.SceneManager;
 import com.chatappfrontend.frontend.util.SessionManager;
+
 import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -30,6 +32,29 @@ public class RegistrationController {
     private Button registerButton;
     @FXML
     private ProgressIndicator loadingSpinner;
+    @FXML
+    private TextField passwordVisibleField;
+    @FXML
+    private TextField confirmPasswordVisibleField;
+    @FXML
+    private Hyperlink togglePasswordLink;
+
+    private boolean passwordVisible = false;
+
+    @FXML
+    public void initialize(){
+        passwordVisibleField.textProperty().bindBidirectional(passwordField.textProperty());
+        confirmPasswordVisibleField.textProperty().bindBidirectional(confirmPasswordField.textProperty());
+
+        registerButton.setDisable(true);
+
+        nameField.textProperty().addListener((_, _, _) -> updateRegisterButtonState());
+        surnameField.textProperty().addListener((_, _, _) -> updateRegisterButtonState());
+        emailField.textProperty().addListener((_, _, _) -> updateRegisterButtonState());
+        passwordField.textProperty().addListener((_, _, _) -> updateRegisterButtonState());
+        confirmPasswordField.textProperty().addListener((_, _, _) -> updateRegisterButtonState());
+
+    }
 
     @FXML
     public void handleRegister(){
@@ -68,12 +93,15 @@ public class RegistrationController {
         loadingSpinner.setVisible(true);
         loadingSpinner.setManaged(true);
         registerButton.setDisable(true);
+        registerButton.setText("Registering...");
         errorLabel.setVisible(false);
 
         try {
             AuthService authService = new AuthService();
 
             AuthResponseDTO response = authService.register(name, surname, email, password, confirmPassword, nickname, phoneNumber);
+
+            EmailHistoryManager.addEmail(email);
 
             SessionManager.getInstance().setToken(response.getToken());
             SessionManager.getInstance().setUserId(response.getId());
@@ -86,8 +114,26 @@ public class RegistrationController {
         } finally {
             loadingSpinner.setVisible(false);
             loadingSpinner.setManaged(false);
-            registerButton.setDisable(false);
+            registerButton.setText("Register");
+            updateRegisterButtonState();
         }
+    }
+
+    @FXML
+    public void handleTogglePassword(){
+        passwordVisible = !passwordVisible;
+
+        passwordField.setVisible(!passwordVisible);
+        passwordField.setManaged(!passwordVisible);
+        passwordVisibleField.setVisible(passwordVisible);
+        passwordVisibleField.setManaged(passwordVisible);
+
+        confirmPasswordField.setVisible(!passwordVisible);
+        confirmPasswordField.setManaged(!passwordVisible);
+        confirmPasswordVisibleField.setVisible(passwordVisible);
+        confirmPasswordVisibleField.setManaged(passwordVisible);
+
+        togglePasswordLink.setText(passwordVisible ? "Hide passwords" : "Show passwords");
     }
 
     @FXML
@@ -97,6 +143,12 @@ public class RegistrationController {
         } catch (Exception e) {
             showError("Can't load login page");
         }
+    }
+
+    private void updateRegisterButtonState(){
+        boolean filled = !nameField.getText().trim().isEmpty() && !surnameField.getText().trim().isEmpty() && !emailField.getText().trim().isEmpty() && !passwordField.getText().trim().isEmpty() && !confirmPasswordField.getText().trim().isEmpty();
+
+        registerButton.setDisable(!filled);
     }
 
     private void showError(String message){
