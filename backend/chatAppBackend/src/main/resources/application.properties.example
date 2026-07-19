@@ -1,24 +1,29 @@
 spring.application.name=chatAppBackend
 
-spring.datasource.url=jdbc:postgresql://localhost:5432/your_db_name
-spring.datasource.username=your_username
-spring.datasource.password=your_password
+spring.datasource.url=jdbc:postgresql://localhost:5432/your_database_name
+spring.datasource.username=your_root_name
+spring.datasource.password=your_database_password
 spring.datasource.driver-class-name=org.postgresql.Driver
 
-spring.jpa.hibernate.ddl-auto=update
+spring.jpa.hibernate.ddl-auto=validate
 spring.jpa.show-sql=true
 
-jwt.secret=your_jwt_token
-jwt.expiration=expiration_date
+jwt.secret=your_jwt_key
+jwt.expiration=your_token_expiration_time
 
 server.port=8080
 
 spring.mail.host=smtp.gmail.com
 spring.mail.port=587
-spring.mail.username=your_email@gmail.com
-spring.mail.password=your_app_password_here
+spring.mail.username=your_email
+spring.mail.password=your_email_key
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
 spring.mail.properties.mail.smtp.starttls.required=true
 
-file.upload-dir=uploads/
+file.upload-dir=your_path_to_uploads_folder
+spring.web.resources.static-locations=file:uploads/
+
+spring.mail.enabled=true
+
+spring.web.resources.add-mappings=true

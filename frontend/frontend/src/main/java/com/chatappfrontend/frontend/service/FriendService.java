@@ -217,4 +217,40 @@ public class FriendService {
             throw new Exception("Request failed: " + response.statusCode());
         }
     }
+
+    public void unblockUser(Long friendId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(AppConfig.get("api.base.url") + "/api/block/" + friendId))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .DELETE()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return;
+        }else if(response.statusCode() == 401){
+            throw new Exception("Unauthorized - please login again");
+        }else{
+            throw new Exception("Request failed: " + response.statusCode());
+        }
+    }
+
+    public List<FriendResponseDTO> getBlockedUsers() throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(AppConfig.get("api.base.url") + "/api/block/getBlocked"))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .GET()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return objectMapper.readValue(response.body(), objectMapper.getTypeFactory().constructCollectionType(List.class, FriendResponseDTO.class));
+        }else{
+            throw new Exception("Failed to get blocked users: " + response.statusCode());
+        }
+    }
 }

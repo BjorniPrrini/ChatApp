@@ -62,7 +62,13 @@
 
                 <Label text="My Friends" styleClass="section-title"/>
 
-                <ListView fx:id="friendsList" VBox.vgrow="ALWAYS" styleClass="conversation-list"/>
+                <ListView fx:id="friendsList" prefHeight="200" styleClass="conversation-list"/>
+
+                <Separator/>
+
+                <Label text="Blocked Users" styleClass="section-title"/>
+
+                <ListView fx:id="blockedUsersList" VBox.vgrow="ALWAYS" styleClass="conversation-list"/>
             </VBox>
         </VBox>
 

@@ -76,7 +76,9 @@ public class AuthService {
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        if (response.statusCode() == 404){
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return;
+        }else if(response.statusCode() == 404){
             throw new Exception("Email not found");
         }else{
             throw new Exception("Failed to send reset code: " + response.statusCode());
@@ -97,7 +99,11 @@ public class AuthService {
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        if(response.statusCode() == 400){
+        System.out.println("RESET PASSWORD RESPONSE: status=" + response.statusCode() + " body=" + response.body());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return;
+        }else if(response.statusCode() == 400){
             throw new Exception("Invalid or expired token");
         }else if(response.statusCode() == 404){
             throw new Exception("User not found");

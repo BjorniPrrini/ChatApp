@@ -7,9 +7,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 public interface BlockedUserRepository extends JpaRepository<BlockedUser, BlockedUserId> {
     boolean existsByBlockerIdAndBlockedId(User blockerId, User blockedId);
     @Modifying
     @Transactional
     void deleteByBlockerIdAndBlockedId(User blockerId, User blockedId);
+    List<BlockedUser> findByBlockerId(User blockerId);
 }

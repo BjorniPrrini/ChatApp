@@ -161,6 +161,8 @@ public class LoginController {
 
             removeButton.getStyleClass().add("email-history-remove");
 
+            removeButton.setAlignment(Pos.CENTER_RIGHT);
+
             HBox row = new HBox(10, emailLabel, removeButton);
 
             row.setAlignment(Pos.CENTER_LEFT);

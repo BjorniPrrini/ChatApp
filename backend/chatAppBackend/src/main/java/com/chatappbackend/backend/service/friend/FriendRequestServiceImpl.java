@@ -38,7 +38,7 @@ public class FriendRequestServiceImpl implements FriendRequestService{
             throw new BadRequestException("User is blocked");
         }
 
-        if(friendRequestRepository.existsBySenderIdAndReceiverId(userId, receiverId)){
+        if(friendRequestRepository.existsBySenderIdAndReceiverId(userId, receiverId) || friendRequestRepository.existsBySenderIdAndReceiverId(receiverId, userId)){
             throw new BadRequestException("Request already sent");
         }
 
@@ -103,6 +103,11 @@ public class FriendRequestServiceImpl implements FriendRequestService{
         return friendRequestRepository.findAcceptedFriendships(userId)
                 .stream()
                 .map(fr -> mapToDTO(fr, userId))
+                .filter(dto -> {
+                    Long otherUserId = dto.getSenderId().equals(userId) ? dto.getReceiverId() : dto.getSenderId();
+
+                    return !blockedUserService.isBlocked(userId, otherUserId);
+                })
                 .collect(Collectors.toList());
     }
 

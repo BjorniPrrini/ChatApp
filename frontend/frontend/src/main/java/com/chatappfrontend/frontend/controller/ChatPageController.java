@@ -1,9 +1,6 @@
 package com.chatappfrontend.frontend.controller;
 
-import com.chatappfrontend.frontend.cell.ConversationCell;
-import com.chatappfrontend.frontend.cell.FriendRequestCell;
-import com.chatappfrontend.frontend.cell.FriendsCell;
-import com.chatappfrontend.frontend.cell.UserCell;
+import com.chatappfrontend.frontend.cell.*;
 import com.chatappfrontend.frontend.model.*;
 import com.chatappfrontend.frontend.service.*;
 import com.chatappfrontend.frontend.util.SceneManager;
@@ -72,6 +69,8 @@ public class ChatPageController {
     private TextField messageInput;
     @FXML
     private VBox replyPreviewBox;
+    @FXML
+    private ListView<FriendResponseDTO> blockedUsersList;
 
     private Long currentConversationId;
     private final WebSocketService webSocketService = new WebSocketService();
@@ -165,6 +164,18 @@ public class ChatPageController {
                 loadOlderMessages();
             }
         });
+
+        blockedUsersList.setCellFactory(_ -> new BlockedUserCell(userId -> {
+            try {
+                FriendService friendService = new FriendService();
+
+                friendService.unblockUser(userId);
+
+                showFriends();
+            } catch (Exception e) {
+                showError("Could not unblock user");
+            }
+        }));
 
         try {
             webSocketService.connect();
@@ -532,7 +543,6 @@ public class ChatPageController {
 
             friendService.getFriends().forEach(f -> {
                 Long friendId = f.getSenderId().equals(currentUserId) ? f.getReceiverId() : f.getSenderId();
-
                 friendIds.add(friendId);
             });
 
@@ -544,6 +554,7 @@ public class ChatPageController {
         showPanel(friendsPanel);
         loadFriendRequests();
         loadFriends();
+        loadBlockedUsers();
     }
 
     @FXML
@@ -727,6 +738,19 @@ public class ChatPageController {
         } catch (Exception e) {
             showError("Couldn't load older messages");
             isLoadingMore = false;
+        }
+    }
+
+    private void loadBlockedUsers(){
+        try {
+            FriendService friendService = new FriendService();
+
+            List<FriendResponseDTO> blocked = friendService.getBlockedUsers();
+
+            blockedUsersList.getItems().clear();
+            blockedUsersList.getItems().addAll(blocked);
+        } catch (Exception e) {
+            showError("Couldn't get blocked users");
         }
     }
 
