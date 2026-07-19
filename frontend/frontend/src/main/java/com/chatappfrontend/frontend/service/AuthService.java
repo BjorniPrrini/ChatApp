@@ -2,8 +2,8 @@ package com.chatappfrontend.frontend.service;
 
 import com.chatappfrontend.frontend.model.AuthResponseDTO;
 import com.chatappfrontend.frontend.util.AppConfig;
-
 import com.chatappfrontend.frontend.util.JsonMapper;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.net.URI;

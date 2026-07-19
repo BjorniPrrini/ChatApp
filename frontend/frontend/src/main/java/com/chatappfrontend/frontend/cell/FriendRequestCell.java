@@ -6,6 +6,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
+import javafx.scene.control.OverrunStyle;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -37,8 +38,9 @@ public class FriendRequestCell extends ListCell<FriendResponseDTO> {
         Label nameLabel = new Label(displayName);
         nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px;");
 
-        nameLabel.setWrapText(true);
+        nameLabel.setWrapText(false);
         nameLabel.setMaxWidth(150);
+        nameLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
 
         Label subtitleLabel = new Label("wants to connect");
         subtitleLabel.setStyle("-fx-text-fill: #888888; -fx-font-size: 11px;");

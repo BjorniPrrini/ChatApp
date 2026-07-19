@@ -38,8 +38,9 @@ public class FriendsCell extends ListCell<FriendResponseDTO> {
         Label nameLabel = new Label(displayName);
         nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px;");
 
-        nameLabel.setWrapText(true);
+        nameLabel.setWrapText(false);
         nameLabel.setMaxWidth(150);
+        nameLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
 
         Button openMenu = new Button("...");
 

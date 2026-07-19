@@ -6,6 +6,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
+import javafx.scene.control.OverrunStyle;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -41,8 +42,9 @@ public class UserCell extends ListCell<UserResponseDTO>{
         Label nameLabel = new Label(displayName);
         nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
 
-        nameLabel.setWrapText(true);
+        nameLabel.setWrapText(false);
         nameLabel.setMaxWidth(150);
+        nameLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
 
         Label nicknameLabel = new Label("@" + (user.getNickname() != null ? user.getNickname() : ""));
 
