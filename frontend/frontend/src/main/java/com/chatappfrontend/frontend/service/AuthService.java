@@ -86,10 +86,7 @@ public class AuthService {
     }
 
     public void resetPassword(String email, String token, String newPassword, String confirmPassword) throws Exception{
-        String body = String.format(
-                "{\"email\":\"%s\",\"token\":\"%s\",\"newPassword\":\"%s\",\"confirmPassword\":\"%s\"}",
-                email, token, newPassword, confirmPassword
-        );
+        String body = String.format("{\"email\":\"%s\",\"token\":\"%s\",\"newPassword\":\"%s\",\"confirmPassword\":\"%s\"}", email, token, newPassword, confirmPassword);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/reset-password"))
@@ -98,8 +95,6 @@ public class AuthService {
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-        System.out.println("RESET PASSWORD RESPONSE: status=" + response.statusCode() + " body=" + response.body());
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return;
