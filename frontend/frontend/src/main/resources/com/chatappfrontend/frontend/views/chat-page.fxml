@@ -19,7 +19,7 @@
             <Button text="⏻" styleClass="logout-button" onAction="#handleLogout"/>
         </VBox>
 
-        <VBox fx:id="fixedPanel" styleClass="fixed-panel" prefWidth="300">
+        <VBox fx:id="fixedPanel" styleClass="fixed-panel" prefWidth="400">
             <VBox fx:id="conversationsPanel" VBox.vgrow="ALWAYS">
                 <padding><Insets top="15" left="10" right="10" bottom="10"/></padding>
 

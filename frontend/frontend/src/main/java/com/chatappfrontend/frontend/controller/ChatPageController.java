@@ -122,7 +122,7 @@ public class ChatPageController {
 
                         friendService.removeFriend(SessionManager.getInstance().getUserId(), friendId);
 
-                        showPanel(friendsPanel);
+                        showFriends();
                     } catch (Exception e) {
                         showError("Could not remove friend");
                     }
@@ -133,7 +133,7 @@ public class ChatPageController {
 
                         friendService.blockFriend(friendId);
 
-                        showPanel(friendsPanel);
+                        showFriends();
                     } catch (Exception e) {
                         showError("Could not block user");
                     }

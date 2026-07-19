@@ -94,7 +94,7 @@ public class FriendRequestServiceImpl implements FriendRequestService{
     public List<FriendResponseDTO> getFriendRequests(Long userId) {
         return friendRequestRepository.findByReceiverIdAndStatus(userId, "pending")
                 .stream()
-                .map(this::mapToDTO)
+                .map(fr -> mapToDTO(fr, userId))
                 .collect(Collectors.toList());
     }
 
@@ -102,7 +102,7 @@ public class FriendRequestServiceImpl implements FriendRequestService{
     public List<FriendResponseDTO> getFriends(Long userId) {
         return friendRequestRepository.findAcceptedFriendships(userId)
                 .stream()
-                .map(this::mapToDTO)
+                .map(fr -> mapToDTO(fr, userId))
                 .collect(Collectors.toList());
     }
 
@@ -160,7 +160,7 @@ public class FriendRequestServiceImpl implements FriendRequestService{
     public List<FriendResponseDTO> getSentRequests(Long userId) {
         return friendRequestRepository.findBySenderIdAndStatus(userId, "pending")
                 .stream()
-                .map(this::mapToDTO)
+                .map(fr -> mapToDTO(fr, userId))
                 .collect(Collectors.toList());
     }
 
@@ -171,16 +171,18 @@ public class FriendRequestServiceImpl implements FriendRequestService{
         friendRequestRepository.delete(friendRequest);
     }
 
-    private FriendResponseDTO mapToDTO(FriendRequest friendRequest){
+    private FriendResponseDTO mapToDTO(FriendRequest friendRequest, Long currentUserId){
+        User otherUser = friendRequest.getSender().getId().equals(currentUserId) ? friendRequest.getReceiver() : friendRequest.getSender();
+
         FriendResponseDTO response = new FriendResponseDTO();
 
         response.setRequestId(friendRequest.getId());
         response.setReceiverId(friendRequest.getReceiver().getId());
         response.setSenderId(friendRequest.getSender().getId());
-        response.setName(friendRequest.getSender().getName());
-        response.setSurname(friendRequest.getSender().getSurname());
-        response.setNickname(friendRequest.getSender().getNickname());
-        response.setProfilePicture(friendRequest.getSender().getProfilePicture());
+        response.setName(otherUser.getName());
+        response.setSurname(otherUser.getSurname());
+        response.setNickname(otherUser.getNickname());
+        response.setProfilePicture(otherUser.getProfilePicture());
         response.setCreatedAt(friendRequest.getCreatedAt());
         response.setStatus(friendRequest.getStatus());
 
