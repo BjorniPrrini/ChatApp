@@ -4,6 +4,7 @@ import com.chatappfrontend.frontend.model.MessageEventDTO;
 import com.chatappfrontend.frontend.util.AppConfig;
 import com.chatappfrontend.frontend.util.JsonMapper;
 import com.chatappfrontend.frontend.util.SessionManager;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.net.URI;

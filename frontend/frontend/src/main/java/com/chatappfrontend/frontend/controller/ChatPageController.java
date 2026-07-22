@@ -16,9 +16,11 @@ import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -71,6 +73,8 @@ public class ChatPageController {
     private VBox replyPreviewBox;
     @FXML
     private ListView<FriendResponseDTO> blockedUsersList;
+    @FXML
+    private StackPane contentPane;
 
     private Long currentConversationId;
     private final WebSocketService webSocketService = new WebSocketService();
@@ -601,7 +605,11 @@ public class ChatPageController {
 
     @FXML
     public void handleChangePassword(){
-
+        try {
+            SceneManager.switchContent(contentPane, "change-password.fxml");
+        } catch (IOException e) {
+            showError("Failed to load change password");
+        }
     }
 
     @FXML

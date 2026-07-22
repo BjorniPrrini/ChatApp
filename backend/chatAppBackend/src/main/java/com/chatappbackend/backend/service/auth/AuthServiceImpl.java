@@ -8,6 +8,7 @@ import com.chatappbackend.backend.exception.ResourceNotFoundException;
 import com.chatappbackend.backend.repository.PasswordResetTokenRepository;
 import com.chatappbackend.backend.repository.UserRepository;
 import com.chatappbackend.backend.util.JwtUtil;
+
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;

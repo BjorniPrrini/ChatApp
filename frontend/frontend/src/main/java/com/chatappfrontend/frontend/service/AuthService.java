@@ -1,9 +1,11 @@
 package com.chatappfrontend.frontend.service;
 
 import com.chatappfrontend.frontend.model.AuthResponseDTO;
+import com.chatappfrontend.frontend.util.ApiExceptionHandler;
 import com.chatappfrontend.frontend.util.AppConfig;
 import com.chatappfrontend.frontend.util.JsonMapper;
 
+import com.chatappfrontend.frontend.util.SessionManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.net.URI;
@@ -29,13 +31,11 @@ public class AuthService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return objectMapper.readValue(response.body(), AuthResponseDTO.class);
-        }else if(response.statusCode() == 401){
-            throw new Exception("Invalid email or password");
-        }else if(response.statusCode() == 404){
-            throw new Exception("User not found");
-        }else{
-            throw new Exception("Login failed: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
+
+        return null;
     }
 
     public AuthResponseDTO register(String name, String surname, String email, String password, String confirmPassword, String nickname, String phoneNumber) throws Exception{
@@ -56,13 +56,11 @@ public class AuthService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return objectMapper.readValue(response.body(), AuthResponseDTO.class);
-        }else if(response.statusCode() == 400){
-            throw new Exception("Email already in use");
-        }else if(response.statusCode() == 409){
-            throw new Exception("User already exists");
-        }else{
-            throw new Exception("Registration failed: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
+
+        return null;
     }
 
     public void forgotPassword(String email) throws Exception{
@@ -78,11 +76,9 @@ public class AuthService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return;
-        }else if(response.statusCode() == 404){
-            throw new Exception("Email not found");
-        }else{
-            throw new Exception("Failed to send reset code: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
     }
 
     public void resetPassword(String email, String token, String newPassword, String confirmPassword) throws Exception{
@@ -98,12 +94,8 @@ public class AuthService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return;
-        }else if(response.statusCode() == 400){
-            throw new Exception("Invalid or expired token");
-        }else if(response.statusCode() == 404){
-            throw new Exception("User not found");
-        }else{
-            throw new Exception("Failed to reset password: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
     }
 }

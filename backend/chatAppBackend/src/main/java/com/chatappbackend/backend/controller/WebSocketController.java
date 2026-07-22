@@ -6,6 +6,7 @@ import com.chatappbackend.backend.repository.ConversationParticipantRepository;
 import com.chatappbackend.backend.repository.MessageRepository;
 import com.chatappbackend.backend.service.message.MessageService;
 import com.chatappbackend.backend.service.notification.NotificationService;
+
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
@@ -39,6 +40,7 @@ public class WebSocketController {
         conversationParticipantRepository.findOtherParticipant(request.getConversationId(), userId)
                 .ifPresent(receiver -> {
                     notificationService.notifyUser(receiver.getId(), "NEW_MESSAGE", "New message from " + message.getSenderName(), message.getMessage());
+
                     messageRepository.markAsDelivered(message.getId());
                 });
     }

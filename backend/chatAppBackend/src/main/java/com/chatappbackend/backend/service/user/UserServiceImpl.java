@@ -1,5 +1,6 @@
 package com.chatappbackend.backend.service.user;
 
+import com.chatappbackend.backend.dto.auth.ChangePasswordRequestDTO;
 import com.chatappbackend.backend.dto.user.UserRequestDTO;
 import com.chatappbackend.backend.dto.user.UserResponseDTO;
 import com.chatappbackend.backend.entity.User;
@@ -7,6 +8,7 @@ import com.chatappbackend.backend.exception.BadRequestException;
 import com.chatappbackend.backend.exception.ForbiddenException;
 import com.chatappbackend.backend.exception.ResourceNotFoundException;
 import com.chatappbackend.backend.repository.UserRepository;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -50,23 +52,6 @@ public class UserServiceImpl implements UserService{
         User savedUser = userRepository.save(user);
 
         return mapToDTO(savedUser);
-    }
-
-    @Override
-    public void changePassword(Long id, String currentPassword, String newPassword, String confirmPassword) {
-        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        if(!newPassword.equals(confirmPassword)){
-            throw new BadRequestException("New password does not mach confirm password");
-        }
-
-        if(!passwordEncoder.matches(currentPassword, user.getPasswordHash())){
-            throw new BadRequestException("Current password is incorrect");
-        }
-
-        user.setPasswordHash(passwordEncoder.encode(newPassword));
-
-        userRepository.save(user);
     }
 
     @Override
@@ -122,6 +107,27 @@ public class UserServiceImpl implements UserService{
         User savedUser = userRepository.save(user);
 
         return mapToDTO(savedUser);
+    }
+
+    @Override
+    public void changePassword(Long userId, ChangePasswordRequestDTO request){
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if(!passwordEncoder.matches(request.getOldPassword(), user.getPasswordHash())){
+            throw new BadRequestException("Old password is wrong");
+        }
+
+        if(!request.getNewPassword().equals(request.getConfirmedPassword())){
+            throw new BadRequestException("Confirm password does not mach new password");
+        }
+
+        if(request.getNewPassword().length() < 8){
+            throw new BadRequestException("Password length must be 8 characters or more");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+
+        userRepository.save(user);
     }
 
     private UserResponseDTO mapToDTO(User user) {

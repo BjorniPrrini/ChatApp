@@ -2,12 +2,13 @@ package com.chatappfrontend.frontend.service;
 
 import com.chatappfrontend.frontend.model.MessagePageDTO;
 import com.chatappfrontend.frontend.model.MessageResponseDTO;
+import com.chatappfrontend.frontend.util.ApiExceptionHandler;
 import com.chatappfrontend.frontend.util.AppConfig;
 import com.chatappfrontend.frontend.util.JsonMapper;
 import com.chatappfrontend.frontend.util.SessionManager;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -21,7 +22,7 @@ public class MessageService {
     private final ObjectMapper objectMapper = JsonMapper.get();
     private final static String BASE_URL = AppConfig.get("api.base.url") + "/api/message";
 
-    public MessagePageDTO getMessages(Long conversationId, LocalDateTime before) throws IOException, InterruptedException {
+    public MessagePageDTO getMessages(Long conversationId, LocalDateTime before) throws Exception {
         String url = BASE_URL + "/" + conversationId;
         if(before != null){
             url += "?before=" + before;
@@ -37,11 +38,11 @@ public class MessageService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return objectMapper.readValue(response.body(), MessagePageDTO.class);
-        }else if(response.statusCode() == 401){
-            throw new IOException("Unauthorized");
-        }else{
-            throw new IOException("Failed to load messages: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
+
+        return null;
     }
 
     public MessageResponseDTO sendMessage(Long conversationId, String message) throws Exception {
@@ -77,11 +78,11 @@ public class MessageService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return objectMapper.readValue(response.body(), MessageResponseDTO.class);
-        }else if(response.statusCode() == 401){
-            throw new Exception("Unauthorized");
-        }else{
-            throw new Exception("Failed to send message: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
+
+        return null;
     }
 
     public MessageResponseDTO editMessage(Long messageId, String newMessage) throws Exception {
@@ -102,11 +103,11 @@ public class MessageService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return objectMapper.readValue(response.body(), MessageResponseDTO.class);
-        }else if(response.statusCode() == 401){
-            throw new Exception("Unauthorized");
-        }else{
-            throw new Exception("Failed to edit message: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
+
+        return null;
     }
 
     public void deleteMessage(Long messageId, String scope) throws Exception {
@@ -118,11 +119,11 @@ public class MessageService {
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        if(response.statusCode() == 401){
-            throw new Exception("Unauthorized");
-        }else if(response.statusCode() < 200 || response.statusCode() >= 300){
-            throw new Exception("Failed to delete message: " + response.statusCode());
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return;
         }
+
+        ApiExceptionHandler.handle(response);
     }
 
     public void deleteMessageForMe(Long messageId) throws Exception {

@@ -72,27 +72,38 @@
             </VBox>
         </VBox>
 
-        <VBox HBox.hgrow="ALWAYS" styleClass="chat-area">
-            <HBox fx:id="chatHeader" styleClass="chat-header" alignment="CENTER_LEFT" spacing="10">
-                <padding><Insets top="10" bottom="10" left="15" right="15"/></padding>
-                <Label fx:id="chatNameLabel" text="Select a conversation" styleClass="chat-name"/>
-            </HBox>
+        <StackPane fx:id="contentPane" HBox.hgrow="ALWAYS">
+            <VBox fx:id="chatArea" styleClass="chat-area">
+                <HBox fx:id="chatHeader" styleClass="chat-header" alignment="CENTER_LEFT" spacing="10">
+                    <padding>
+                        <Insets top="10" bottom="10" left="15" right="15"/>
+                    </padding>
 
-            <Label fx:id="notificationLabel" styleClass="notification-label" visible="false" managed="false"/>
+                    <Label fx:id="chatNameLabel" text="Select a conversation" styleClass="chat-name"/>
+                </HBox>
 
-            <ScrollPane fx:id="messagesScrollPane" VBox.vgrow="ALWAYS" fitToWidth="true" styleClass="messages-scroll">
-                <VBox fx:id="messagesContainer" styleClass="messages-container" spacing="8">
-                    <padding><Insets top="10" bottom="10" left="15" right="15"/></padding>
-                </VBox>
-            </ScrollPane>
+                <Label fx:id="notificationLabel" styleClass="notification-label" visible="false" managed="false"/>
 
-            <VBox fx:id="replyPreviewBox" visible="false" managed="false"/>
+                <ScrollPane fx:id="messagesScrollPane" VBox.vgrow="ALWAYS" fitToWidth="true" styleClass="messages-scroll">
+                    <VBox fx:id="messagesContainer" styleClass="messages-container" spacing="8">
+                        <padding>
+                            <Insets top="10" bottom="10" left="15" right="15"/>
+                        </padding>
+                    </VBox>
+                </ScrollPane>
 
-            <HBox fx:id="messageInputArea" styleClass="message-input-area" alignment="CENTER" spacing="10">
-                <padding><Insets top="10" bottom="10" left="15" right="15"/></padding>
-                <TextField fx:id="messageInput" promptText="Type a message..." HBox.hgrow="ALWAYS" styleClass="message-input"/>
-                <Button text="Send" styleClass="primary-button" onAction="#handleSendMessage"/>
-            </HBox>
-        </VBox>
+                <VBox fx:id="replyPreviewBox" visible="false" managed="false"/>
+
+                <HBox fx:id="messageInputArea" styleClass="message-input-area" alignment="CENTER" spacing="10">
+                    <padding>
+                        <Insets top="10" bottom="10" left="15" right="15"/>
+                    </padding>
+
+                    <TextField fx:id="messageInput" promptText="Type a message..." HBox.hgrow="ALWAYS" styleClass="message-input"/>
+
+                    <Button text="Send" styleClass="primary-button" onAction="#handleSendMessage"/>
+                </HBox>
+            </VBox>
+        </StackPane>
     </HBox>
 </StackPane>

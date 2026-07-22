@@ -57,6 +57,11 @@
     -fx-font-size: 13px;
 }
 
+.success-label {
+    -fx-text-fill: #44cc44;
+    -fx-font-size: 13px;
+}
+
 .chat-background {
     -fx-background-color: #0d0d0d;
 }

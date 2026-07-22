@@ -1,6 +1,6 @@
 package com.chatappbackend.backend.controller;
 
-import com.chatappbackend.backend.dto.user.ChangePasswordRequestDTO;
+import com.chatappbackend.backend.dto.auth.ChangePasswordRequestDTO;
 import com.chatappbackend.backend.dto.user.UserRequestDTO;
 import com.chatappbackend.backend.dto.user.UserResponseDTO;
 import com.chatappbackend.backend.entity.User;
@@ -34,13 +34,6 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/changePassword")
-    public ResponseEntity<Void> changePassword(@RequestBody ChangePasswordRequestDTO request){
-        service.changePassword(getUser().getId(), request.getCurrentPassword(), request.getNewPassword(), request.getConfirmPassword());
-
-        return ResponseEntity.ok().build();
-    }
-
     @GetMapping("/searchUsers")
     public ResponseEntity<List<UserResponseDTO>> searchUsers(@RequestParam String searchTerm){
         return ResponseEntity.ok(service.searchUsers(searchTerm, getUser().getId()));
@@ -49,6 +42,13 @@ public class UserController {
     @PutMapping("/profile-picture")
     public ResponseEntity<UserResponseDTO> updateProfilePicture(@RequestParam MultipartFile file){
         return ResponseEntity.ok(service.updateProfilePicture(getUser().getId(), file));
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<Void> changePassword(@RequestBody ChangePasswordRequestDTO request){
+        service.changePassword(getUser().getId(), request);
+
+        return ResponseEntity.ok().build();
     }
 
     private User getUser(){

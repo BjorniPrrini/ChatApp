@@ -1,9 +1,11 @@
 package com.chatappfrontend.frontend.service;
 
 import com.chatappfrontend.frontend.model.ConversationResponseDTO;
+import com.chatappfrontend.frontend.util.ApiExceptionHandler;
 import com.chatappfrontend.frontend.util.AppConfig;
 import com.chatappfrontend.frontend.util.JsonMapper;
 import com.chatappfrontend.frontend.util.SessionManager;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.net.URI;
@@ -29,15 +31,11 @@ public class ConversationService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return objectMapper.readValue(response.body(), objectMapper.getTypeFactory().constructCollectionType(List.class, ConversationResponseDTO.class));
-        }else if(response.statusCode() == 401){
-            throw new Exception("Unauthorized - please login again");
-        }else if(response.statusCode() == 403){
-            throw new Exception("Forbidden");
-        }else if(response.statusCode() == 404){
-            throw new Exception("Not found");
-        }else{
-            throw new Exception("Request failed: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
+
+        return null;
     }
 
     public ConversationResponseDTO createConversation(Long receiverId) throws Exception{
@@ -54,10 +52,10 @@ public class ConversationService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return objectMapper.readValue(response.body(), ConversationResponseDTO.class);
-        }else if (response.statusCode() == 401) {
-            throw new Exception("Unauthorized");
-        }else{
-            throw new Exception("Failed to create conversation: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
+
+        return null;
     }
 }

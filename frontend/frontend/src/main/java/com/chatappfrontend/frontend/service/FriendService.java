@@ -1,6 +1,7 @@
 package com.chatappfrontend.frontend.service;
 
 import com.chatappfrontend.frontend.model.FriendResponseDTO;
+import com.chatappfrontend.frontend.util.ApiExceptionHandler;
 import com.chatappfrontend.frontend.util.AppConfig;
 import com.chatappfrontend.frontend.util.JsonMapper;
 import com.chatappfrontend.frontend.util.SessionManager;
@@ -29,15 +30,11 @@ public class FriendService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return objectMapper.readValue(response.body(), objectMapper.getTypeFactory().constructCollectionType(List.class, FriendResponseDTO.class));
-        }else if(response.statusCode() == 401){
-            throw new Exception("Unauthorized - please login again");
-        }else if(response.statusCode() == 403){
-            throw new Exception("Forbidden");
-        }else if(response.statusCode() == 404){
-            throw new Exception("Not found");
-        }else{
-            throw new Exception("Request failed: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
+
+        return null;
     }
 
     public List<FriendResponseDTO> getFriendRequests() throws Exception {
@@ -52,15 +49,11 @@ public class FriendService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return objectMapper.readValue(response.body(), objectMapper.getTypeFactory().constructCollectionType(List.class, FriendResponseDTO.class));
-        }else if(response.statusCode() == 401){
-            throw new Exception("Unauthorized - please login again");
-        }else if(response.statusCode() == 403){
-            throw new Exception("Forbidden");
-        }else if(response.statusCode() == 404){
-            throw new Exception("Not found");
-        }else{
-            throw new Exception("Request failed: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
+
+        return null;
     }
 
     public List<FriendResponseDTO> getSuggestions() throws Exception {
@@ -75,15 +68,11 @@ public class FriendService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return objectMapper.readValue(response.body(), objectMapper.getTypeFactory().constructCollectionType(List.class, FriendResponseDTO.class));
-        }else if(response.statusCode() == 401){
-            throw new Exception("Unauthorized - please login again");
-        }else if(response.statusCode() == 403){
-            throw new Exception("Forbidden");
-        }else if(response.statusCode() == 404){
-            throw new Exception("Not found");
-        }else{
-            throw new Exception("Request failed: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
+
+        return null;
     }
 
     public void sendFriendRequest(Long receiverId) throws Exception {
@@ -98,15 +87,9 @@ public class FriendService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return;
-        }else if(response.statusCode() == 401){
-            throw new Exception("Unauthorized - please login again");
-        }else if(response.statusCode() == 403){
-            throw new Exception("Forbidden");
-        }else if(response.statusCode() == 404){
-            throw new Exception("Not found");
-        }else{
-            throw new Exception("Request failed: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
     }
 
     public void acceptFriendRequest(Long senderId) throws Exception {
@@ -121,15 +104,9 @@ public class FriendService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return;
-        }else if(response.statusCode() == 401){
-            throw new Exception("Unauthorized - please login again");
-        }else if(response.statusCode() == 403){
-            throw new Exception("Forbidden");
-        }else if(response.statusCode() == 404){
-            throw new Exception("Not found");
-        }else{
-            throw new Exception("Request failed: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
     }
 
     public void rejectFriendRequest(Long senderId) throws Exception {
@@ -144,15 +121,9 @@ public class FriendService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return;
-        }else if(response.statusCode() == 401){
-            throw new Exception("Unauthorized - please login again");
-        }else if(response.statusCode() == 403){
-            throw new Exception("Forbidden");
-        }else if(response.statusCode() == 404){
-            throw new Exception("Not found");
-        }else{
-            throw new Exception("Request failed: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
     }
 
     public List<FriendResponseDTO> getSentRequests() throws Exception{
@@ -167,9 +138,11 @@ public class FriendService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return objectMapper.readValue(response.body(), objectMapper.getTypeFactory().constructCollectionType(List.class, FriendResponseDTO.class));
-        }else{
-            throw new Exception("Failed to get sent requests: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
+
+        return null;
     }
 
     public void removeFriend(Long userId, Long friendId) throws Exception {
@@ -184,15 +157,9 @@ public class FriendService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return;
-        }else if(response.statusCode() == 401){
-            throw new Exception("Unauthorized - please login again");
-        }else if(response.statusCode() == 403){
-            throw new Exception("Forbidden");
-        }else if(response.statusCode() == 404){
-            throw new Exception("Not found");
-        }else{
-            throw new Exception("Request failed: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
     }
 
     public void blockFriend(Long friendId) throws Exception {
@@ -207,15 +174,9 @@ public class FriendService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return;
-        }else if(response.statusCode() == 401){
-            throw new Exception("Unauthorized - please login again");
-        }else if(response.statusCode() == 403){
-            throw new Exception("Forbidden");
-        }else if(response.statusCode() == 404){
-            throw new Exception("Not found");
-        }else{
-            throw new Exception("Request failed: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
     }
 
     public void unblockUser(Long friendId) throws Exception {
@@ -230,11 +191,9 @@ public class FriendService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return;
-        }else if(response.statusCode() == 401){
-            throw new Exception("Unauthorized - please login again");
-        }else{
-            throw new Exception("Request failed: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
     }
 
     public List<FriendResponseDTO> getBlockedUsers() throws Exception {
@@ -249,8 +208,10 @@ public class FriendService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return objectMapper.readValue(response.body(), objectMapper.getTypeFactory().constructCollectionType(List.class, FriendResponseDTO.class));
-        }else{
-            throw new Exception("Failed to get blocked users: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
+
+        return null;
     }
 }

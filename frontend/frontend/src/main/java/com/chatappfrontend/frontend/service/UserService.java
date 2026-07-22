@@ -1,5 +1,6 @@
 package com.chatappfrontend.frontend.service;
 
+import com.chatappfrontend.frontend.util.ApiExceptionHandler;
 import com.chatappfrontend.frontend.model.UserResponseDTO;
 import com.chatappfrontend.frontend.util.AppConfig;
 import com.chatappfrontend.frontend.util.JsonMapper;
@@ -29,14 +30,29 @@ public class UserService {
 
         if(response.statusCode() >= 200 && response.statusCode() < 300){
             return objectMapper.readValue(response.body(), objectMapper.getTypeFactory().constructCollectionType(List.class, UserResponseDTO.class));
-        }else if(response.statusCode() == 401){
-            throw new Exception("Unauthorized - please login again");
-        }else if(response.statusCode() == 403){
-            throw new Exception("Forbidden");
-        }else if(response.statusCode() == 404){
-            throw new Exception("Not found");
-        }else{
-            throw new Exception("Request failed: " + response.statusCode());
         }
+
+        ApiExceptionHandler.handle(response);
+
+        return null;
+    }
+
+    public void changePassword(String oldPassword, String newPassword, String confirmPassword) throws Exception {
+        String body = String.format("{\"oldPassword\":\"%s\",\"newPassword\":\"%s\",\"confirmedPassword\":\"%s\"}", oldPassword, newPassword, confirmPassword);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/change-password"))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .PUT(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return;
+        }
+
+        ApiExceptionHandler.handle(response);
     }
 }
