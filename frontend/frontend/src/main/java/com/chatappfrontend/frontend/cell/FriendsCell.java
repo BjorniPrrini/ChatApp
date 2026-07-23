@@ -2,6 +2,7 @@ package com.chatappfrontend.frontend.cell;
 
 import com.chatappfrontend.frontend.model.FriendResponseDTO;
 import com.chatappfrontend.frontend.util.SessionManager;
+
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;

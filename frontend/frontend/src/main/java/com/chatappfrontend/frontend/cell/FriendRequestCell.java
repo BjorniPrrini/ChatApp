@@ -2,6 +2,7 @@ package com.chatappfrontend.frontend.cell;
 
 import com.chatappfrontend.frontend.model.FriendResponseDTO;
 import com.chatappfrontend.frontend.service.FriendService;
+
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;

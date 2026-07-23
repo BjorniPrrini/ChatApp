@@ -2,6 +2,7 @@ package com.chatappfrontend.frontend.controller;
 
 import com.chatappfrontend.frontend.service.AuthService;
 import com.chatappfrontend.frontend.util.SceneManager;
+
 import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;

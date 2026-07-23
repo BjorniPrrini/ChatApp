@@ -1,6 +1,7 @@
 package com.chatappfrontend.frontend.cell;
 
 import com.chatappfrontend.frontend.model.ConversationResponseDTO;
+
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
