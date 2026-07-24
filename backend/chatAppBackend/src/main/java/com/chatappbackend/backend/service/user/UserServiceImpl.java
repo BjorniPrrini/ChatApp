@@ -44,10 +44,25 @@ public class UserServiceImpl implements UserService{
     public UserResponseDTO updateProfile(Long id, UserRequestDTO request) {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        user.setName(request.getName());
-        user.setSurname(request.getSurname());
-        user.setNickname(request.getNickname());
-        user.setPhoneNumber(request.getPhoneNumber());
+        if(request.getName() != null && !request.getName().isBlank()){
+            user.setName(request.getName());
+        }
+
+        if(request.getSurname() != null && !request.getSurname().isBlank()){
+            user.setSurname(request.getSurname());
+        }
+
+        if(request.getNickname() != null){
+            user.setNickname(request.getNickname());
+        }
+
+        if(request.getPhoneNumber() != null){
+            if(request.getPhoneNumber().isBlank()){
+                user.setPhoneNumber(null);
+            }else{
+                user.setPhoneNumber(request.getPhoneNumber());
+            }
+        }
 
         User savedUser = userRepository.save(user);
 

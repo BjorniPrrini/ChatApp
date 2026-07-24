@@ -13,10 +13,11 @@ module com.chatappfrontend.frontend {
 
     opens com.chatappfrontend.frontend to javafx.fxml;
     opens com.chatappfrontend.frontend.controller to javafx.fxml;
-    opens com.chatappfrontend.frontend.model to com.fasterxml.jackson.databind;
 
     exports com.chatappfrontend.frontend;
     exports com.chatappfrontend.frontend.controller;
     exports com.chatappfrontend.frontend.cell;
     opens com.chatappfrontend.frontend.cell to javafx.fxml;
+    exports com.chatappfrontend.frontend.model;
+    opens com.chatappfrontend.frontend.model to com.fasterxml.jackson.databind, javafx.fxml;
 }

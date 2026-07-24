@@ -5,6 +5,7 @@ import com.chatappbackend.backend.dto.user.UserRequestDTO;
 import com.chatappbackend.backend.dto.user.UserResponseDTO;
 import com.chatappbackend.backend.entity.User;
 import com.chatappbackend.backend.service.user.UserService;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;

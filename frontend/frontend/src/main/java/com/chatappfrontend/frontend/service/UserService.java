@@ -1,5 +1,6 @@
 package com.chatappfrontend.frontend.service;
 
+import com.chatappfrontend.frontend.model.UserRequestDTO;
 import com.chatappfrontend.frontend.util.ApiExceptionHandler;
 import com.chatappfrontend.frontend.model.UserResponseDTO;
 import com.chatappfrontend.frontend.util.AppConfig;
@@ -43,6 +44,50 @@ public class UserService {
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/change-password"))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .PUT(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return;
+        }
+
+        ApiExceptionHandler.handle(response);
+    }
+
+    public UserResponseDTO getUserInformation() throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/me"))
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .GET()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return objectMapper.readValue(response.body(), UserResponseDTO.class);
+        }
+
+        ApiExceptionHandler.handle(response);
+
+        return null;
+    }
+
+    public void editUserProfile(String name, String surname, String nickname, String phoneNumber) throws Exception {
+        UserRequestDTO requestDTO = new UserRequestDTO();
+
+        requestDTO.setName(name);
+        requestDTO.setSurname(surname);
+        requestDTO.setNickname(nickname);
+        requestDTO.setPhoneNumber(phoneNumber);
+
+        String body = objectMapper.writeValueAsString(requestDTO);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/updateProfile"))
                 .header("Content-Type", "application/json")
                 .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
                 .PUT(HttpRequest.BodyPublishers.ofString(body))

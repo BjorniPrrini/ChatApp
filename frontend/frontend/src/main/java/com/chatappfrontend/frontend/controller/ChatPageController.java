@@ -614,7 +614,11 @@ public class ChatPageController {
 
     @FXML
     public void handleEditProfile(){
-
+        try {
+            SceneManager.switchContent(contentPane, "edit-profile.fxml");
+        } catch (IOException e) {
+            showError("Failed to load edit profile");
+        }
     }
 
     @FXML

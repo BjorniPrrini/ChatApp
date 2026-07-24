@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.chatappfrontend.frontend.controller.EditProfileController" alignment="CENTER" spacing="20" stylesheets="@../styles/main.css">
+    <padding>
+        <Insets top="40" right="40" bottom="40" left="40"/>
+    </padding>
+
+    <Label text="Edit Profile" styleClass="panel-title"/>
+
+    <VBox spacing="10" maxWidth="350">
+        <Label text="Name"/>
+        <TextField fx:id="nameField" promptText="Enter your name" styleClass="search-field"/>
+
+        <Label text="Surname"/>
+        <TextField fx:id="surnameField" promptText="Enter your surname" styleClass="search-field"/>
+
+        <Label text="Nickname"/>
+        <TextField fx:id="nicknameField" promptText="Enter your nickname" styleClass="search-field"/>
+
+        <Label text="Phone Number"/>
+        <TextField fx:id="phoneNumberField" promptText="Enter your phone number" styleClass="search-field"/>
+
+        <Label text="Email"/>
+        <TextField fx:id="emailField" editable="false" focusTraversable="false" styleClass="search-field"/>
+
+        <Label fx:id="errorLabel" styleClass="error-label" visible="false" managed="false"/>
+        <Label fx:id="successLabel" styleClass="success-label" visible="false" managed="false"/>
+
+        <HBox alignment="CENTER" spacing="10">
+            <Button text="Save Changes" styleClass="primary-button" onAction="#handleSaveChanges"/>
+        </HBox>
+    </VBox>
+</VBox>
