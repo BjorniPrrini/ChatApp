@@ -15,14 +15,14 @@ import java.security.Principal;
 
 @Controller
 public class WebSocketController {
-    private final MessageService service;
+    private final MessageService messageService;
     private final SimpMessagingTemplate messagingTemplate;
     private final NotificationService notificationService;
     private final ConversationParticipantRepository conversationParticipantRepository;
     private final MessageRepository messageRepository;
 
     public WebSocketController(MessageService service, SimpMessagingTemplate messagingTemplate, NotificationService notificationService, ConversationParticipantRepository conversationParticipantRepository, MessageRepository messageRepository) {
-        this.service = service;
+        this.messageService = service;
         this.messagingTemplate = messagingTemplate;
         this.notificationService = notificationService;
         this.conversationParticipantRepository = conversationParticipantRepository;
@@ -33,7 +33,7 @@ public class WebSocketController {
     public void sendMessage(MessageRequestDTO request, Principal principal){
         Long userId = Long.parseLong(principal.getName());
 
-        MessageResponseDTO message = service.sendMessage(userId, request);
+        MessageResponseDTO message = messageService.sendMessage(userId, request);
 
         messagingTemplate.convertAndSend("/topic/conversation." + request.getConversationId(), message);
 
@@ -43,5 +43,12 @@ public class WebSocketController {
 
                     messageRepository.markAsDelivered(message.getId());
                 });
+    }
+
+    @MessageMapping("/chat.read")
+    public void markAsRead(Long conversationId, Principal principal){
+        Long userId = Long.parseLong(principal.getName());
+
+        messageService.markConversationAsRead(userId, conversationId);
     }
 }

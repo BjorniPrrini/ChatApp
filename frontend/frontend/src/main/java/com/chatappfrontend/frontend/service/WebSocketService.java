@@ -129,4 +129,14 @@ public class WebSocketService {
             webSocket = null;
         }
     }
+
+    public void sendReadReceipt(Long conversationId){
+        if(webSocket != null){
+            String destination = "/app/chat.read";
+            String body = String.valueOf(conversationId);
+            String sendFrame = "SEND\ndestination:" + destination + "\ncontent-type:application/json\n\n" + body + "\0";
+
+            webSocket.sendText(sendFrame, true);
+        }
+    }
 }

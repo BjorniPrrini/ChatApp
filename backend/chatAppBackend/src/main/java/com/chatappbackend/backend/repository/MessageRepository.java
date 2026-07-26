@@ -1,6 +1,7 @@
 package com.chatappbackend.backend.repository;
 
 import com.chatappbackend.backend.entity.Message;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -24,4 +25,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @Query("UPDATE Message m SET m.status = 'delivered' WHERE m.id = :messageId")
     void markAsDelivered(@Param("messageId") Long messageId);
     Optional<Message> findTopByConversationIdOrderBySentAtDesc(Long conversationId);
+    @Query("SELECT m.id FROM Message m WHERE m.conversation.id = :conversationId AND m.sender.id != :userId AND m.status != 'read'")
+    List<Long> findUnreadMessageIds(@Param("conversationId") Long conversationId, @Param("userId") Long userId);
 }

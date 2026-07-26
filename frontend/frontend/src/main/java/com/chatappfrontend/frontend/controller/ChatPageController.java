@@ -75,6 +75,8 @@ public class ChatPageController {
     private ListView<FriendResponseDTO> blockedUsersList;
     @FXML
     private StackPane contentPane;
+    @FXML
+    private VBox chatArea;
 
     private Long currentConversationId;
     private final WebSocketService webSocketService = new WebSocketService();
@@ -230,6 +232,8 @@ public class ChatPageController {
     }
 
     private void openConversation(ConversationResponseDTO selected){
+        showChatContent();
+
         currentConversationId = selected.getConversationId();
         oldestLoadedMessageTime = null;
         hasMoreMessages = true;
@@ -241,6 +245,10 @@ public class ChatPageController {
                 switch(event.getType()){
                     case "NEW" -> {
                         MessageResponseDTO message = event.getMessage();
+
+                        if(!message.getSenderId().equals(SessionManager.getInstance().getUserId())){
+                            webSocketService.sendReadReceipt(currentConversationId);
+                        }
 
                         boolean alreadyShown = messagesContainer.getChildren().stream().anyMatch(node -> message.getId().equals(node.getProperties().get("messageId")));
 
@@ -268,6 +276,29 @@ public class ChatPageController {
 
                         if(wasLast){
                             syncPreviewToNewLastMessage();
+                        }
+                    }
+                    case "STATUS" -> {
+                        for(Long messageId : event.getMessageIds()){
+                            for(Node node : messagesContainer.getChildren()){
+                                if(messageId.equals(node.getProperties().get("messageId"))){
+                                    Label statusLabel = (Label) node.getProperties().get("statusLabel");
+                                    MessageResponseDTO messageObj = (MessageResponseDTO) node.getProperties().get("messageObj");
+
+                                    if(messageObj != null){
+                                        messageObj.setStatus("read");
+                                    }
+
+                                    if(statusLabel == null){
+                                        break;
+                                    }
+
+                                    statusLabel.setText(formatStatus("read"));
+                                    statusLabel.setStyle("-fx-text-fill: " + getStatusColor("read") + "; -fx-font-size: 10px;");
+
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
@@ -342,6 +373,18 @@ public class ChatPageController {
 
         bubble.getChildren().add(messageLabel);
 
+        if(isMyMessage){
+            Label statusLabel = new Label(formatStatus(message.getStatus()));
+
+            statusLabel.setStyle("-fx-text-fill: " + getStatusColor(message.getStatus()) + "; -fx-font-size: 10px;");
+
+            statusLabel.setAlignment(Pos.CENTER_RIGHT);
+
+            hBox.getProperties().put("statusLabel", statusLabel);
+
+            bubble.getChildren().add(statusLabel);
+        }
+
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem reply = new MenuItem("Reply");
@@ -377,6 +420,30 @@ public class ChatPageController {
         hBox.getChildren().add(bubble);
 
         return hBox;
+    }
+
+    private String formatStatus(String status){
+        if(status == null){
+            return "";
+        }
+
+        return switch (status) {
+            case "sent" -> "✓";
+            case "delivered", "read" -> "✓✓";
+            default -> "";
+        };
+    }
+
+    private String getStatusColor(String status){
+        if(status == null){
+            return "#888888";
+        }
+
+        if(status.equals("read")){
+            return "#009aff";
+        }
+
+        return "#888888";
     }
 
     private void handleReply(MessageResponseDTO message){
@@ -527,7 +594,13 @@ public class ChatPageController {
 
     @FXML
     public void showConversations(){
+        showChatContent();
+
         showPanel(conversationsPanel);
+    }
+
+    private void showChatContent(){
+        contentPane.getChildren().setAll(chatArea);
     }
 
     @FXML

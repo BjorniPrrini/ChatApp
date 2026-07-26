@@ -12,4 +12,5 @@ public interface MessageService {
     void deleteMessageForMe(Long userId, Long messageId);
     void deleteMessageForEveryone(Long userId, Long messageId);
     MessageResponseDTO editMessage(Long userId, Long messageId, String newMessage);
+    void markConversationAsRead(Long userId, Long conversationId);
 }

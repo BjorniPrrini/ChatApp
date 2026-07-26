@@ -3,10 +3,12 @@ package com.chatappbackend.backend.config;
 import com.chatappbackend.backend.entity.User;
 import com.chatappbackend.backend.repository.UserRepository;
 import com.chatappbackend.backend.util.JwtUtil;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -50,5 +52,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
         filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request){
+        return request.getServletPath().startsWith("/ws");
     }
 }

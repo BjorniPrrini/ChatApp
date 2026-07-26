@@ -13,6 +13,7 @@ import com.chatappbackend.backend.exception.ForbiddenException;
 import com.chatappbackend.backend.exception.ResourceNotFoundException;
 import com.chatappbackend.backend.repository.*;
 import com.chatappbackend.backend.service.blocked.BlockedUserService;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -81,14 +82,14 @@ public class MessageServiceImpl implements MessageService{
 
         MessageResponseDTO dto = mapToDTO(savedMessage);
 
-        messagingTemplate.convertAndSend("/topic/conversation." + conversation.getId(), new MessageEventDTO("NEW", conversation.getId(), dto.getId(), dto));
+        messagingTemplate.convertAndSend("/topic/conversation." + conversation.getId(), new MessageEventDTO("NEW", conversation.getId(), dto.getId(), dto, null));
 
         return dto;
     }
 
     @Override
     public MessagePageDTO getMessages(Long userId, Long conversationId, LocalDateTime before) {
-        messageRepository.markMessagesAsRead(conversationId, userId);
+        markConversationAsRead(userId, conversationId);
 
         List<Message> messages = messageRepository.findMessages(conversationId, before, PageRequest.of(0, 50));
 
@@ -143,7 +144,7 @@ public class MessageServiceImpl implements MessageService{
 
         messageRepository.delete(message);
 
-        messagingTemplate.convertAndSend("/topic/conversation." + conversationId, new MessageEventDTO("DELETE", conversationId, messageId, null));
+        messagingTemplate.convertAndSend("/topic/conversation." + conversationId, new MessageEventDTO("DELETE", conversationId, messageId, null, null));
     }
 
     @Override
@@ -165,9 +166,26 @@ public class MessageServiceImpl implements MessageService{
 
         MessageResponseDTO dto = mapToDTO(savedMessage);
 
-        messagingTemplate.convertAndSend("/topic/conversation." + savedMessage.getConversation().getId(), new MessageEventDTO("EDIT", savedMessage.getConversation().getId(), savedMessage.getId(), dto));
+        messagingTemplate.convertAndSend("/topic/conversation." + savedMessage.getConversation().getId(), new MessageEventDTO("EDIT", savedMessage.getConversation().getId(), savedMessage.getId(), dto, null));
 
         return dto;
+    }
+
+    @Override
+    public void markConversationAsRead(Long userId, Long conversationId) {
+        List<Long> unreadMessagesList = messageRepository.findUnreadMessageIds(conversationId, userId);
+
+        messageRepository.markMessagesAsRead(conversationId, userId);
+
+        if(!unreadMessagesList.isEmpty()){
+            MessageEventDTO statusEvent = new MessageEventDTO();
+
+            statusEvent.setType("STATUS");
+            statusEvent.setConversationId(conversationId);
+            statusEvent.setMessageIds(unreadMessagesList);
+
+            messagingTemplate.convertAndSend("/topic/conversation." + conversationId, statusEvent);
+        }
     }
 
     private MessageResponseDTO mapToDTO(Message message){
