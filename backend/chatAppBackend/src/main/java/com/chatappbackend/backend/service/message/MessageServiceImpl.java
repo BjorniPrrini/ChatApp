@@ -82,7 +82,9 @@ public class MessageServiceImpl implements MessageService{
 
         MessageResponseDTO dto = mapToDTO(savedMessage);
 
-        messagingTemplate.convertAndSend("/topic/conversation." + conversation.getId(), new MessageEventDTO("NEW", conversation.getId(), dto.getId(), dto, null));
+        messagingTemplate.convertAndSend("/topic/conversation." + conversation.getId(), new MessageEventDTO("NEW", conversation.getId(), dto.getId(), dto, null, null));
+
+        messagingTemplate.convertAndSend("/queue/user." + otherUser.getId(), new MessageEventDTO("NEW", conversation.getId(), dto.getId(), dto, null, null));
 
         return dto;
     }
@@ -144,7 +146,7 @@ public class MessageServiceImpl implements MessageService{
 
         messageRepository.delete(message);
 
-        messagingTemplate.convertAndSend("/topic/conversation." + conversationId, new MessageEventDTO("DELETE", conversationId, messageId, null, null));
+        messagingTemplate.convertAndSend("/topic/conversation." + conversationId, new MessageEventDTO("DELETE", conversationId, messageId, null, null, null));
     }
 
     @Override
@@ -166,7 +168,7 @@ public class MessageServiceImpl implements MessageService{
 
         MessageResponseDTO dto = mapToDTO(savedMessage);
 
-        messagingTemplate.convertAndSend("/topic/conversation." + savedMessage.getConversation().getId(), new MessageEventDTO("EDIT", savedMessage.getConversation().getId(), savedMessage.getId(), dto, null));
+        messagingTemplate.convertAndSend("/topic/conversation." + savedMessage.getConversation().getId(), new MessageEventDTO("EDIT", savedMessage.getConversation().getId(), savedMessage.getId(), dto, null, null));
 
         return dto;
     }
@@ -183,9 +185,30 @@ public class MessageServiceImpl implements MessageService{
             statusEvent.setType("STATUS");
             statusEvent.setConversationId(conversationId);
             statusEvent.setMessageIds(unreadMessagesList);
+            statusEvent.setStatus("read");
 
             messagingTemplate.convertAndSend("/topic/conversation." + conversationId, statusEvent);
+
+            conversationParticipantRepository.findOtherParticipant(conversationId, userId)
+                    .ifPresent(sender -> messagingTemplate.convertAndSend("/queue/user." + sender.getId(), statusEvent));
         }
+    }
+
+    @Override
+    public void markMessageAsDelivered(Long messageId){
+        Message message = messageRepository.findById(messageId).orElseThrow(() -> new ResourceNotFoundException("Message not found"));
+
+        messageRepository.markAsDelivered(messageId);
+
+        MessageEventDTO messageEventDTO = new MessageEventDTO();
+
+        messageEventDTO.setConversationId(message.getConversation().getId());
+        messageEventDTO.setType("STATUS");
+        messageEventDTO.setMessageIds(List.of(messageId));
+        messageEventDTO.setStatus("delivered");
+
+        messagingTemplate.convertAndSend("/topic/conversation." + message.getConversation().getId(), messageEventDTO);
+        messagingTemplate.convertAndSend("/queue/user." + message.getSender().getId(), messageEventDTO);
     }
 
     private MessageResponseDTO mapToDTO(Message message){

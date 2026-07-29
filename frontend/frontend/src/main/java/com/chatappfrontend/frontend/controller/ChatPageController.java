@@ -185,6 +185,16 @@ public class ChatPageController {
 
         try {
             webSocketService.connect();
+
+            webSocketService.subscribeToUser(SessionManager.getInstance().getUserId(), event -> {
+                Platform.runLater(() -> {
+                    if("NEW".equals(event.getType())){
+                        webSocketService.sendDeliveredReceipt(event.getMessageId());
+                    }else if("STATUS".equals(event.getType())){
+                        handleStatusUpdate(event.getMessageIds(), event.getStatus());
+                    }
+                });
+            });
         } catch (Exception e) {
             showError("Could not connect to real time service");
         }
@@ -242,17 +252,17 @@ public class ChatPageController {
         webSocketService.unsubscribe();
         webSocketService.subscribe(currentConversationId, event -> {
             Platform.runLater(() -> {
-                switch(event.getType()){
+                switch(event.getType()) {
                     case "NEW" -> {
                         MessageResponseDTO message = event.getMessage();
 
-                        if(!message.getSenderId().equals(SessionManager.getInstance().getUserId())){
+                        if (!message.getSenderId().equals(SessionManager.getInstance().getUserId())) {
                             webSocketService.sendReadReceipt(currentConversationId);
                         }
 
                         boolean alreadyShown = messagesContainer.getChildren().stream().anyMatch(node -> message.getId().equals(node.getProperties().get("messageId")));
 
-                        if(!alreadyShown){
+                        if (!alreadyShown) {
                             HBox bubble = createMessageBubble(message);
 
                             messagesContainer.getChildren().add(bubble);
@@ -265,7 +275,7 @@ public class ChatPageController {
 
                         refreshMessageBubble(message);
 
-                        if(isLastMessageInContainer(message.getId())){
+                        if (isLastMessageInContainer(message.getId())) {
                             updateConversationPreview(currentConversationId, message.getMessage(), message.getSentAt());
                         }
                     }
@@ -274,32 +284,12 @@ public class ChatPageController {
 
                         messagesContainer.getChildren().removeIf(node -> event.getMessageId().equals(node.getProperties().get("messageId")));
 
-                        if(wasLast){
+                        if (wasLast) {
                             syncPreviewToNewLastMessage();
                         }
                     }
                     case "STATUS" -> {
-                        for(Long messageId : event.getMessageIds()){
-                            for(Node node : messagesContainer.getChildren()){
-                                if(messageId.equals(node.getProperties().get("messageId"))){
-                                    Label statusLabel = (Label) node.getProperties().get("statusLabel");
-                                    MessageResponseDTO messageObj = (MessageResponseDTO) node.getProperties().get("messageObj");
-
-                                    if(messageObj != null){
-                                        messageObj.setStatus("read");
-                                    }
-
-                                    if(statusLabel == null){
-                                        break;
-                                    }
-
-                                    statusLabel.setText(formatStatus("read"));
-                                    statusLabel.setStyle("-fx-text-fill: " + getStatusColor("read") + "; -fx-font-size: 10px;");
-
-                                    break;
-                                }
-                            }
-                        }
+                        handleStatusUpdate(event.getMessageIds(), event.getStatus());
                     }
                 }
             });
@@ -323,12 +313,36 @@ public class ChatPageController {
             }
 
             if(!messages.isEmpty()){
-                oldestLoadedMessageTime = messages.get(0).getSentAt();
+                oldestLoadedMessageTime = messages.getFirst().getSentAt();
             }
 
             hasMoreMessages = messagePage.isHasMore();
         } catch (Exception e){
             showError("Couldn't get the messages");
+        }
+    }
+
+    private void handleStatusUpdate(List<Long> messageIds, String status){
+        for(Long messageId : messageIds){
+            for(Node node : messagesContainer.getChildren()){
+                if(messageId.equals(node.getProperties().get("messageId"))){
+                    Label statusLabel = (Label) node.getProperties().get("statusLabel");
+                    MessageResponseDTO messageObj = (MessageResponseDTO) node.getProperties().get("messageObj");
+
+                    if(messageObj != null){
+                        messageObj.setStatus(status);
+                    }
+
+                    if(statusLabel == null){
+                        break;
+                    }
+
+                    statusLabel.setText(formatStatus(status));
+                    statusLabel.setStyle("-fx-text-fill: " + getStatusColor(status) + "; -fx-font-size: 10px;");
+
+                    break;
+                }
+            }
         }
     }
 
@@ -557,7 +571,7 @@ public class ChatPageController {
             return false;
         }
 
-        Node lastNode = messagesContainer.getChildren().get(messagesContainer.getChildren().size() - 1);
+        Node lastNode = messagesContainer.getChildren().getLast();
 
         return messageId.equals(lastNode.getProperties().get("messageId"));
     }
@@ -569,7 +583,7 @@ public class ChatPageController {
             return;
         }
 
-        Node lastNode = messagesContainer.getChildren().get(messagesContainer.getChildren().size() - 1);
+        Node lastNode = messagesContainer.getChildren().getLast();
 
         MessageResponseDTO lastMessage = (MessageResponseDTO) lastNode.getProperties().get("messageObj");
 
@@ -801,21 +815,21 @@ public class ChatPageController {
                 messagesContainer.getChildren().add(i, bubble);
             }
 
-            oldestLoadedMessageTime = olderMessages.get(0).getSentAt();
+            oldestLoadedMessageTime = olderMessages.getFirst().getSentAt();
             hasMoreMessages = messagePage.isHasMore();
 
             Platform.runLater(() -> {
                 double heightAfter = messagesContainer.getHeight();
                 double addedHeight = heightAfter - heightBefore;
 
-                double currentVvalue = messagesScrollPane.getVvalue();
+                double currentValue = messagesScrollPane.getVvalue();
                 double totalHeight = messagesContainer.getHeight() - messagesScrollPane.getViewportBounds().getHeight();
 
                 if(totalHeight > 0){
-                    double currentPixelOffset = currentVvalue * (totalHeight - addedHeight);
-                    double newVvalue = (currentPixelOffset + addedHeight) / totalHeight;
+                    double currentPixelOffset = currentValue * (totalHeight - addedHeight);
+                    double newValue = (currentPixelOffset + addedHeight) / totalHeight;
 
-                    messagesScrollPane.setVvalue(newVvalue);
+                    messagesScrollPane.setVvalue(newValue);
                 }
 
                 isLoadingMore = false;

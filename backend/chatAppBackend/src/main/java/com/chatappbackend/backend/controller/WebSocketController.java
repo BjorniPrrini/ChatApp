@@ -51,4 +51,9 @@ public class WebSocketController {
 
         messageService.markConversationAsRead(userId, conversationId);
     }
+
+    @MessageMapping("/chat.delivered")
+    public void markAsDelivered(Long messageId){
+        messageService.markMessageAsDelivered(messageId);
+    }
 }

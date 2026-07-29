@@ -17,8 +17,10 @@ import java.util.function.Consumer;
 public class WebSocketService {
     private WebSocket webSocket;
     private final ObjectMapper objectMapper = JsonMapper.get();
-    private Consumer<MessageEventDTO> messageHandler;
-    private String currentSubscription;
+    private Consumer<MessageEventDTO> conversationHandler;
+    private String conversationDestination;
+    private Consumer<MessageEventDTO> userHandler;
+    private String userDestination;
 
     public void connect() throws Exception{
         String token = SessionManager.getInstance().getToken();
@@ -57,8 +59,6 @@ public class WebSocketService {
 
                     @Override
                     public CompletionStage<?> onClose(WebSocket ws, int statusCode, String reason){
-                        System.out.println("WebSocket closed — status: " + statusCode + ", reason: " + reason);
-
                         return CompletableFuture.completedFuture(null);
                     }
 
@@ -71,8 +71,12 @@ public class WebSocketService {
 
     private void handleFrame(String frame){
         if(frame.startsWith("CONNECTED")){
-            if(currentSubscription != null){
-                sendSubscribeFrame(currentSubscription);
+            if(conversationDestination != null){
+                sendSubscribeFrame(conversationDestination, "sub-conversation");
+            }
+
+            if(userDestination != null){
+                sendSubscribeFrame(userDestination, "sub-user");
             }
         }else if(frame.startsWith("MESSAGE")){
             int bodyStart = frame.indexOf("\n\n") + 2;
@@ -83,8 +87,12 @@ public class WebSocketService {
                 try {
                     MessageEventDTO event = objectMapper.readValue(body, MessageEventDTO.class);
 
-                    if(messageHandler != null){
-                        messageHandler.accept(event);
+                    String subscriptionId = extractSubscriptionId(frame);
+
+                    if(subscriptionId.equals("sub-conversation") && conversationHandler != null){
+                        conversationHandler.accept(event);
+                    }else if(subscriptionId.equals("sub-user") && userHandler != null){
+                        userHandler.accept(event);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -96,27 +104,31 @@ public class WebSocketService {
     }
 
     public void subscribe(Long conversationId, Consumer<MessageEventDTO> onMessage){
-        this.messageHandler = onMessage;
-        this.currentSubscription = "/topic/conversation." + conversationId;
+        this.conversationHandler = onMessage;
+        this.conversationDestination = "/topic/conversation." + conversationId;
 
         if(webSocket != null){
-            sendSubscribeFrame(currentSubscription);
+            sendSubscribeFrame(conversationDestination, "sub-conversation");
         }
     }
 
-    private void sendSubscribeFrame(String destination){
-        String subscribeFrame = "SUBSCRIBE\nid:sub-0\ndestination:" + destination + "\n\n\0";
+    public void subscribeToUser(Long userId, Consumer<MessageEventDTO> onMessage){
+        this.userHandler = onMessage;
+        this.userDestination = "/queue/user." + userId;
 
-        webSocket.sendText(subscribeFrame, true);
+        if(webSocket != null){
+            sendSubscribeFrame(userDestination, "sub-user");
+        }
     }
 
     public void unsubscribe(){
-        if(webSocket != null && currentSubscription != null){
-            String unsubscribeFrame = "UNSUBSCRIBE\nid:sub-0\n\n\0";
+        if(webSocket != null && conversationDestination != null){
+            String unsubscribeFrame = "UNSUBSCRIBE\nid:sub-conversation\n\n\0";
 
             webSocket.sendText(unsubscribeFrame, true);
-            currentSubscription = null;
-            messageHandler = null;
+
+            conversationDestination = null;
+            conversationHandler = null;
         }
     }
 
@@ -138,5 +150,28 @@ public class WebSocketService {
 
             webSocket.sendText(sendFrame, true);
         }
+    }
+
+    public void sendDeliveredReceipt(Long messageId){
+        if(webSocket != null){
+            String destination = "/app/chat.delivered";
+            String body = String.valueOf(messageId);
+            String sendFrame = "SEND\ndestination:" + destination + "\ncontent-type:application/json\n\n" + body + "\0";
+
+            webSocket.sendText(sendFrame, true);
+        }
+    }
+
+    private void sendSubscribeFrame(String destination, String id){
+        String subscribeFrame = "SUBSCRIBE\nid:" + id + "\ndestination:" + destination + "\n\n\0";
+
+        webSocket.sendText(subscribeFrame, true);
+    }
+
+    private String extractSubscriptionId(String frame){
+        int startIndex = frame.indexOf("subscription:") + "subscription:".length();
+        int endIndex = frame.indexOf("\n", startIndex);
+
+        return frame.substring(startIndex, endIndex);
     }
 }
