@@ -190,6 +190,9 @@ public class ChatPageController {
                 Platform.runLater(() -> {
                     if("NEW".equals(event.getType())){
                         webSocketService.sendDeliveredReceipt(event.getMessageId());
+                        if(!event.getConversationId().equals(currentConversationId)){
+                            updateConversationPreview(event.getConversationId(), event.getMessage().getMessage(), event.getMessage().getSentAt());
+                        }
                     }else if("STATUS".equals(event.getType())){
                         handleStatusUpdate(event.getMessageIds(), event.getStatus());
                     }
@@ -256,13 +259,13 @@ public class ChatPageController {
                     case "NEW" -> {
                         MessageResponseDTO message = event.getMessage();
 
-                        if (!message.getSenderId().equals(SessionManager.getInstance().getUserId())) {
+                        if(!message.getSenderId().equals(SessionManager.getInstance().getUserId())){
                             webSocketService.sendReadReceipt(currentConversationId);
                         }
 
                         boolean alreadyShown = messagesContainer.getChildren().stream().anyMatch(node -> message.getId().equals(node.getProperties().get("messageId")));
 
-                        if (!alreadyShown) {
+                        if(!alreadyShown){
                             HBox bubble = createMessageBubble(message);
 
                             messagesContainer.getChildren().add(bubble);
@@ -275,7 +278,7 @@ public class ChatPageController {
 
                         refreshMessageBubble(message);
 
-                        if (isLastMessageInContainer(message.getId())) {
+                        if(isLastMessageInContainer(message.getId())){
                             updateConversationPreview(currentConversationId, message.getMessage(), message.getSentAt());
                         }
                     }
@@ -284,7 +287,7 @@ public class ChatPageController {
 
                         messagesContainer.getChildren().removeIf(node -> event.getMessageId().equals(node.getProperties().get("messageId")));
 
-                        if (wasLast) {
+                        if(wasLast){
                             syncPreviewToNewLastMessage();
                         }
                     }

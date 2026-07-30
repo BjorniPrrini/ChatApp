@@ -2,11 +2,13 @@ package com.chatappfrontend.frontend.controller;
 
 import com.chatappfrontend.frontend.model.AuthResponseDTO;
 import com.chatappfrontend.frontend.service.AuthService;
+import com.chatappfrontend.frontend.util.AppExecutor;
 import com.chatappfrontend.frontend.util.EmailHistoryManager;
 import com.chatappfrontend.frontend.util.SceneManager;
 import com.chatappfrontend.frontend.util.SessionManager;
 
 import javafx.animation.PauseTransition;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.util.Duration;
@@ -53,7 +55,6 @@ public class RegistrationController {
         emailField.textProperty().addListener((_, _, _) -> updateRegisterButtonState());
         passwordField.textProperty().addListener((_, _, _) -> updateRegisterButtonState());
         confirmPasswordField.textProperty().addListener((_, _, _) -> updateRegisterButtonState());
-
     }
 
     @FXML
@@ -96,10 +97,17 @@ public class RegistrationController {
         registerButton.setText("Registering...");
         errorLabel.setVisible(false);
 
-        try {
-            AuthService authService = new AuthService();
+        Task<AuthResponseDTO> registerTask = new Task<>(){
+            @Override
+            protected AuthResponseDTO call() throws Exception {
+                AuthService authService = new AuthService();
 
-            AuthResponseDTO response = authService.register(name, surname, email, password, confirmPassword, nickname, phoneNumber);
+                return authService.register(name, surname, email, password, confirmPassword, nickname, phoneNumber);
+            }
+        };
+
+        registerTask.setOnSucceeded(_ -> {
+            AuthResponseDTO response = registerTask.getValue();
 
             EmailHistoryManager.addEmail(email);
 
@@ -108,15 +116,30 @@ public class RegistrationController {
             SessionManager.getInstance().setNickname(response.getNickname());
             SessionManager.getInstance().setProfilePicture(response.getProfilePicture());
 
-            SceneManager.switchTo("chat-page.fxml");
-        } catch (Exception e) {
-            showError("Registration failed");
-        } finally {
             loadingSpinner.setVisible(false);
             loadingSpinner.setManaged(false);
             registerButton.setText("Register");
+
             updateRegisterButtonState();
-        }
+
+            try {
+                SceneManager.switchTo("chat-page.fxml");
+            } catch (Exception e) {
+                showError("Registration failed");
+            }
+        });
+
+        registerTask.setOnFailed(_ -> {
+            showError("Registration failed");
+
+            loadingSpinner.setVisible(false);
+            loadingSpinner.setManaged(false);
+            registerButton.setText("Register");
+
+            updateRegisterButtonState();
+        });
+
+        AppExecutor.run(registerTask);
     }
 
     @FXML

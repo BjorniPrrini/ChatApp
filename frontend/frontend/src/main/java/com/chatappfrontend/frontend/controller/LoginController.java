@@ -2,11 +2,13 @@ package com.chatappfrontend.frontend.controller;
 
 import com.chatappfrontend.frontend.service.AuthService;
 import com.chatappfrontend.frontend.model.AuthResponseDTO;
+import com.chatappfrontend.frontend.util.AppExecutor;
 import com.chatappfrontend.frontend.util.EmailHistoryManager;
 import com.chatappfrontend.frontend.util.SceneManager;
 import com.chatappfrontend.frontend.util.SessionManager;
 
 import javafx.animation.PauseTransition;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
@@ -39,29 +41,15 @@ public class LoginController {
     public void initialize(){
         ContextMenu emailHistoryMenu = new ContextMenu();
 
-        emailField.setOnMouseClicked(_ -> {
-            showEmailHistoryMenu(emailHistoryMenu);
-        });
+        emailField.setOnMouseClicked(_ -> showEmailHistoryMenu(emailHistoryMenu));
 
         emailField.setOnAction(_ -> passwordField.requestFocus());
 
-        passwordField.setOnAction(_ -> {
-            try {
-                handleLogin();
-            } catch (Exception e) {
-                showError("Failed login");
-            }
-        });
+        passwordField.setOnAction(_ -> handleLogin());
 
         passwordVisibleField.textProperty().bindBidirectional(passwordField.textProperty());
 
-        passwordVisibleField.setOnAction(_ -> {
-            try {
-                handleLogin();
-            } catch (Exception e) {
-                showError("Login failed");
-            }
-        });
+        passwordVisibleField.setOnAction(_ -> handleLogin());
 
         loginButton.setDisable(true);
 
@@ -71,7 +59,7 @@ public class LoginController {
     }
 
     @FXML
-    public void handleLogin() throws Exception {
+    public void handleLogin(){
         String email = emailField.getText().trim();
         String password = passwordField.getText().trim();
 
@@ -87,10 +75,17 @@ public class LoginController {
         loginButton.setText("Logging in...");
         errorLabel.setVisible(false);
 
-        try {
-            AuthService authService = new AuthService();
+        Task<AuthResponseDTO> loginTask = new Task<>(){
+            @Override
+            protected AuthResponseDTO call() throws Exception{
+                AuthService authService = new AuthService();
 
-            AuthResponseDTO response = authService.login(email, password);
+                return authService.login(email, password);
+            }
+        };
+
+        loginTask.setOnSucceeded(_ -> {
+            AuthResponseDTO response = loginTask.getValue();
 
             EmailHistoryManager.addEmail(email);
 
@@ -99,15 +94,30 @@ public class LoginController {
             SessionManager.getInstance().setNickname(response.getNickname());
             SessionManager.getInstance().setProfilePicture(response.getProfilePicture());
 
-            SceneManager.switchTo("chat-page.fxml");
-        } catch (Exception e) {
-            showError("Invalid email or password");
-        } finally {
             loadingSpinner.setVisible(false);
             loadingSpinner.setManaged(false);
             loginButton.setText("Login");
+
             updateLoginButtonState();
-        }
+
+            try {
+                SceneManager.switchTo("chat-page.fxml");
+            } catch (Exception e) {
+                showError("Invalid email or password");
+            }
+        });
+
+        loginTask.setOnFailed(_ -> {
+            showError("Invalid email or password");
+
+            loadingSpinner.setVisible(false);
+            loadingSpinner.setManaged(false);
+            loginButton.setText("Login");
+
+            updateLoginButtonState();
+        });
+
+        AppExecutor.run(loginTask);
     }
 
     @FXML
