@@ -13,4 +13,6 @@ public interface UserService {
     List<UserResponseDTO> searchUsers(String searchTerm, Long currentUserId);
     UserResponseDTO updateProfilePicture(Long userId, MultipartFile file);
     void changePassword(Long userId, ChangePasswordRequestDTO request);
+    void setOfflineUser(Long userId);
+    void setOnlineUser(Long userId);
 }

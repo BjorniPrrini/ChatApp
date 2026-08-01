@@ -15,6 +15,7 @@ public class ConversationCell extends ListCell<ConversationResponseDTO> {
 
         if(empty || conversation == null){
             setGraphic(null);
+
             setStyle("-fx-background-color: transparent;");
 
             return;
@@ -24,7 +25,9 @@ public class ConversationCell extends ListCell<ConversationResponseDTO> {
 
         Label avatar = new Label(displayName.substring(0, 1).toUpperCase());
 
-        avatar.setStyle("-fx-background-color: #00ff88; -fx-text-fill: black; -fx-font-weight: bold; " + "-fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 20; -fx-alignment: center;");
+        String borderColor = conversation.isOnline() ? "#00ff88" : "#424141";
+
+        avatar.setStyle("-fx-background-color: #000000FF; -fx-text-fill: #00ff88; -fx-font-weight: bold; -fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 50; -fx-alignment: center; -fx-border-color: " + borderColor + "; -fx-border-radius: 20; -fx-border-width: 2;");
 
         Label nameLabel = new Label(displayName);
 
@@ -41,9 +44,11 @@ public class ConversationCell extends ListCell<ConversationResponseDTO> {
         HBox cell = new HBox(10, avatar, textBox);
 
         cell.setAlignment(Pos.CENTER_LEFT);
+
         cell.setStyle("-fx-padding: 8 5;");
 
         setGraphic(cell);
+
         setStyle("-fx-background-color: transparent;");
     }
 }

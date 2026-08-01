@@ -3,13 +3,17 @@ package com.chatappbackend.backend.service.user;
 import com.chatappbackend.backend.dto.auth.ChangePasswordRequestDTO;
 import com.chatappbackend.backend.dto.user.UserRequestDTO;
 import com.chatappbackend.backend.dto.user.UserResponseDTO;
+import com.chatappbackend.backend.dto.user.UserStatusEventDTO;
+import com.chatappbackend.backend.entity.FriendRequest;
 import com.chatappbackend.backend.entity.User;
 import com.chatappbackend.backend.exception.BadRequestException;
 import com.chatappbackend.backend.exception.ForbiddenException;
 import com.chatappbackend.backend.exception.ResourceNotFoundException;
+import com.chatappbackend.backend.repository.FriendRequestRepository;
 import com.chatappbackend.backend.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,10 +31,14 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService{
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final FriendRequestRepository friendRequestRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder){
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, FriendRequestRepository friendRequestRepository, SimpMessagingTemplate messagingTemplate){
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.friendRequestRepository = friendRequestRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @Override
@@ -112,7 +120,6 @@ public class UserServiceImpl implements UserService{
             }
 
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
         } catch (IOException e) {
             throw new BadRequestException("Failed to save file");
         }
@@ -143,6 +150,34 @@ public class UserServiceImpl implements UserService{
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
 
         userRepository.save(user);
+    }
+
+    @Override
+    public void setOfflineUser(Long userId){
+        userRepository.updateUserStatusOffline(userId);
+
+        broadcastStatusToFriends(userId, "offline");
+    }
+
+    @Override
+    public void setOnlineUser(Long userId){
+        userRepository.updateUserStatusOnline(userId);
+
+        broadcastStatusToFriends(userId, "online");
+    }
+
+    private void broadcastStatusToFriends(Long userId, String status) {
+        List<FriendRequest> friendsList = friendRequestRepository.findAcceptedFriendships(userId);
+
+        List<Long> friendsId = friendsList.stream()
+                .map(fr -> fr.getSender().getId().equals(userId) ? fr.getReceiver().getId() : fr.getSender().getId())
+                .toList();
+
+        UserStatusEventDTO event = new UserStatusEventDTO(userId, status);
+
+        for(Long friendId : friendsId){
+            messagingTemplate.convertAndSend("/queue/user." + friendId + ".status", event);
+        }
     }
 
     private UserResponseDTO mapToDTO(User user) {

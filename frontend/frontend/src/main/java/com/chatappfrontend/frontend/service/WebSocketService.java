@@ -1,6 +1,7 @@
 package com.chatappfrontend.frontend.service;
 
 import com.chatappfrontend.frontend.model.MessageEventDTO;
+import com.chatappfrontend.frontend.model.UserStatusEventDTO;
 import com.chatappfrontend.frontend.util.AppConfig;
 import com.chatappfrontend.frontend.util.JsonMapper;
 import com.chatappfrontend.frontend.util.SessionManager;
@@ -21,6 +22,8 @@ public class WebSocketService {
     private String conversationDestination;
     private Consumer<MessageEventDTO> userHandler;
     private String userDestination;
+    private Consumer<UserStatusEventDTO> statusHandler;
+    private String statusDestination;
 
     public void connect() throws Exception{
         String token = SessionManager.getInstance().getToken();
@@ -78,21 +81,30 @@ public class WebSocketService {
             if(userDestination != null){
                 sendSubscribeFrame(userDestination, "sub-user");
             }
+
+            if(statusDestination != null){
+                sendSubscribeFrame(statusDestination, "sub-status");
+            }
         }else if(frame.startsWith("MESSAGE")){
             int bodyStart = frame.indexOf("\n\n") + 2;
 
             if(bodyStart > 1){
                 String body = frame.substring(bodyStart).replace("\0", "");
+                String subscriptionId = extractSubscriptionId(frame);
 
                 try {
-                    MessageEventDTO event = objectMapper.readValue(body, MessageEventDTO.class);
-
-                    String subscriptionId = extractSubscriptionId(frame);
-
                     if(subscriptionId.equals("sub-conversation") && conversationHandler != null){
+                        MessageEventDTO event = objectMapper.readValue(body, MessageEventDTO.class);
+
                         conversationHandler.accept(event);
                     }else if(subscriptionId.equals("sub-user") && userHandler != null){
+                        MessageEventDTO event = objectMapper.readValue(body, MessageEventDTO.class);
+
                         userHandler.accept(event);
+                    }else if(subscriptionId.equals("sub-status") && statusHandler != null){
+                        UserStatusEventDTO event = objectMapper.readValue(body, UserStatusEventDTO.class);
+
+                        statusHandler.accept(event);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -168,6 +180,24 @@ public class WebSocketService {
             String sendFrame = "SEND\ndestination:" + destination + "\ncontent-type:application/json\n\n\0";
 
             webSocket.sendText(sendFrame, true);
+        }
+    }
+
+    public void sendOnlineStatusRequest(){
+        if(webSocket != null){
+            String destination = "/app/user.online";
+            String sendFrame = "SEND\ndestination:" + destination + "\ncontent-type:application/json\n\n\0";
+
+            webSocket.sendText(sendFrame, true);
+        }
+    }
+
+    public void subscribeToStatus(Long userId, Consumer<UserStatusEventDTO> onStatusChange){
+        this.statusHandler = onStatusChange;
+        this.statusDestination = "/queue/user." + userId + ".status";
+
+        if(webSocket != null){
+            sendSubscribeFrame(statusDestination, "sub-status");
         }
     }
 

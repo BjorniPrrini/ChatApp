@@ -199,7 +199,15 @@ public class ChatPageController {
                 });
             });
 
+            webSocketService.subscribeToStatus(SessionManager.getInstance().getUserId(), event -> {
+                Platform.runLater(() -> {
+                    updateFriendStatus(event.getUserId(), event.getStatus());
+                });
+            });
+
             webSocketService.sendMarkAllDeliveredRequest();
+
+            webSocketService.sendOnlineStatusRequest();
         } catch (Exception e) {
             showError("Could not connect to real time service");
         }
@@ -843,6 +851,18 @@ public class ChatPageController {
             showError("Couldn't load older messages");
             isLoadingMore = false;
         }
+    }
+
+    private void updateFriendStatus(Long userId, String status){
+        boolean isOnline = status.equals("online");
+
+        for(ConversationResponseDTO c : conversationList.getItems()){
+            if(c.getOtherUserId().equals(userId)){
+                c.setOnline(isOnline);
+            }
+        }
+
+        conversationList.refresh();
     }
 
     private void loadBlockedUsers(){

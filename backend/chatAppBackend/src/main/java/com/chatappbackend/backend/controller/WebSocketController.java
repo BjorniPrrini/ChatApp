@@ -7,6 +7,7 @@ import com.chatappbackend.backend.repository.MessageRepository;
 import com.chatappbackend.backend.service.message.MessageService;
 import com.chatappbackend.backend.service.notification.NotificationService;
 
+import com.chatappbackend.backend.service.user.UserService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
@@ -19,14 +20,14 @@ public class WebSocketController {
     private final SimpMessagingTemplate messagingTemplate;
     private final NotificationService notificationService;
     private final ConversationParticipantRepository conversationParticipantRepository;
-    private final MessageRepository messageRepository;
+    private final UserService userService;
 
-    public WebSocketController(MessageService service, SimpMessagingTemplate messagingTemplate, NotificationService notificationService, ConversationParticipantRepository conversationParticipantRepository, MessageRepository messageRepository) {
+    public WebSocketController(MessageService service, SimpMessagingTemplate messagingTemplate, NotificationService notificationService, ConversationParticipantRepository conversationParticipantRepository, UserService userService) {
         this.messageService = service;
         this.messagingTemplate = messagingTemplate;
         this.notificationService = notificationService;
         this.conversationParticipantRepository = conversationParticipantRepository;
-        this.messageRepository = messageRepository;
+        this.userService = userService;
     }
 
     @MessageMapping("/chat.send")
@@ -60,5 +61,12 @@ public class WebSocketController {
         Long userId = Long.parseLong(principal.getName());
 
         messageService.markAllUndeliveredAsDelivered(userId);
+    }
+
+    @MessageMapping("/user.online")
+    public void markOnline(Principal principal){
+        Long userId = Long.parseLong(principal.getName());
+
+        userService.setOnlineUser(userId);
     }
 }

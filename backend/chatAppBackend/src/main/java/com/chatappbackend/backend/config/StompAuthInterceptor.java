@@ -54,4 +54,12 @@ public class StompAuthInterceptor implements ChannelInterceptor {
 
         return MessageBuilder.createMessage(message.getPayload(), accessor.getMessageHeaders());
     }
+
+    public Long getUserId(String sessionId){
+        return sessionUsers.get(sessionId);
+    }
+
+    public void removeSession(String sessionId){
+        sessionUsers.remove(sessionId);
+    }
 }
