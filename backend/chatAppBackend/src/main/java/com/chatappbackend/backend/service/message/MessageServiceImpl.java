@@ -17,11 +17,10 @@ import com.chatappbackend.backend.service.blocked.BlockedUserService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -83,7 +82,6 @@ public class MessageServiceImpl implements MessageService{
         MessageResponseDTO dto = mapToDTO(savedMessage);
 
         messagingTemplate.convertAndSend("/topic/conversation." + conversation.getId(), new MessageEventDTO("NEW", conversation.getId(), dto.getId(), dto, null, null));
-
         messagingTemplate.convertAndSend("/queue/user." + otherUser.getId(), new MessageEventDTO("NEW", conversation.getId(), dto.getId(), dto, null, null));
 
         return dto;
@@ -209,6 +207,51 @@ public class MessageServiceImpl implements MessageService{
 
         messagingTemplate.convertAndSend("/topic/conversation." + message.getConversation().getId(), messageEventDTO);
         messagingTemplate.convertAndSend("/queue/user." + message.getSender().getId(), messageEventDTO);
+    }
+
+    @Override
+    @Transactional
+    public void markAllUndeliveredAsDelivered(Long userId){
+        List<UndeliveredMessageProjection> undelivered = messageRepository.findUndeliveredMessages(userId);
+
+        if(undelivered.isEmpty()){
+            return;
+        }
+
+        List<Long> messageIds = undelivered.stream()
+                .map(UndeliveredMessageProjection::getMessageId)
+                .toList();
+
+        messageRepository.markMessagesAsDelivered(messageIds);
+
+        Map<Long, List<UndeliveredMessageProjection>> byConversation = undelivered.stream()
+                .collect(Collectors.groupingBy(UndeliveredMessageProjection::getConversationId));
+
+        for(Map.Entry<Long, List<UndeliveredMessageProjection>> entry : byConversation.entrySet()){
+            Long conversationId = entry.getKey();
+            List<UndeliveredMessageProjection> messagesInConversation = entry.getValue();
+
+            List<Long> idsInConversation = messagesInConversation.stream()
+                    .map(UndeliveredMessageProjection::getMessageId)
+                    .toList();
+
+            MessageEventDTO event = new MessageEventDTO();
+
+            event.setConversationId(conversationId);
+            event.setType("STATUS");
+            event.setMessageIds(idsInConversation);
+            event.setStatus("delivered");
+
+            messagingTemplate.convertAndSend("/topic/conversation." + conversationId, event);
+
+            Set<Long> senderIds = messagesInConversation.stream()
+                    .map(UndeliveredMessageProjection::getSenderId)
+                    .collect(Collectors.toSet());
+
+            for(Long senderId : senderIds){
+                messagingTemplate.convertAndSend("/queue/user." + senderId, event);
+            }
+        }
     }
 
     private MessageResponseDTO mapToDTO(Message message){

@@ -27,4 +27,10 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     Optional<Message> findTopByConversationIdOrderBySentAtDesc(Long conversationId);
     @Query("SELECT m.id FROM Message m WHERE m.conversation.id = :conversationId AND m.sender.id != :userId AND m.status != 'read'")
     List<Long> findUnreadMessageIds(@Param("conversationId") Long conversationId, @Param("userId") Long userId);
+    @Query("SELECT m.id AS messageId, m.conversation.id AS conversationId, m.sender.id AS senderId FROM Message m WHERE m.conversation.id IN (SELECT cp.conversation.id FROM ConversationParticipant cp WHERE cp.user.id = :userId) AND m.status = 'sent' AND m.sender.id != :userId")
+    List<UndeliveredMessageProjection> findUndeliveredMessages(@Param("userId") Long userId);
+    @Modifying
+    @Transactional
+    @Query("UPDATE Message m SET m.status = 'delivered' WHERE m.id IN :messageIds")
+    void markMessagesAsDelivered(@Param("messageIds") List<Long> messageIds);
 }

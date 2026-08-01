@@ -162,6 +162,15 @@ public class WebSocketService {
         }
     }
 
+    public void sendMarkAllDeliveredRequest(){
+        if(webSocket != null){
+            String destination = "/app/chat.markAllDelivered";
+            String sendFrame = "SEND\ndestination:" + destination + "\ncontent-type:application/json\n\n\0";
+
+            webSocket.sendText(sendFrame, true);
+        }
+    }
+
     private void sendSubscribeFrame(String destination, String id){
         String subscribeFrame = "SUBSCRIBE\nid:" + id + "\ndestination:" + destination + "\n\n\0";
 

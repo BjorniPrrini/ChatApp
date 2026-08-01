@@ -14,4 +14,5 @@ public interface MessageService {
     MessageResponseDTO editMessage(Long userId, Long messageId, String newMessage);
     void markConversationAsRead(Long userId, Long conversationId);
     void markMessageAsDelivered(Long messageId);
+    void markAllUndeliveredAsDelivered(Long userId);
 }

@@ -198,6 +198,8 @@ public class ChatPageController {
                     }
                 });
             });
+
+            webSocketService.sendMarkAllDeliveredRequest();
         } catch (Exception e) {
             showError("Could not connect to real time service");
         }

@@ -40,8 +40,6 @@ public class WebSocketController {
         conversationParticipantRepository.findOtherParticipant(request.getConversationId(), userId)
                 .ifPresent(receiver -> {
                     notificationService.notifyUser(receiver.getId(), "NEW_MESSAGE", "New message from " + message.getSenderName(), message.getMessage());
-
-                    messageRepository.markAsDelivered(message.getId());
                 });
     }
 
@@ -55,5 +53,12 @@ public class WebSocketController {
     @MessageMapping("/chat.delivered")
     public void markAsDelivered(Long messageId){
         messageService.markMessageAsDelivered(messageId);
+    }
+
+    @MessageMapping("/chat.markAllDelivered")
+    public void markAllDelivered(Principal principal){
+        Long userId = Long.parseLong(principal.getName());
+
+        messageService.markAllUndeliveredAsDelivered(userId);
     }
 }
