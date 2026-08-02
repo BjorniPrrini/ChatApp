@@ -196,6 +196,10 @@ public class MessageServiceImpl implements MessageService{
     public void markMessageAsDelivered(Long messageId){
         Message message = messageRepository.findById(messageId).orElseThrow(() -> new ResourceNotFoundException("Message not found"));
 
+        if(message.getStatus().equals("read")){
+            return;
+        }
+
         messageRepository.markAsDelivered(messageId);
 
         MessageEventDTO messageEventDTO = new MessageEventDTO();

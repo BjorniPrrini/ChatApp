@@ -1,6 +1,11 @@
 package com.chatappfrontend.frontend.controller;
 
 import com.chatappfrontend.frontend.cell.*;
+import com.chatappfrontend.frontend.factory.MessageBubbleFactory;
+import com.chatappfrontend.frontend.manager.ConversationListManager;
+import com.chatappfrontend.frontend.manager.FriendsManager;
+import com.chatappfrontend.frontend.manager.PanelManager;
+import com.chatappfrontend.frontend.manager.WebSocketConnectionManager;
 import com.chatappfrontend.frontend.model.*;
 import com.chatappfrontend.frontend.service.*;
 import com.chatappfrontend.frontend.util.SceneManager;
@@ -8,7 +13,6 @@ import com.chatappfrontend.frontend.util.SessionManager;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -22,9 +26,9 @@ import javafx.util.Duration;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 public class ChatPageController {
     @FXML
@@ -80,20 +84,34 @@ public class ChatPageController {
 
     private Long currentConversationId;
     private final WebSocketService webSocketService = new WebSocketService();
-    private Set<Long> friendIds = new HashSet<>();
-    private Set<Long> pendingIds = new HashSet<>();
     private MessageResponseDTO replyingTo;
     private LocalDateTime oldestLoadedMessageTime;
     private boolean hasMoreMessages = true;
     private boolean isLoadingMore = false;
+    private MessageBubbleFactory messageBubbleFactory;
+    private ConversationListManager conversationListManager;
+    private PanelManager panelManager;
+    private FriendsManager friendsManager;
+    private WebSocketConnectionManager webSocketConnectionManager;
+    private final Map<Long, String> pendingMessageStatuses = new HashMap<>();
 
     @FXML
     public void initialize(){
         conversationList.setCellFactory(_ -> new ConversationCell());
 
-        searchResultsList.setCellFactory(_ -> new UserCell(friendIds, pendingIds));
+        searchResultsList.setCellFactory(_ -> new UserCell(friendsManager.getFriendIds(), friendsManager.getPendingIds()));
 
-        loadConversations();
+        messageBubbleFactory = new MessageBubbleFactory(SessionManager.getInstance().getUserId(), this::handleReply, this::handleEdit, this::handleDeleteForMe, this::handleDeleteForEveryone);
+
+        conversationListManager = new ConversationListManager(conversationList, this::showError);
+
+        panelManager = new PanelManager(List.of(conversationsPanel, settingsPanel, friendsPanel));
+
+        friendsManager = new FriendsManager(friendsList, friendRequestsList, blockedUsersList, this::showError);
+
+        webSocketConnectionManager = new WebSocketConnectionManager(webSocketService);
+
+        conversationListManager.loadConversations();
 
         conversationList.setOnMouseClicked(_ -> {
             ConversationResponseDTO selected = conversationList.getSelectionModel().getSelectedItem();
@@ -104,8 +122,8 @@ public class ChatPageController {
         });
 
         friendRequestsList.setCellFactory(_ -> new FriendRequestCell(() -> {
-            loadFriendRequests();
-            loadFriends();
+            friendsManager.loadFriendRequests();
+            friendsManager.loadFriends();
         }));
 
         friendsList.setCellFactory(_ -> new FriendsCell(
@@ -115,7 +133,7 @@ public class ChatPageController {
 
                         ConversationResponseDTO conversation = conversationService.createConversation(friendId);
 
-                        showPanel(conversationsPanel);
+                        panelManager.showPanel(conversationsPanel);
                         openConversation(conversation);
                     } catch (Exception e) {
                         showError("Could not start conversation");
@@ -184,31 +202,7 @@ public class ChatPageController {
         }));
 
         try {
-            webSocketService.connect();
-
-            webSocketService.subscribeToUser(SessionManager.getInstance().getUserId(), event -> {
-                Platform.runLater(() -> {
-                    if("NEW".equals(event.getType())){
-                        webSocketService.sendDeliveredReceipt(event.getMessageId());
-
-                        if(!event.getConversationId().equals(currentConversationId)){
-                            updateConversationPreview(event.getConversationId(), event.getMessage().getMessage(), event.getMessage().getSentAt());
-                        }
-                    }else if("STATUS".equals(event.getType())){
-                        handleStatusUpdate(event.getMessageIds(), event.getStatus());
-                    }
-                });
-            });
-
-            webSocketService.subscribeToStatus(SessionManager.getInstance().getUserId(), event -> {
-                Platform.runLater(() -> {
-                    updateFriendStatus(event.getUserId(), event.getStatus());
-                });
-            });
-
-            webSocketService.sendMarkAllDeliveredRequest();
-
-            webSocketService.sendOnlineStatusRequest();
+            webSocketConnectionManager.connect(SessionManager.getInstance().getUserId(), this::handleUserQueueEvent, this::handleUserStatusEvent);
         } catch (Exception e) {
             showError("Could not connect to real time service");
         }
@@ -231,30 +225,6 @@ public class ChatPageController {
         }
     }
 
-    private void updateConversationPreview(Long conversationId, String messageText, LocalDateTime sentAt){
-        ObservableList<ConversationResponseDTO> items = conversationList.getItems();
-
-        for(int i = 0; i < items.size(); i++){
-            ConversationResponseDTO c = items.get(i);
-
-            if(c.getConversationId().equals(conversationId)){
-                c.setLastMessage(messageText);
-                c.setLastMessageAt(sentAt);
-
-                if(i != 0){
-                    items.remove(i);
-                    items.addFirst(c);
-                }
-
-                conversationList.refresh();
-
-                return;
-            }
-        }
-
-        loadConversations();
-    }
-
     private void openConversation(ConversationResponseDTO selected){
         showChatContent();
 
@@ -263,51 +233,7 @@ public class ChatPageController {
         hasMoreMessages = true;
         isLoadingMore = false;
 
-        webSocketService.unsubscribe();
-        webSocketService.subscribe(currentConversationId, event -> {
-            Platform.runLater(() -> {
-                switch(event.getType()) {
-                    case "NEW" -> {
-                        MessageResponseDTO message = event.getMessage();
-
-                        if(!message.getSenderId().equals(SessionManager.getInstance().getUserId())){
-                            webSocketService.sendReadReceipt(currentConversationId);
-                        }
-
-                        boolean alreadyShown = messagesContainer.getChildren().stream().anyMatch(node -> message.getId().equals(node.getProperties().get("messageId")));
-
-                        if(!alreadyShown){
-                            HBox bubble = createMessageBubble(message);
-
-                            messagesContainer.getChildren().add(bubble);
-                        }
-
-                        updateConversationPreview(currentConversationId, message.getMessage(), message.getSentAt());
-                    }
-                    case "EDIT" -> {
-                        MessageResponseDTO message = event.getMessage();
-
-                        refreshMessageBubble(message);
-
-                        if(isLastMessageInContainer(message.getId())){
-                            updateConversationPreview(currentConversationId, message.getMessage(), message.getSentAt());
-                        }
-                    }
-                    case "DELETE" -> {
-                        boolean wasLast = isLastMessageInContainer(event.getMessageId());
-
-                        messagesContainer.getChildren().removeIf(node -> event.getMessageId().equals(node.getProperties().get("messageId")));
-
-                        if(wasLast){
-                            syncPreviewToNewLastMessage();
-                        }
-                    }
-                    case "STATUS" -> {
-                        handleStatusUpdate(event.getMessageIds(), event.getStatus());
-                    }
-                }
-            });
-        });
+        webSocketConnectionManager.subscribeToConversation(currentConversationId, this::handleConversationEvent);
 
         chatNameLabel.setText(selected.getNickname() != null ? selected.getNickname() : selected.getName() + " " + selected.getSurname());
 
@@ -321,7 +247,7 @@ public class ChatPageController {
             List<MessageResponseDTO> messages = messagePage.getMessages();
 
             for(MessageResponseDTO message : messages){
-                HBox bubble = createMessageBubble(message);
+                HBox bubble = messageBubbleFactory.createMessageBubble(message);
 
                 messagesContainer.getChildren().add(bubble);
             }
@@ -336,142 +262,118 @@ public class ChatPageController {
         }
     }
 
+    private void handleUserQueueEvent(MessageEventDTO event){
+        Platform.runLater(() -> {
+            if("NEW".equals(event.getType())){
+                webSocketService.sendDeliveredReceipt(event.getMessageId());
+
+                if(!event.getConversationId().equals(currentConversationId)){
+                    conversationListManager.updateConversationPreview(event.getConversationId(), event.getMessage().getMessage(), event.getMessage().getSentAt());
+                }
+            }else if("STATUS".equals(event.getType())){
+                handleStatusUpdate(event.getMessageIds(), event.getStatus());
+            }
+        });
+    }
+
+    private void handleUserStatusEvent(UserStatusEventDTO event){
+        Platform.runLater(() -> {
+            conversationListManager.updateFriendStatus(event.getUserId(), event.getStatus());
+        });
+    }
+
+    private void handleConversationEvent(MessageEventDTO event){
+        Platform.runLater(() -> {
+            switch(event.getType()) {
+                case "NEW" -> {
+                    MessageResponseDTO message = event.getMessage();
+
+                    if(pendingMessageStatuses.containsKey(message.getId())){
+                        message.setStatus(pendingMessageStatuses.remove(message.getId()));
+                    }
+
+                    if(!message.getSenderId().equals(SessionManager.getInstance().getUserId())){
+                        webSocketService.sendReadReceipt(currentConversationId);
+                    }
+
+                    boolean alreadyShown = messagesContainer.getChildren().stream().anyMatch(node -> message.getId().equals(node.getProperties().get("messageId")));
+
+                    if(!alreadyShown){
+                        HBox bubble = messageBubbleFactory.createMessageBubble(message);
+
+                        messagesContainer.getChildren().add(bubble);
+                    }
+
+                    conversationListManager.updateConversationPreview(currentConversationId, message.getMessage(), message.getSentAt());
+                }
+                case "EDIT" -> {
+                    MessageResponseDTO message = event.getMessage();
+
+                    refreshMessageBubble(message);
+
+                    if(isLastMessageInContainer(message.getId())){
+                        conversationListManager.updateConversationPreview(currentConversationId, message.getMessage(), message.getSentAt());
+                    }
+                }
+                case "DELETE" -> {
+                    boolean wasLast = isLastMessageInContainer(event.getMessageId());
+
+                    messagesContainer.getChildren().removeIf(node -> event.getMessageId().equals(node.getProperties().get("messageId")));
+
+                    if(wasLast){
+                        syncPreviewToNewLastMessage();
+                    }
+                }
+                case "STATUS" -> {
+                    handleStatusUpdate(event.getMessageIds(), event.getStatus());
+                }
+            }
+        });
+    }
+
     private void handleStatusUpdate(List<Long> messageIds, String status){
         for(Long messageId : messageIds){
+            boolean found = false;
+
             for(Node node : messagesContainer.getChildren()){
                 if(messageId.equals(node.getProperties().get("messageId"))){
-                    Label statusLabel = (Label) node.getProperties().get("statusLabel");
+                    found = true;
+
                     MessageResponseDTO messageObj = (MessageResponseDTO) node.getProperties().get("messageObj");
+                    String currentStatus = messageObj != null ? messageObj.getStatus() : null;
+
+                    if(currentStatus != null && statusRank(status) < statusRank(currentStatus)){
+                        break;
+                    }
+
+                    Label statusLabel = (Label) node.getProperties().get("statusLabel");
 
                     if(messageObj != null){
                         messageObj.setStatus(status);
                     }
 
-                    if(statusLabel == null){
-                        break;
+                    if(statusLabel != null){
+                        statusLabel.setText(messageBubbleFactory.formatStatus(status));
+                        statusLabel.setStyle("-fx-text-fill: " + messageBubbleFactory.getStatusColor(status) + "; -fx-font-size: 10px;");
                     }
-
-                    statusLabel.setText(formatStatus(status));
-                    statusLabel.setStyle("-fx-text-fill: " + getStatusColor(status) + "; -fx-font-size: 10px;");
 
                     break;
                 }
             }
+
+            if(!found){
+                pendingMessageStatuses.put(messageId, status);
+            }
         }
     }
 
-    private HBox createMessageBubble(MessageResponseDTO message){
-        HBox hBox = new HBox();
-
-        hBox.getProperties().put("messageId", message.getId());
-        hBox.getProperties().put("messageObj", message);
-
-        VBox bubble = new VBox();
-
-        bubble.setSpacing(5);
-        bubble.setMaxWidth(400);
-
-        boolean isMyMessage = message.getSenderId().equals(SessionManager.getInstance().getUserId());
-
-        if(message.getReplyToId() != null){
-            Label replyLabel = new Label(message.getReplyToMessage());
-
-            replyLabel.setWrapText(true);
-            replyLabel.setMaxWidth(300);
-
-            replyLabel.setStyle("-fx-background-color: #555555;" + "-fx-text-fill: #dddddd;" + "-fx-padding: 6 8;" + "-fx-background-radius: 8;" + "-fx-font-size: 12px;");
-
-            bubble.getChildren().add(replyLabel);
-        }
-
-        Label messageLabel = new Label(message.getMessage());
-
-        messageLabel.setWrapText(true);
-        messageLabel.setMaxWidth(400);
-
-        if(isMyMessage){
-            messageLabel.setStyle("-fx-background-color: #00ff88;" + "-fx-text-fill: black;" + "-fx-padding: 8 12;" + "-fx-background-radius: 15;");
-
-            hBox.setAlignment(Pos.CENTER_RIGHT);
-        }else{
-            messageLabel.setStyle("-fx-background-color: #1a1a1a;" + "-fx-text-fill: white;" + "-fx-padding: 8 12;" + "-fx-background-radius: 15;");
-
-            hBox.setAlignment(Pos.CENTER_LEFT);
-        }
-
-        bubble.getChildren().add(messageLabel);
-
-        if(isMyMessage){
-            Label statusLabel = new Label(formatStatus(message.getStatus()));
-
-            statusLabel.setStyle("-fx-text-fill: " + getStatusColor(message.getStatus()) + "; -fx-font-size: 10px;");
-
-            statusLabel.setAlignment(Pos.CENTER_RIGHT);
-
-            hBox.getProperties().put("statusLabel", statusLabel);
-
-            bubble.getChildren().add(statusLabel);
-        }
-
-        ContextMenu contextMenu = new ContextMenu();
-
-        MenuItem reply = new MenuItem("Reply");
-
-        reply.setOnAction(_ -> handleReply(message));
-
-        contextMenu.getItems().add(reply);
-
-        if(isMyMessage){
-            MenuItem edit = new MenuItem("Edit");
-
-            edit.setOnAction(_ -> handleEdit(message));
-
-            MenuItem deleteForMe = new MenuItem("Delete for me");
-
-            deleteForMe.setOnAction(_ -> handleDeleteForMe(message, hBox));
-
-            MenuItem deleteForEveryone = new MenuItem("Delete for everyone");
-
-            deleteForEveryone.setOnAction(_ -> handleDeleteForEveryone(message, hBox));
-
-            contextMenu.getItems().addAll(edit, deleteForMe, deleteForEveryone);
-        }else{
-            MenuItem deleteForMe = new MenuItem("Delete for me");
-
-            deleteForMe.setOnAction(_ -> handleDeleteForMe(message, hBox));
-
-            contextMenu.getItems().add(deleteForMe);
-        }
-
-        messageLabel.setContextMenu(contextMenu);
-
-        hBox.getChildren().add(bubble);
-
-        return hBox;
-    }
-
-    private String formatStatus(String status){
-        if(status == null){
-            return "";
-        }
-
+    private int statusRank(String status){
         return switch (status) {
-            case "sent" -> "✓";
-            case "delivered", "read" -> "✓✓";
-            default -> "";
+            case "sent" -> 1;
+            case "delivered" -> 2;
+            case "read" -> 3;
+            default -> 0;
         };
-    }
-
-    private String getStatusColor(String status){
-        if(status == null){
-            return "#888888";
-        }
-
-        if(status.equals("read")){
-            return "#009aff";
-        }
-
-        return "#888888";
     }
 
     private void handleReply(MessageResponseDTO message){
@@ -536,7 +438,7 @@ public class ChatPageController {
                 refreshMessageBubble(message);
 
                 if(isLastMessageInContainer(message.getId())){
-                    updateConversationPreview(currentConversationId, edited.getMessage(), edited.getSentAt());
+                    conversationListManager.updateConversationPreview(currentConversationId, edited.getMessage(), edited.getSentAt());
                 }
             } catch (Exception e) {
                 showError("Couldn't edit message");
@@ -592,7 +494,7 @@ public class ChatPageController {
 
     private void syncPreviewToNewLastMessage(){
         if(messagesContainer.getChildren().isEmpty()){
-            updateConversationPreview(currentConversationId, "", null);
+            conversationListManager.updateConversationPreview(currentConversationId, "", null);
 
             return;
         }
@@ -602,7 +504,7 @@ public class ChatPageController {
         MessageResponseDTO lastMessage = (MessageResponseDTO) lastNode.getProperties().get("messageObj");
 
         if(lastMessage != null){
-            updateConversationPreview(currentConversationId, lastMessage.getMessage(), lastMessage.getSentAt());
+            conversationListManager.updateConversationPreview(currentConversationId, lastMessage.getMessage(), lastMessage.getSentAt());
         }
     }
 
@@ -611,7 +513,7 @@ public class ChatPageController {
             Node node = messagesContainer.getChildren().get(i);
 
             if(message.getId().equals(node.getProperties().get("messageId"))){
-                HBox newBubble = createMessageBubble(message);
+                HBox newBubble = messageBubbleFactory.createMessageBubble(message);
 
                 messagesContainer.getChildren().set(i, newBubble);
 
@@ -624,7 +526,7 @@ public class ChatPageController {
     public void showConversations(){
         showChatContent();
 
-        showPanel(conversationsPanel);
+        panelManager.showPanel(conversationsPanel);
     }
 
     private void showChatContent(){
@@ -633,34 +535,13 @@ public class ChatPageController {
 
     @FXML
     public void showSettings(){
-        showPanel(settingsPanel);
+        panelManager.showPanel(settingsPanel);
     }
 
     @FXML
     public void showFriends(){
-        try {
-            FriendService friendService = new FriendService();
-
-            friendIds.clear();
-            pendingIds.clear();
-
-            Long currentUserId = SessionManager.getInstance().getUserId();
-
-            friendService.getFriends().forEach(f -> {
-                Long friendId = f.getSenderId().equals(currentUserId) ? f.getReceiverId() : f.getSenderId();
-
-                friendIds.add(friendId);
-            });
-
-            friendService.getSentRequests().forEach(f -> pendingIds.add(f.getReceiverId()));
-        } catch (Exception e) {
-            showError("Could not load friend status");
-        }
-
-        showPanel(friendsPanel);
-        loadFriendRequests();
-        loadFriends();
-        loadBlockedUsers();
+        panelManager.showPanel(friendsPanel);
+        friendsManager.showFriends();
     }
 
     @FXML
@@ -673,35 +554,6 @@ public class ChatPageController {
             SceneManager.switchTo("login-page.fxml");
         } catch (Exception e) {
             showError("Can't load loading page");
-        }
-    }
-
-    private void loadConversations(){
-        try {
-            ConversationService service = new ConversationService();
-
-            List<ConversationResponseDTO> conversations = service.getConversations();
-
-            conversations.sort((a, b) -> {
-                if(a.getLastMessageAt() == null && b.getLastMessageAt() == null){
-                    return 0;
-                }
-
-                if(a.getLastMessageAt() == null){
-                    return 1;
-                }
-
-                if(b.getLastMessageAt() == null){
-                    return -1;
-                }
-
-                return b.getLastMessageAt().compareTo(a.getLastMessageAt());
-            });
-
-            conversationList.getItems().clear();
-            conversationList.getItems().addAll(conversations);
-        } catch (Exception e) {
-            showError("Failed to load conversations");
         }
     }
 
@@ -726,37 +578,6 @@ public class ChatPageController {
     @FXML
     public void handleProfilePicture(){
 
-    }
-
-    private void loadFriendRequests() {
-        try {
-            FriendService friendService = new FriendService();
-
-            List<FriendResponseDTO> friendRequests = friendService.getFriendRequests();
-
-            friendRequestsList.setCellFactory(_ -> new FriendRequestCell(() -> {
-                loadFriendRequests();
-                loadFriends();
-            }));
-
-            friendRequestsList.getItems().clear();
-            friendRequestsList.getItems().addAll(friendRequests);
-        } catch (Exception e) {
-            showError("Couldn't get friend requests");
-        }
-    }
-
-    public void loadFriends(){
-        try {
-            FriendService friendService = new FriendService();
-
-            List<FriendResponseDTO> friends = friendService.getFriends();
-
-            friendsList.getItems().clear();
-            friendsList.getItems().addAll(friends);
-        } catch (Exception e) {
-            showError("Couldn't get friends");
-        }
     }
 
     @FXML
@@ -786,11 +607,11 @@ public class ChatPageController {
                 sent = messageService.sendMessage(currentConversationId, message);
             }
 
-            HBox bubble = createMessageBubble(sent);
+            HBox bubble = messageBubbleFactory.createMessageBubble(sent);
 
             messagesContainer.getChildren().add(bubble);
 
-            updateConversationPreview(currentConversationId, sent.getMessage(), sent.getSentAt());
+            conversationListManager.updateConversationPreview(currentConversationId, sent.getMessage(), sent.getSentAt());
 
             messageInput.clear();
 
@@ -825,7 +646,7 @@ public class ChatPageController {
             double heightBefore = messagesContainer.getHeight();
 
             for(int i = 0; i < olderMessages.size(); i++){
-                HBox bubble = createMessageBubble(olderMessages.get(i));
+                HBox bubble = messageBubbleFactory.createMessageBubble(olderMessages.get(i));
 
                 messagesContainer.getChildren().add(i, bubble);
             }
@@ -853,47 +674,6 @@ public class ChatPageController {
             showError("Couldn't load older messages");
             isLoadingMore = false;
         }
-    }
-
-    private void updateFriendStatus(Long userId, String status){
-        boolean isOnline = status.equals("online");
-
-        for(ConversationResponseDTO c : conversationList.getItems()){
-            if(c.getOtherUserId().equals(userId)){
-                c.setOnline(isOnline);
-            }
-        }
-
-        conversationList.refresh();
-    }
-
-    private void loadBlockedUsers(){
-        try {
-            FriendService friendService = new FriendService();
-
-            List<FriendResponseDTO> blocked = friendService.getBlockedUsers();
-
-            blockedUsersList.getItems().clear();
-            blockedUsersList.getItems().addAll(blocked);
-        } catch (Exception e) {
-            showError("Couldn't get blocked users");
-        }
-    }
-
-    private void hideAllPanels(){
-        conversationsPanel.setVisible(false);
-        conversationsPanel.setManaged(false);
-        settingsPanel.setVisible(false);
-        settingsPanel.setManaged(false);
-        friendsPanel.setVisible(false);
-        friendsPanel.setManaged(false);
-    }
-
-    private void showPanel(VBox panel){
-        hideAllPanels();
-
-        panel.setVisible(true);
-        panel.setManaged(true);
     }
 
     private void showError(String message){
