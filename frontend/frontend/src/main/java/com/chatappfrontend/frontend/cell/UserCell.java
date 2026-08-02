@@ -37,7 +37,7 @@ public class UserCell extends ListCell<UserResponseDTO>{
         String displayName = user.getName().substring(0, 1).toUpperCase() + user.getName().substring(1).toLowerCase() + " " + user.getSurname().substring(0, 1).toUpperCase() + user.getSurname().substring(1).toLowerCase();
 
         Label avatar = new Label(user.getName().substring(0, 1).toUpperCase() + user.getSurname().substring(0, 1).toUpperCase());
-        avatar.setStyle("-fx-background-color: #00ff88; -fx-text-fill: black; -fx-font-weight: bold; " + "-fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 20; -fx-alignment: center;");
+        avatar.setStyle("-fx-background-color: #00ff88; -fx-text-fill: black; -fx-font-weight: bold; -fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 20; -fx-alignment: center;");
 
 
         Label nameLabel = new Label(displayName);
@@ -77,6 +77,7 @@ public class UserCell extends ListCell<UserResponseDTO>{
 
             try {
                 FriendService friendService = new FriendService();
+
                 friendService.sendFriendRequest(user.getId());
 
                 addButton.setText("Sent");

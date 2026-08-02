@@ -55,7 +55,6 @@ public class LoginController {
 
         emailField.textProperty().addListener((_, _, _) -> updateLoginButtonState());
         passwordField.textProperty().addListener((_, _, _) -> updateLoginButtonState());
-
     }
 
     @FXML

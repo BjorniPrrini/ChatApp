@@ -190,6 +190,7 @@ public class ChatPageController {
                 Platform.runLater(() -> {
                     if("NEW".equals(event.getType())){
                         webSocketService.sendDeliveredReceipt(event.getMessageId());
+
                         if(!event.getConversationId().equals(currentConversationId)){
                             updateConversationPreview(event.getConversationId(), event.getMessage().getMessage(), event.getMessage().getSentAt());
                         }
@@ -647,6 +648,7 @@ public class ChatPageController {
 
             friendService.getFriends().forEach(f -> {
                 Long friendId = f.getSenderId().equals(currentUserId) ? f.getReceiverId() : f.getSenderId();
+
                 friendIds.add(friendId);
             });
 
