@@ -97,7 +97,13 @@ public class ChatPageController {
 
     @FXML
     public void initialize(){
-        conversationList.setCellFactory(_ -> new ConversationCell());
+        conversationList.setCellFactory(_ -> new ConversationCell(conversationId -> {
+            conversationListManager.removeConversation(conversationId);
+
+            if(currentConversationId.equals(conversationId)){
+                clearChatPane();
+            }
+        }));
 
         searchResultsList.setCellFactory(_ -> new UserCell(friendsManager.getFriendIds(), friendsManager.getPendingIds()));
 
@@ -135,7 +141,7 @@ public class ChatPageController {
 
                         panelManager.showPanel(conversationsPanel);
                         openConversation(conversation);
-                    } catch (Exception e) {
+                    } catch (Exception _) {
                         showError("Could not start conversation");
                     }
                 },
@@ -146,7 +152,7 @@ public class ChatPageController {
                         friendService.removeFriend(SessionManager.getInstance().getUserId(), friendId);
 
                         showFriends();
-                    } catch (Exception e) {
+                    } catch (Exception _) {
                         showError("Could not remove friend");
                     }
                 },
@@ -157,7 +163,7 @@ public class ChatPageController {
                         friendService.blockFriend(friendId);
 
                         showFriends();
-                    } catch (Exception e) {
+                    } catch (Exception _) {
                         showError("Could not block user");
                     }
                 }
@@ -196,14 +202,14 @@ public class ChatPageController {
                 friendService.unblockUser(userId);
 
                 showFriends();
-            } catch (Exception e) {
+            } catch (Exception _) {
                 showError("Could not unblock user");
             }
         }));
 
         try {
             webSocketConnectionManager.connect(SessionManager.getInstance().getUserId(), this::handleUserQueueEvent, this::handleUserStatusEvent);
-        } catch (Exception e) {
+        } catch (Exception _) {
             showError("Could not connect to real time service");
         }
     }
@@ -220,7 +226,7 @@ public class ChatPageController {
 
             searchResultsList.getItems().clear();
             searchResultsList.getItems().addAll(users);
-        } catch (Exception e) {
+        } catch (Exception _) {
             showError("User not found");
         }
     }
@@ -257,7 +263,7 @@ public class ChatPageController {
             }
 
             hasMoreMessages = messagePage.isHasMore();
-        } catch (Exception e){
+        } catch (Exception _){
             showError("Couldn't get the messages");
         }
     }
@@ -390,7 +396,7 @@ public class ChatPageController {
 
         Button cancelButton = new Button("X");
 
-        cancelButton.setOnAction(e -> cancelReply());
+        cancelButton.setOnAction(_ -> cancelReply());
 
         HBox preview = new HBox(10);
         preview.setAlignment(Pos.CENTER_LEFT);
@@ -440,7 +446,7 @@ public class ChatPageController {
                 if(isLastMessageInContainer(message.getId())){
                     conversationListManager.updateConversationPreview(currentConversationId, edited.getMessage(), edited.getSentAt());
                 }
-            } catch (Exception e) {
+            } catch (Exception _) {
                 showError("Couldn't edit message");
             }
         });
@@ -450,8 +456,8 @@ public class ChatPageController {
         deleteAndSync(message, bubble, () -> {
             try {
                 new MessageService().deleteMessageForMe(message.getId());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+            } catch (Exception _) {
+                showError("Could not delete message");
             }
         });
     }
@@ -460,8 +466,8 @@ public class ChatPageController {
         deleteAndSync(message, bubble, () -> {
             try {
                 new MessageService().deleteMessageForEveryone(message.getId());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+            } catch (Exception _) {
+                showError("Could not delete message");
             }
         });
     }
@@ -477,7 +483,7 @@ public class ChatPageController {
             if(wasLast){
                 syncPreviewToNewLastMessage();
             }
-        } catch (Exception e) {
+        } catch (Exception _) {
             showError("Couldn't delete message");
         }
     }
@@ -552,7 +558,7 @@ public class ChatPageController {
 
         try {
             SceneManager.switchTo("login-page.fxml");
-        } catch (Exception e) {
+        } catch (Exception _) {
             showError("Can't load loading page");
         }
     }
@@ -561,7 +567,7 @@ public class ChatPageController {
     public void handleChangePassword(){
         try {
             SceneManager.switchContent(contentPane, "change-password.fxml");
-        } catch (IOException e) {
+        } catch (IOException _) {
             showError("Failed to load change password");
         }
     }
@@ -570,7 +576,7 @@ public class ChatPageController {
     public void handleEditProfile(){
         try {
             SceneManager.switchContent(contentPane, "edit-profile.fxml");
-        } catch (IOException e) {
+        } catch (IOException _) {
             showError("Failed to load edit profile");
         }
     }
@@ -617,7 +623,7 @@ public class ChatPageController {
 
             cancelReply();
 
-        } catch (Exception e){
+        } catch (Exception _){
             showError("Couldn't send message");
         }
     }
@@ -670,10 +676,20 @@ public class ChatPageController {
 
                 isLoadingMore = false;
             });
-        } catch (Exception e) {
+        } catch (Exception _) {
             showError("Couldn't load older messages");
             isLoadingMore = false;
         }
+    }
+
+    private void clearChatPane(){
+        currentConversationId = null;
+
+        messagesContainer.getChildren().clear();
+
+        chatNameLabel.setText("");
+
+        webSocketService.unsubscribe();
     }
 
     private void showError(String message){

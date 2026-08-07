@@ -21,4 +21,14 @@ public interface ConversationParticipantRepository extends JpaRepository<Convers
     @Query("UPDATE ConversationParticipant cp SET cp.deletedAt = :now WHERE cp.conversation.id = :conversationId AND cp.user.id = :userId")
     void softDeleteForUser(@Param("conversationId") Long conversationId, @Param("userId") Long userId, @Param("now") LocalDateTime now);
     long countByConversationIdAndDeletedAtIsNotNull(Long conversationId);
+    @Modifying
+    @Transactional
+    @Query("UPDATE ConversationParticipant cp SET cp.clearedAt = :now WHERE cp.conversation.id = :conversationId AND cp.user.id = :userId")
+    void markUserDeleteCutoff(@Param("conversationId") Long conversationId, @Param("userId") Long userId, @Param("now") LocalDateTime now);
+    @Query("SELECT cp.clearedAt FROM ConversationParticipant cp WHERE cp.conversation.id = :conversationId AND cp.user.id = :userId")
+    LocalDateTime findClearedAt(@Param("conversationId") Long conversationId, @Param("userId") Long userId);
+    @Modifying
+    @Transactional
+    @Query("UPDATE ConversationParticipant cp SET cp.deletedAt = NULL WHERE cp.conversation.id = :conversationId AND cp.user.id = :userId")
+    void restoreForUser(@Param("conversationId") Long conversationId, @Param("userId") Long userId);
 }

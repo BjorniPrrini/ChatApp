@@ -25,4 +25,7 @@ public class ConversationParticipant {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    @Column(name = "cleared_at")
+    private LocalDateTime clearedAt;
 }

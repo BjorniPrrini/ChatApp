@@ -3,12 +3,22 @@ package com.chatappfrontend.frontend.cell;
 import com.chatappfrontend.frontend.model.ConversationResponseDTO;
 
 import javafx.geometry.Pos;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+import java.util.function.Consumer;
+
 public class ConversationCell extends ListCell<ConversationResponseDTO> {
+    private final Consumer<Long> onDelete;
+
+    public ConversationCell(Consumer<Long> onDelete) {
+        this.onDelete = onDelete;
+    }
+
     @Override
     protected void updateItem(ConversationResponseDTO conversation, boolean empty) {
         super.updateItem(conversation, empty);
@@ -42,6 +52,18 @@ public class ConversationCell extends ListCell<ConversationResponseDTO> {
         VBox textBox = new VBox(3, nameLabel, lastMessageLabel);
 
         HBox cell = new HBox(10, avatar, textBox);
+
+        MenuItem deleteItem = new MenuItem("Delete conversation");
+
+        deleteItem.setOnAction(_ -> onDelete.accept(conversation.getConversationId()));
+
+        ContextMenu menu = new ContextMenu();
+
+        menu.getItems().add(deleteItem);
+
+        cell.setOnContextMenuRequested(event -> {
+            menu.show(cell, event.getScreenX(), event.getScreenY());
+        });
 
         cell.setAlignment(Pos.CENTER_LEFT);
 

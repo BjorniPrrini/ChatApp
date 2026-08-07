@@ -51,6 +51,8 @@ public class ConversationServiceImpl implements ConversationService{
         Optional<Conversation> existing = conversationRepository.findDMBetweenUsers(userId, request.getReceiverId());
 
         if(existing.isPresent()){
+            conversationParticipantRepository.restoreForUser(existing.get().getId(), userId);
+
             return mapToDTO(existing.get(), receiver);
         }
 
@@ -102,9 +104,11 @@ public class ConversationServiceImpl implements ConversationService{
 
     @Override
     public void deleteConversation(Long userId, Long conversationId) {
-        Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
+        LocalDateTime now = LocalDateTime.now();
 
-        conversationParticipantRepository.softDeleteForUser(conversationId, userId, LocalDateTime.now());
+        conversationParticipantRepository.markUserDeleteCutoff(conversationId, userId, now);
+
+        conversationParticipantRepository.softDeleteForUser(conversationId, userId, now);
 
         long deletedParticipants = conversationParticipantRepository.countByConversationIdAndDeletedAtIsNotNull(conversationId);
 

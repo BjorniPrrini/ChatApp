@@ -4,6 +4,7 @@ import com.chatappfrontend.frontend.model.ConversationResponseDTO;
 import com.chatappfrontend.frontend.service.ConversationService;
 
 import javafx.collections.ObservableList;
+import javafx.scene.Node;
 import javafx.scene.control.ListView;
 
 import java.time.LocalDateTime;
@@ -43,7 +44,7 @@ public class ConversationListManager {
 
             conversationList.getItems().clear();
             conversationList.getItems().addAll(conversations);
-        } catch (Exception e) {
+        } catch (Exception _) {
             onError.accept("Failed to load conversations");
         }
     }
@@ -78,9 +79,33 @@ public class ConversationListManager {
         for(ConversationResponseDTO c : conversationList.getItems()){
             if(c.getOtherUserId().equals(userId)){
                 c.setOnline(isOnline);
+
+                break;
             }
         }
 
         conversationList.refresh();
+    }
+
+    public void removeConversation(Long conversationId){
+        try {
+            ConversationService service = new ConversationService();
+
+            service.deleteConversation(conversationId);
+
+            ObservableList<ConversationResponseDTO> items = conversationList.getItems();
+
+            for(int i = 0; i < items.size(); i++){
+                ConversationResponseDTO c = items.get(i);
+
+                if(c.getConversationId().equals(conversationId)){
+                    conversationList.getItems().remove(i);
+
+                    return;
+                }
+            }
+        } catch (Exception _) {
+            onError.accept("Failed to delete conversation");
+        }
     }
 }

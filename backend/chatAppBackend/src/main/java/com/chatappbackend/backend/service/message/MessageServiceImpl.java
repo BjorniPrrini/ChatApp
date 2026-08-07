@@ -59,6 +59,8 @@ public class MessageServiceImpl implements MessageService{
             throw new BadRequestException("You must be friends to message this user");
         }
 
+        conversationParticipantRepository.restoreForUser(conversation.getId(), otherUser.getId());
+
         Message message = new Message();
 
         message.setMessage(request.getMessage());
@@ -91,7 +93,13 @@ public class MessageServiceImpl implements MessageService{
     public MessagePageDTO getMessages(Long userId, Long conversationId, LocalDateTime before) {
         markConversationAsRead(userId, conversationId);
 
-        List<Message> messages = messageRepository.findMessages(conversationId, before, PageRequest.of(0, 50));
+        LocalDateTime clearedAt = conversationParticipantRepository.findClearedAt(conversationId, userId);
+
+        if(clearedAt == null){
+            clearedAt = LocalDateTime.MIN;
+        }
+
+        List<Message> messages = messageRepository.findMessages(conversationId, before, PageRequest.of(0, 50), clearedAt);
 
         List<MessageResponseDTO> messagesResponse = messages.stream()
                 .map(this::mapToDTO)

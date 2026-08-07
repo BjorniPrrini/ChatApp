@@ -25,6 +25,7 @@ CREATE TABLE conversation_participants(
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     joined_at TIMESTAMPTZ DEFAULT NOW(),
     deleted_at TIMESTAMPTZ,
+    cleared_at TIMESTAMP,
     PRIMARY KEY (conversation_id, user_id)
 );
 

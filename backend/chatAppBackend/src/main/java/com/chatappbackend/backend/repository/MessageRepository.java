@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MessageRepository extends JpaRepository<Message, Long> {
-    @Query("SELECT m FROM Message m WHERE m.conversation.id = :conversationId AND m.sentAt < :before ORDER BY m.sentAt DESC")
-    List<Message> findMessages(@Param("conversationId") Long conversationId, @Param("before") LocalDateTime before, Pageable pageable);
+    @Query("SELECT m FROM Message m WHERE m.conversation.id = :conversationId AND m.sentAt < :before AND m.sentAt > :clearedAt ORDER BY m.sentAt DESC")
+    List<Message> findMessages(@Param("conversationId") Long conversationId, @Param("before") LocalDateTime before, Pageable pageable, @Param("clearedAt") LocalDateTime clearedAt);
     @Modifying
     @Transactional
     @Query("UPDATE Message m SET m.status = 'read' WHERE m.conversation.id = :conversationId AND m.sender.id != :userId AND m.status != 'read'")
