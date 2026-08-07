@@ -5,6 +5,7 @@ import com.chatappbackend.backend.entity.PasswordResetToken;
 import com.chatappbackend.backend.entity.User;
 import com.chatappbackend.backend.exception.BadRequestException;
 import com.chatappbackend.backend.exception.ResourceNotFoundException;
+import com.chatappbackend.backend.mapper.AuthMapper;
 import com.chatappbackend.backend.repository.PasswordResetTokenRepository;
 import com.chatappbackend.backend.repository.UserRepository;
 import com.chatappbackend.backend.util.JwtUtil;
@@ -24,13 +25,15 @@ public class AuthServiceImpl implements AuthService{
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final JavaMailSender javaMailSender;
+    private final AuthMapper authMapper;
 
-    public AuthServiceImpl(JwtUtil jwtUtil, UserRepository userRepository, PasswordEncoder passwordEncoder, PasswordResetTokenRepository passwordResetTokenRepository, JavaMailSender javaMailSender){
+    public AuthServiceImpl(JwtUtil jwtUtil, UserRepository userRepository, PasswordEncoder passwordEncoder, PasswordResetTokenRepository passwordResetTokenRepository, JavaMailSender javaMailSender, AuthMapper authMapper){
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.javaMailSender = javaMailSender;
+        this.authMapper = authMapper;
     }
 
     @Override
@@ -43,7 +46,7 @@ public class AuthServiceImpl implements AuthService{
 
         String token = jwtUtil.generateToken(user.getId());
 
-        return mapToDTO(user, token);
+        return authMapper.toAuthResponseDTO(user, token);
     }
 
     @Override
@@ -71,7 +74,7 @@ public class AuthServiceImpl implements AuthService{
 
         String token = jwtUtil.generateToken(savedUser.getId());
 
-        return mapToDTO(user, token);
+        return authMapper.toAuthResponseDTO(user, token);
     }
 
     @Override
@@ -123,16 +126,5 @@ public class AuthServiceImpl implements AuthService{
         passwordResetToken.setUsed(true);
 
         passwordResetTokenRepository.save(passwordResetToken);
-    }
-
-    private AuthResponseDTO mapToDTO(User user, String token){
-        AuthResponseDTO response = new AuthResponseDTO();
-
-        response.setToken(token);
-        response.setId(user.getId());
-        response.setName(user.getName());
-        response.setEmail(user.getEmail());
-
-        return response;
     }
 }

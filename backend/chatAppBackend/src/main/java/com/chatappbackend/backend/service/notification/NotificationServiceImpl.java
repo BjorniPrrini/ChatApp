@@ -5,8 +5,10 @@ import com.chatappbackend.backend.entity.Notification;
 import com.chatappbackend.backend.entity.User;
 import com.chatappbackend.backend.exception.ForbiddenException;
 import com.chatappbackend.backend.exception.ResourceNotFoundException;
+import com.chatappbackend.backend.mapper.NotificationMapper;
 import com.chatappbackend.backend.repository.NotificationRepository;
 import com.chatappbackend.backend.repository.UserRepository;
+
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,10 +19,12 @@ import java.util.stream.Collectors;
 public class NotificationServiceImpl implements NotificationService{
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
+    private final NotificationMapper notificationMapper;
 
-    public NotificationServiceImpl(UserRepository userRepository, NotificationRepository notificationRepository){
+    public NotificationServiceImpl(UserRepository userRepository, NotificationRepository notificationRepository, NotificationMapper notificationMapper){
         this.userRepository = userRepository;
         this.notificationRepository = notificationRepository;
+        this.notificationMapper = notificationMapper;
     }
 
     @Override
@@ -44,7 +48,7 @@ public class NotificationServiceImpl implements NotificationService{
         List<Notification> notificationList = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
 
         return notificationList.stream()
-                .map(this::mapToDto)
+                .map(notificationMapper::toNotificationResponseDTO)
                 .collect(Collectors.toList());
     }
 
@@ -65,18 +69,5 @@ public class NotificationServiceImpl implements NotificationService{
     @Override
     public void markAllAsRead(Long userId) {
         notificationRepository.markAllAsReadByUserId(userId);
-    }
-
-    private NotificationResponseDTO mapToDto(Notification notification){
-        NotificationResponseDTO notificationResponse = new NotificationResponseDTO();
-
-        notificationResponse.setContent(notification.getContent());
-        notificationResponse.setType(notification.getType());
-        notificationResponse.setTitle(notification.getTitle());
-        notificationResponse.setCreatedAt(notification.getCreatedAt());
-        notificationResponse.setId(notification.getId());
-        notificationResponse.setRead(notification.getIsRead());
-
-        return notificationResponse;
     }
 }

@@ -3,6 +3,7 @@ package com.chatappbackend.backend.repository;
 import com.chatappbackend.backend.entity.ConversationParticipant;
 import com.chatappbackend.backend.entity.ConversationParticipantId;
 import com.chatappbackend.backend.entity.User;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

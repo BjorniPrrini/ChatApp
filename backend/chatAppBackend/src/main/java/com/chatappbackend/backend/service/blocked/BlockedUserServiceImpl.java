@@ -5,6 +5,7 @@ import com.chatappbackend.backend.entity.BlockedUser;
 import com.chatappbackend.backend.entity.User;
 import com.chatappbackend.backend.exception.BadRequestException;
 import com.chatappbackend.backend.exception.ResourceNotFoundException;
+import com.chatappbackend.backend.mapper.UserMapper;
 import com.chatappbackend.backend.repository.BlockedUserRepository;
 import com.chatappbackend.backend.repository.UserRepository;
 
@@ -18,10 +19,12 @@ import java.util.stream.Collectors;
 public class BlockedUserServiceImpl implements BlockedUserService{
     private final UserRepository userRepository;
     private final BlockedUserRepository blockedUserRepository;
+    private final UserMapper userMapper;
 
-    public BlockedUserServiceImpl(UserRepository userRepository, BlockedUserRepository blockedUserRepository) {
+    public BlockedUserServiceImpl(UserRepository userRepository, BlockedUserRepository blockedUserRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.blockedUserRepository = blockedUserRepository;
+        this.userMapper = userMapper;
     }
 
     @Override
@@ -69,19 +72,7 @@ public class BlockedUserServiceImpl implements BlockedUserService{
         return blockedUserRepository.findByBlockerId(user)
                 .stream()
                 .map(BlockedUser::getBlockedId)
-                .map(this::mapToDTO)
+                .map(userMapper::toFriendResponseDTO)
                 .collect(Collectors.toList());
-    }
-
-    private FriendResponseDTO mapToDTO(User user){
-        FriendResponseDTO dto = new FriendResponseDTO();
-
-        dto.setSenderId(user.getId());
-        dto.setName(user.getName());
-        dto.setSurname(user.getSurname());
-        dto.setNickname(user.getNickname());
-        dto.setProfilePicture(user.getProfilePicture());
-
-        return dto;
     }
 }

@@ -5,10 +5,13 @@ import com.chatappbackend.backend.entity.FriendRequest;
 import com.chatappbackend.backend.entity.User;
 import com.chatappbackend.backend.exception.BadRequestException;
 import com.chatappbackend.backend.exception.ResourceNotFoundException;
+import com.chatappbackend.backend.mapper.FriendRequestMapper;
+import com.chatappbackend.backend.mapper.UserMapper;
 import com.chatappbackend.backend.repository.FriendRequestRepository;
 import com.chatappbackend.backend.repository.UserRepository;
 import com.chatappbackend.backend.service.blocked.BlockedUserService;
 import com.chatappbackend.backend.service.notification.NotificationService;
+
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -21,12 +24,16 @@ public class FriendRequestServiceImpl implements FriendRequestService{
     private final BlockedUserService blockedUserService;
     private final FriendRequestRepository friendRequestRepository;
     private final NotificationService notificationService;
+    private final UserMapper userMapper;
+    private final FriendRequestMapper friendRequestMapper;
 
-    public FriendRequestServiceImpl(UserRepository userRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository, NotificationService notificationService) {
+    public FriendRequestServiceImpl(UserRepository userRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository, NotificationService notificationService, UserMapper userMapper, FriendRequestMapper friendRequestMapper) {
         this.userRepository = userRepository;
         this.blockedUserService = blockedUserService;
         this.friendRequestRepository = friendRequestRepository;
         this.notificationService = notificationService;
+        this.userMapper = userMapper;
+        this.friendRequestMapper = friendRequestMapper;
     }
 
     @Override
@@ -94,7 +101,7 @@ public class FriendRequestServiceImpl implements FriendRequestService{
     public List<FriendResponseDTO> getFriendRequests(Long userId) {
         return friendRequestRepository.findByReceiverIdAndStatus(userId, "pending")
                 .stream()
-                .map(fr -> mapToDTO(fr, userId))
+                .map(fr -> friendRequestMapper.toFriendResponseDTO(fr, userId))
                 .collect(Collectors.toList());
     }
 
@@ -102,7 +109,7 @@ public class FriendRequestServiceImpl implements FriendRequestService{
     public List<FriendResponseDTO> getFriends(Long userId) {
         return friendRequestRepository.findAcceptedFriendships(userId)
                 .stream()
-                .map(fr -> mapToDTO(fr, userId))
+                .map(fr -> friendRequestMapper.toFriendResponseDTO(fr, userId))
                 .filter(dto -> {
                     Long otherUserId = dto.getSenderId().equals(userId) ? dto.getReceiverId() : dto.getSenderId();
 
@@ -113,51 +120,37 @@ public class FriendRequestServiceImpl implements FriendRequestService{
 
     @Override
     public List<FriendResponseDTO> getSuggestedFriends(Long userId) {
-        Queue<Long> queue = new LinkedList<>();
         Set<Long> visited = new HashSet<>();
 
         visited.add(userId);
-
-        Set<Long> suggested = new HashSet<>();
 
         List<FriendRequest> myFriendships = friendRequestRepository.findAcceptedFriendships(userId);
 
         for(FriendRequest friendship : myFriendships){
             Long friendId = friendship.getSender().getId().equals(userId) ? friendship.getReceiver().getId() : friendship.getSender().getId();
 
-            queue.add(friendId);
             visited.add(friendId);
         }
 
-        while(!queue.isEmpty()){
-            Long currentFriendId = queue.poll();
+        List<FriendRequest> suggestionFriends = friendRequestRepository.findAcceptedFriendshipsForUsers(visited);
 
-            List<FriendRequest> theirFriendships = friendRequestRepository.findAcceptedFriendships(currentFriendId);
+        Set<Long> suggestedIds = new HashSet<>();
 
-            for(FriendRequest friendsFriend : theirFriendships){
-                Long theirFriendId = friendsFriend.getSender().getId().equals(currentFriendId) ? friendsFriend.getReceiver().getId() : friendsFriend.getSender().getId();
+        for(FriendRequest fr : suggestionFriends){
+            Long senderId = fr.getSender().getId();
+            Long receiverId = fr.getReceiver().getId();
 
-                if(!visited.contains(theirFriendId)){
-                    suggested.add(theirFriendId);
-                    visited.add(theirFriendId);
-                }
+            if(!visited.contains(senderId)){
+                suggestedIds.add(senderId);
+            }else if(!visited.contains(receiverId)){
+                suggestedIds.add(receiverId);
             }
         }
 
+        List<User> suggestedUsers = userRepository.findAllById(suggestedIds);
 
-        return suggested.stream()
-                .map(suggestedId -> userRepository.findById(suggestedId).orElseThrow())
-                .map(suggestedUser -> {
-                    FriendResponseDTO dto = new FriendResponseDTO();
-
-                    dto.setSenderId(suggestedUser.getId());
-                    dto.setName(suggestedUser.getName());
-                    dto.setSurname(suggestedUser.getSurname());
-                    dto.setNickname(suggestedUser.getNickname());
-                    dto.setProfilePicture(suggestedUser.getProfilePicture());
-
-                    return dto;
-                })
+        return suggestedUsers.stream()
+                .map(userMapper::toFriendResponseDTO)
                 .collect(Collectors.toList());
     }
 
@@ -165,32 +158,14 @@ public class FriendRequestServiceImpl implements FriendRequestService{
     public List<FriendResponseDTO> getSentRequests(Long userId) {
         return friendRequestRepository.findBySenderIdAndStatus(userId, "pending")
                 .stream()
-                .map(fr -> mapToDTO(fr, userId))
+                .map(fr -> friendRequestMapper.toFriendResponseDTO(fr, userId))
                 .collect(Collectors.toList());
     }
 
     @Override
     public void removeFriend(Long userId, Long friendId) {
-        FriendRequest friendRequest = friendRequestRepository.findAcceptedFriendship(userId, friendId).orElseThrow(() -> new ResourceNotFoundException("Friendship not found"));;
+        FriendRequest friendRequest = friendRequestRepository.findAcceptedFriendship(userId, friendId).orElseThrow(() -> new ResourceNotFoundException("Friendship not found"));
 
         friendRequestRepository.delete(friendRequest);
-    }
-
-    private FriendResponseDTO mapToDTO(FriendRequest friendRequest, Long currentUserId){
-        User otherUser = friendRequest.getSender().getId().equals(currentUserId) ? friendRequest.getReceiver() : friendRequest.getSender();
-
-        FriendResponseDTO response = new FriendResponseDTO();
-
-        response.setRequestId(friendRequest.getId());
-        response.setReceiverId(friendRequest.getReceiver().getId());
-        response.setSenderId(friendRequest.getSender().getId());
-        response.setName(otherUser.getName());
-        response.setSurname(otherUser.getSurname());
-        response.setNickname(otherUser.getNickname());
-        response.setProfilePicture(otherUser.getProfilePicture());
-        response.setCreatedAt(friendRequest.getCreatedAt());
-        response.setStatus(friendRequest.getStatus());
-
-        return response;
     }
 }

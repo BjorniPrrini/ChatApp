@@ -8,8 +8,10 @@ import com.chatappbackend.backend.entity.Message;
 import com.chatappbackend.backend.entity.User;
 import com.chatappbackend.backend.exception.BadRequestException;
 import com.chatappbackend.backend.exception.ResourceNotFoundException;
+import com.chatappbackend.backend.mapper.ConversationMapper;
 import com.chatappbackend.backend.repository.*;
 import com.chatappbackend.backend.service.blocked.BlockedUserService;
+
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,14 +27,16 @@ public class ConversationServiceImpl implements ConversationService{
     private final BlockedUserService blockedUserService;
     private final FriendRequestRepository friendRequestRepository;
     private final MessageRepository messageRepository;
+    private final ConversationMapper conversationMapper;
 
-    public ConversationServiceImpl(ConversationRepository conversationRepository, ConversationParticipantRepository conversationParticipantRepository, UserRepository userRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository, MessageRepository messageRepository){
+    public ConversationServiceImpl(ConversationRepository conversationRepository, ConversationParticipantRepository conversationParticipantRepository, UserRepository userRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository, MessageRepository messageRepository, ConversationMapper conversationMapper){
         this.conversationRepository = conversationRepository;
         this.conversationParticipantRepository = conversationParticipantRepository;
         this.userRepository = userRepository;
         this.blockedUserService = blockedUserService;
         this.friendRequestRepository = friendRequestRepository;
         this.messageRepository = messageRepository;
+        this.conversationMapper = conversationMapper;
     }
 
     @Override
@@ -53,7 +57,7 @@ public class ConversationServiceImpl implements ConversationService{
         if(existing.isPresent()){
             conversationParticipantRepository.restoreForUser(existing.get().getId(), userId);
 
-            return mapToDTO(existing.get(), receiver);
+            return conversationMapper.toConversationResponseDTO(existing.get(), receiver, getLastMessage(existing.get().getId()));
         }
 
         Conversation conversation = new Conversation();
@@ -78,7 +82,7 @@ public class ConversationServiceImpl implements ConversationService{
         conversationParticipantRepository.save(participant1);
         conversationParticipantRepository.save(participant2);
 
-        return mapToDTO(savedConversation, receiver);
+        return conversationMapper.toConversationResponseDTO(savedConversation, receiver, Optional.empty());
     }
 
     @Override
@@ -89,7 +93,7 @@ public class ConversationServiceImpl implements ConversationService{
                 .map(conversation -> {
                     User otherUser = conversationParticipantRepository.findOtherParticipant(conversation.getId(), userId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
 
-                    return mapToDTO(conversation, otherUser);
+                    return conversationMapper.toConversationResponseDTO(conversation, otherUser, getLastMessage(conversation.getId()));
                 })
                 .collect(Collectors.toList());
     }
@@ -99,7 +103,7 @@ public class ConversationServiceImpl implements ConversationService{
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
         User otherParticipant = conversationParticipantRepository.findOtherParticipant(conversation.getId(), userId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
 
-        return mapToDTO(conversation, otherParticipant);
+        return conversationMapper.toConversationResponseDTO(conversation, otherParticipant, getLastMessage(conversationId));
     }
 
     @Override
@@ -119,28 +123,7 @@ public class ConversationServiceImpl implements ConversationService{
         }
     }
 
-    private ConversationResponseDTO mapToDTO(Conversation conversation, User receiver){
-        ConversationResponseDTO response = new ConversationResponseDTO();
-
-        response.setConversationId(conversation.getId());
-        response.setOtherUserId(receiver.getId());
-        response.setName(receiver.getName());
-        response.setSurname(receiver.getSurname());
-        response.setNickname(receiver.getNickname());
-        response.setProfilePicture(receiver.getProfilePicture());
-        response.setOnline(receiver.isOnline());
-        response.setGroup(false);
-
-        Optional<Message> lastMessage = messageRepository.findTopByConversationIdOrderBySentAtDesc(conversation.getId());
-
-        if(lastMessage.isPresent()){
-            response.setLastMessage(lastMessage.get().getMessage());
-            response.setLastMessageAt(lastMessage.get().getSentAt());
-        }else{
-            response.setLastMessage(null);
-            response.setLastMessageAt(null);
-        }
-
-        return response;
+    private Optional<Message> getLastMessage(Long conversationId){
+        return messageRepository.findTopByConversationIdOrderBySentAtDesc(conversationId);
     }
 }

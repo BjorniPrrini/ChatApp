@@ -1,6 +1,7 @@
 package com.chatappbackend.backend.entity;
 
 import lombok.Data;
+
 import java.io.Serializable;
 
 @Data

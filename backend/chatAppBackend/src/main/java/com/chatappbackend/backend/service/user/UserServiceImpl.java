@@ -9,6 +9,7 @@ import com.chatappbackend.backend.entity.User;
 import com.chatappbackend.backend.exception.BadRequestException;
 import com.chatappbackend.backend.exception.ForbiddenException;
 import com.chatappbackend.backend.exception.ResourceNotFoundException;
+import com.chatappbackend.backend.mapper.UserMapper;
 import com.chatappbackend.backend.repository.FriendRequestRepository;
 import com.chatappbackend.backend.repository.UserRepository;
 
@@ -33,19 +34,21 @@ public class UserServiceImpl implements UserService{
     private final PasswordEncoder passwordEncoder;
     private final FriendRequestRepository friendRequestRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final UserMapper userMapper;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, FriendRequestRepository friendRequestRepository, SimpMessagingTemplate messagingTemplate){
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, FriendRequestRepository friendRequestRepository, SimpMessagingTemplate messagingTemplate, UserMapper userMapper){
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.friendRequestRepository = friendRequestRepository;
         this.messagingTemplate = messagingTemplate;
+        this.userMapper = userMapper;
     }
 
     @Override
     public UserResponseDTO getUserById(Long id){
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        return mapToDTO(user);
+        return userMapper.toUserResponseDTO(user);
     }
 
     @Override
@@ -74,7 +77,7 @@ public class UserServiceImpl implements UserService{
 
         User savedUser = userRepository.save(user);
 
-        return mapToDTO(savedUser);
+        return userMapper.toUserResponseDTO(savedUser);
     }
 
     @Override
@@ -89,7 +92,7 @@ public class UserServiceImpl implements UserService{
 
         return users.stream()
                 .filter(u -> !u.getId().equals(currentUserId))
-                .map(this::mapToDTO)
+                .map(userMapper::toUserResponseDTO)
                 .collect(Collectors.toList());
     }
 
@@ -128,7 +131,7 @@ public class UserServiceImpl implements UserService{
 
         User savedUser = userRepository.save(user);
 
-        return mapToDTO(savedUser);
+        return userMapper.toUserResponseDTO(savedUser);
     }
 
     @Override
@@ -178,21 +181,5 @@ public class UserServiceImpl implements UserService{
         for(Long friendId : friendsId){
             messagingTemplate.convertAndSend("/queue/user." + friendId + ".status", event);
         }
-    }
-
-    private UserResponseDTO mapToDTO(User user) {
-        UserResponseDTO response = new UserResponseDTO();
-
-        response.setId(user.getId());
-        response.setName(user.getName());
-        response.setSurname(user.getSurname());
-        response.setNickname(user.getNickname());
-        response.setEmail(user.getEmail());
-        response.setProfilePicture(user.getProfilePicture());
-        response.setPhoneNumber(user.getPhoneNumber());
-        response.setOnline(user.isOnline());
-        response.setCreatedAt(user.getCreatedAt());
-
-        return response;
     }
 }

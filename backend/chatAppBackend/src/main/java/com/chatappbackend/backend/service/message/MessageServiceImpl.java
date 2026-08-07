@@ -11,6 +11,7 @@ import com.chatappbackend.backend.entity.User;
 import com.chatappbackend.backend.exception.BadRequestException;
 import com.chatappbackend.backend.exception.ForbiddenException;
 import com.chatappbackend.backend.exception.ResourceNotFoundException;
+import com.chatappbackend.backend.mapper.MessageMapper;
 import com.chatappbackend.backend.repository.*;
 import com.chatappbackend.backend.service.blocked.BlockedUserService;
 
@@ -33,8 +34,9 @@ public class MessageServiceImpl implements MessageService{
     private final BlockedUserService blockedUserService;
     private final FriendRequestRepository friendRequestRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final MessageMapper messageMapper;
 
-    public MessageServiceImpl(UserRepository userRepository, ConversationRepository conversationRepository, MessageRepository messageRepository, MessageDeleteRepository messageDeleteRepository, ConversationParticipantRepository conversationParticipantRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository, SimpMessagingTemplate messagingTemplate){
+    public MessageServiceImpl(UserRepository userRepository, ConversationRepository conversationRepository, MessageRepository messageRepository, MessageDeleteRepository messageDeleteRepository, ConversationParticipantRepository conversationParticipantRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository, SimpMessagingTemplate messagingTemplate, MessageMapper messageMapper){
         this.userRepository = userRepository;
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
@@ -43,6 +45,7 @@ public class MessageServiceImpl implements MessageService{
         this.blockedUserService = blockedUserService;
         this.friendRequestRepository = friendRequestRepository;
         this.messagingTemplate = messagingTemplate;
+        this.messageMapper = messageMapper;
     }
 
     @Override
@@ -81,7 +84,7 @@ public class MessageServiceImpl implements MessageService{
 
         Message savedMessage = messageRepository.save(message);
 
-        MessageResponseDTO dto = mapToDTO(savedMessage);
+        MessageResponseDTO dto = messageMapper.toMessageResponseDTO(savedMessage);
 
         messagingTemplate.convertAndSend("/topic/conversation." + conversation.getId(), new MessageEventDTO("NEW", conversation.getId(), dto.getId(), dto, null, null));
         messagingTemplate.convertAndSend("/queue/user." + otherUser.getId(), new MessageEventDTO("NEW", conversation.getId(), dto.getId(), dto, null, null));
@@ -102,7 +105,7 @@ public class MessageServiceImpl implements MessageService{
         List<Message> messages = messageRepository.findMessages(conversationId, before, PageRequest.of(0, 50), clearedAt);
 
         List<MessageResponseDTO> messagesResponse = messages.stream()
-                .map(this::mapToDTO)
+                .map(messageMapper::toMessageResponseDTO)
                 .collect(Collectors.toList());
 
         Collections.reverse(messagesResponse);
@@ -172,7 +175,7 @@ public class MessageServiceImpl implements MessageService{
 
         Message savedMessage = messageRepository.save(message);
 
-        MessageResponseDTO dto = mapToDTO(savedMessage);
+        MessageResponseDTO dto = messageMapper.toMessageResponseDTO(savedMessage);
 
         messagingTemplate.convertAndSend("/topic/conversation." + savedMessage.getConversation().getId(), new MessageEventDTO("EDIT", savedMessage.getConversation().getId(), savedMessage.getId(), dto, null, null));
 
@@ -264,27 +267,5 @@ public class MessageServiceImpl implements MessageService{
                 messagingTemplate.convertAndSend("/queue/user." + senderId, event);
             }
         }
-    }
-
-    private MessageResponseDTO mapToDTO(Message message){
-        MessageResponseDTO response = new MessageResponseDTO();
-
-        response.setMessage(message.getMessage());
-        response.setId(message.getId());
-        response.setSentAt(message.getSentAt());
-        response.setStatus(message.getStatus());
-        response.setSenderId(message.getSender().getId());
-        response.setSenderName(message.getSender().getName());
-        response.setSenderNickname(message.getSender().getNickname());
-        response.setSenderProfilePicture(message.getSender().getProfilePicture());
-        response.setEditedAt(message.getEditedAt());
-        response.setEdited(message.getEditedAt() != null);
-
-        if(message.getReplyTo() != null){
-            response.setReplyToId(message.getReplyTo().getId());
-            response.setReplyToMessage(message.getReplyTo().getMessage());
-        }
-
-        return response;
     }
 }
