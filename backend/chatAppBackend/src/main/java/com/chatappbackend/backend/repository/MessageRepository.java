@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MessageRepository extends JpaRepository<Message, Long> {
-    @Query("SELECT m FROM Message m WHERE m.conversation.id = :conversationId AND m.sentAt < :before AND m.sentAt > :clearedAt ORDER BY m.sentAt DESC")
-    List<Message> findMessages(@Param("conversationId") Long conversationId, @Param("before") LocalDateTime before, Pageable pageable, @Param("clearedAt") LocalDateTime clearedAt);
+    @Query("SELECT m FROM Message m WHERE m.conversation.id = :conversationId AND m.sentAt < :before AND m.sentAt > :clearedAt AND NOT EXISTS (SELECT 1 FROM MessageDelete md WHERE md.message = m AND md.user.id = :userId) ORDER BY m.sentAt DESC")
+    List<Message> findMessages(@Param("userId") Long userId, @Param("conversationId") Long conversationId, @Param("before") LocalDateTime before, Pageable pageable, @Param("clearedAt") LocalDateTime clearedAt);
     @Modifying
     @Transactional
     @Query("UPDATE Message m SET m.status = 'read' WHERE m.conversation.id = :conversationId AND m.sender.id != :userId AND m.status != 'read'")
@@ -23,7 +23,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @Modifying
     @Transactional
     @Query("UPDATE Message m SET m.status = 'delivered' WHERE m.id = :messageId AND m.status != 'read'")
-    void markAsDelivered(@Param("messageId") Long messageId);
+    void markAsDelivered(@Param("messageId") Long mrIessageId);
     Optional<Message> findTopByConversationIdOrderBySentAtDesc(Long conversationId);
     @Query("SELECT m.id FROM Message m WHERE m.conversation.id = :conversationId AND m.sender.id != :userId AND m.status != 'read'")
     List<Long> findUnreadMessageIds(@Param("conversationId") Long conversationId, @Param("userId") Long userId);

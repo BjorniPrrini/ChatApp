@@ -102,7 +102,7 @@ public class MessageServiceImpl implements MessageService{
             clearedAt = LocalDateTime.MIN;
         }
 
-        List<Message> messages = messageRepository.findMessages(conversationId, before, PageRequest.of(0, 50), clearedAt);
+        List<Message> messages = messageRepository.findMessages(userId, conversationId, before, PageRequest.of(0, 50), clearedAt);
 
         List<MessageResponseDTO> messagesResponse = messages.stream()
                 .map(messageMapper::toMessageResponseDTO)

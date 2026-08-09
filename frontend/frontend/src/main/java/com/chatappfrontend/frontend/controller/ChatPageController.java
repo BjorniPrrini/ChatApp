@@ -110,8 +110,6 @@ public class ChatPageController {
             }
         });
 
-
-
         messageInput.setOnKeyPressed(event -> {
             if(event.getCode() == KeyCode.ENTER){
                 handleSendMessage();
@@ -137,6 +135,7 @@ public class ChatPageController {
         showChatContent();
 
         currentConversationId = selected.getConversationId();
+        messageEventManager.setCurrentConversationId(currentConversationId);
         oldestLoadedMessageTime = null;
         hasMoreMessages = true;
         isLoadingMore = false;
@@ -165,6 +164,8 @@ public class ChatPageController {
             }
 
             hasMoreMessages = messagePage.isHasMore();
+
+            messageInput.requestFocus();
         } catch (Exception _){
             AlertUtils.showError(notificationLabel, "Couldn't get the messages");
         }
@@ -282,6 +283,8 @@ public class ChatPageController {
 
     @FXML
     public void showConversations(){
+        showChatContent();
+
         panelManager.showPanel(conversationsPanel);
     }
 
@@ -430,6 +433,7 @@ public class ChatPageController {
 
     private void clearChatPane(){
         currentConversationId = null;
+        messageEventManager.setCurrentConversationId(null);
 
         messagesContainer.getChildren().clear();
 
