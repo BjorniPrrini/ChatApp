@@ -68,18 +68,6 @@ public class MessageBubbleFactory {
 
         bubble.getChildren().add(messageLabel);
 
-        if(isMyMessage){
-            Label statusLabel = new Label(formatStatus(message.getStatus()));
-
-            statusLabel.setStyle("-fx-text-fill: " + getStatusColor(message.getStatus()) + "; -fx-font-size: 10px;");
-
-            statusLabel.setAlignment(Pos.CENTER_RIGHT);
-
-            hBox.getProperties().put("statusLabel", statusLabel);
-
-            bubble.getChildren().add(statusLabel);
-        }
-
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem reply = new MenuItem("Reply");
@@ -108,6 +96,32 @@ public class MessageBubbleFactory {
             deleteForMe.setOnAction(_ -> onDeleteForMe.accept(message, hBox));
 
             contextMenu.getItems().add(deleteForMe);
+        }
+
+        HBox metadataRow = new HBox(5);
+
+        metadataRow.setAlignment(Pos.CENTER_RIGHT);
+
+        if(message.isEdited()){
+            Label editedLabel = new Label("Edited");
+
+            editedLabel.setStyle("-fx-text-fill: #888888; -fx-font-size: 10px;");
+
+            metadataRow.getChildren().add(editedLabel);
+        }
+
+        if(isMyMessage){
+            Label statusLabel = new Label(formatStatus(message.getStatus()));
+
+            statusLabel.setStyle("-fx-text-fill: " + getStatusColor(message.getStatus()) + "; -fx-font-size: 10px;");
+
+            metadataRow.getChildren().add(statusLabel);
+
+            hBox.getProperties().put("statusLabel", statusLabel);
+        }
+
+        if(!metadataRow.getChildren().isEmpty()){
+            bubble.getChildren().add(metadataRow);
         }
 
         messageLabel.setContextMenu(contextMenu);

@@ -96,8 +96,8 @@ public class LoginController {
 
             try {
                 SceneManager.switchTo("chat-page.fxml");
-            } catch (Exception e) {
-                AlertUtils.showError(errorLabel, "Invalid email or password");
+            } catch (Exception _) {
+                AlertUtils.showError(errorLabel, "Couldn't load chat page");
             }
         });
 
@@ -131,7 +131,7 @@ public class LoginController {
     public void handleRegister(){
         try {
             SceneManager.switchTo("registration-page.fxml");
-        } catch (Exception e) {
+        } catch (Exception _) {
             AlertUtils.showError(errorLabel, "Couldn't load registration page");
         }
     }
@@ -140,7 +140,7 @@ public class LoginController {
     public void handleForgotPassword(){
         try {
             SceneManager.switchTo("forgot-password.fxml");
-        } catch (Exception e) {
+        } catch (Exception _) {
             AlertUtils.showError(errorLabel, "Couldn't load forgot password page");
         }
     }

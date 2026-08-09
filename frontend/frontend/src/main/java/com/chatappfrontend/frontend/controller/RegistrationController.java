@@ -119,7 +119,7 @@ public class RegistrationController {
 
             try {
                 SceneManager.switchTo("chat-page.fxml");
-            } catch (Exception e) {
+            } catch (Exception _) {
                 AlertUtils.showError(errorLabel, "Couldn't load chat page");
             }
         });
@@ -158,7 +158,7 @@ public class RegistrationController {
     public void handleLogin(){
         try {
             SceneManager.switchTo("login-page.fxml");
-        } catch (Exception e) {
+        } catch (Exception _) {
             AlertUtils.showError(errorLabel, "Couldn't load login page");
         }
     }
