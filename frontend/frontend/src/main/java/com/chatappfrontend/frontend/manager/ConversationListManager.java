@@ -4,7 +4,6 @@ import com.chatappfrontend.frontend.model.ConversationResponseDTO;
 import com.chatappfrontend.frontend.service.ConversationService;
 
 import javafx.collections.ObservableList;
-import javafx.scene.Node;
 import javafx.scene.control.ListView;
 
 import java.time.LocalDateTime;

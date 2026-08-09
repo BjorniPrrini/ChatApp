@@ -24,9 +24,11 @@ public class SceneManager {
         primaryStage.setMaximized(true);
     }
 
-    public static void switchContent(StackPane container, String fxml) throws IOException {
+    public static <T> T switchContent(StackPane container, String fxml) throws IOException {
         FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource("/com/chatappfrontend/frontend/views/" + fxml));
 
         container.getChildren().setAll(Collections.singleton(loader.load()));
+
+        return loader.getController();
     }
 }

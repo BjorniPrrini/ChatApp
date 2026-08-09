@@ -1,12 +1,11 @@
 package com.chatappfrontend.frontend.controller;
 
 import com.chatappfrontend.frontend.service.AuthService;
+import com.chatappfrontend.frontend.util.AlertUtils;
 import com.chatappfrontend.frontend.util.SceneManager;
 
-import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.util.Duration;
 
 public class ForgotPasswordController {
     @FXML
@@ -47,13 +46,13 @@ public class ForgotPasswordController {
         userEmail = email;
 
         if(email.isEmpty()){
-            showError("Empty fields");
+            AlertUtils.showError(errorLabel, "Email field is empty");
 
             return;
         }
 
         if(!email.contains("@")){
-            showError("Not a valid email");
+            AlertUtils.showError(errorLabel, "Not a valid email");
 
             return;
         }
@@ -78,7 +77,7 @@ public class ForgotPasswordController {
 
             sendCodeButton.setText("Reset password");
         } catch (Exception e) {
-            showError("Can't send code");
+            AlertUtils.showError(errorLabel, "Couldn't send code");
         } finally {
             loadingSpinner.setManaged(false);
             loadingSpinner.setVisible(false);
@@ -91,7 +90,7 @@ public class ForgotPasswordController {
         try {
             SceneManager.switchTo("login-page.fxml");
         } catch (Exception e) {
-            showError("Can't load to login page");
+            AlertUtils.showError(errorLabel, "Couldn't load login page");
         }
     }
 
@@ -99,7 +98,7 @@ public class ForgotPasswordController {
         String code = codeField.getText();
 
         if(code.isEmpty()){
-            showError("Empty field");
+            AlertUtils.showError(errorLabel, "Empty fields");
 
             return;
         }
@@ -121,19 +120,19 @@ public class ForgotPasswordController {
         String confirmPassword = confirmPasswordField.getText().trim();
 
         if(!newPassword.equals(confirmPassword)){
-            showError("Confirm password does not match new password");
+            AlertUtils.showError(errorLabel, "Confirm password does not mach new password");
 
             return;
         }
 
         if(newPassword.isEmpty()){
-            showError("Empty fields");
+            AlertUtils.showError(errorLabel, "Empty fields");
 
             return;
         }
 
         if(newPassword.length() < 8){
-            showError("Password needs to be 8 characters or more");
+            AlertUtils.showError(errorLabel, "Password should be 8 characters");
 
             return;
         }
@@ -145,17 +144,7 @@ public class ForgotPasswordController {
 
             SceneManager.switchTo("login-page.fxml");
         } catch (Exception e) {
-            showError("Failed to reset password");
+            AlertUtils.showError(errorLabel, "Failed to reset password");
         }
-    }
-
-    private void showError(String message){
-        errorLabel.setText(message);
-        errorLabel.setVisible(true);
-
-        PauseTransition pause = new PauseTransition(Duration.seconds(5));
-
-        pause.setOnFinished(_ -> errorLabel.setVisible(false));
-        pause.play();
     }
 }

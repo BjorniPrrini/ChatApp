@@ -1,12 +1,11 @@
 package com.chatappfrontend.frontend.controller;
 
 import com.chatappfrontend.frontend.service.UserService;
+import com.chatappfrontend.frontend.util.AlertUtils;
 
-import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
-import javafx.util.Duration;
 
 public class ChangePasswordController {
     @FXML
@@ -27,13 +26,13 @@ public class ChangePasswordController {
         String confirmPassword = confirmPasswordField.getText().trim();
 
         if(oldPassword.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()){
-            showError("Empty fields");
+            AlertUtils.showError(errorLabel, "Empty fields");
 
             return;
         }
 
         if(!newPassword.equals(confirmPassword)){
-            showError("Confirm password does not mach new password");
+            AlertUtils.showError(errorLabel, "Confirm password is not the same as new password");
 
             return;
         }
@@ -43,45 +42,13 @@ public class ChangePasswordController {
 
             userService.changePassword(oldPassword, newPassword, confirmPassword);
 
-            showSuccess("Password changed successfully");
+            AlertUtils.showSuccess(successLabel, "Password changed");
 
             currentPasswordField.clear();
             newPasswordField.clear();
             confirmPasswordField.clear();
-
-
         } catch (Exception e) {
-            showError(e.getMessage());
+            AlertUtils.showError(errorLabel, "Couldn't change password");
         }
-    }
-
-    private void showError(String message){
-        errorLabel.setText(message);
-        errorLabel.setVisible(true);
-        errorLabel.setManaged(true);
-
-        PauseTransition pause = new PauseTransition(Duration.seconds(3));
-
-        pause.setOnFinished(_ -> {
-            errorLabel.setVisible(false);
-            errorLabel.setManaged(false);
-        });
-
-        pause.play();
-    }
-
-    private void showSuccess(String message){
-        successLabel.setText(message);
-        successLabel.setVisible(true);
-        successLabel.setManaged(true);
-
-        PauseTransition pause = new PauseTransition(Duration.seconds(3));
-
-        pause.setOnFinished(_ -> {
-            successLabel.setVisible(false);
-            successLabel.setManaged(false);
-        });
-
-        pause.play();
     }
 }

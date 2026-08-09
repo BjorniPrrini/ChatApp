@@ -3,15 +3,14 @@ package com.chatappfrontend.frontend.controller;
 import com.chatappfrontend.frontend.cell.*;
 import com.chatappfrontend.frontend.factory.MessageBubbleFactory;
 import com.chatappfrontend.frontend.manager.ConversationListManager;
-import com.chatappfrontend.frontend.manager.FriendsManager;
 import com.chatappfrontend.frontend.manager.PanelManager;
 import com.chatappfrontend.frontend.manager.WebSocketConnectionManager;
 import com.chatappfrontend.frontend.model.*;
 import com.chatappfrontend.frontend.service.*;
+import com.chatappfrontend.frontend.util.AlertUtils;
 import com.chatappfrontend.frontend.util.SceneManager;
 import com.chatappfrontend.frontend.util.SessionManager;
 
-import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -22,7 +21,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -35,14 +33,6 @@ public class ChatPageController {
     private Button friendsIconButton;
     @FXML
     private VBox friendsPanel;
-    @FXML
-    private TextField friendSearchField;
-    @FXML
-    private ListView<UserResponseDTO> searchResultsList;
-    @FXML
-    private ListView<FriendResponseDTO> friendRequestsList;
-    @FXML
-    private ListView<FriendResponseDTO> friendsList;
     @FXML
     private Label notificationLabel;
     @FXML
@@ -76,8 +66,6 @@ public class ChatPageController {
     @FXML
     private VBox replyPreviewBox;
     @FXML
-    private ListView<FriendResponseDTO> blockedUsersList;
-    @FXML
     private StackPane contentPane;
     @FXML
     private VBox chatArea;
@@ -91,7 +79,6 @@ public class ChatPageController {
     private MessageBubbleFactory messageBubbleFactory;
     private ConversationListManager conversationListManager;
     private PanelManager panelManager;
-    private FriendsManager friendsManager;
     private WebSocketConnectionManager webSocketConnectionManager;
     private final Map<Long, String> pendingMessageStatuses = new HashMap<>();
 
@@ -105,15 +92,11 @@ public class ChatPageController {
             }
         }));
 
-        searchResultsList.setCellFactory(_ -> new UserCell(friendsManager.getFriendIds(), friendsManager.getPendingIds()));
-
         messageBubbleFactory = new MessageBubbleFactory(SessionManager.getInstance().getUserId(), this::handleReply, this::handleEdit, this::handleDeleteForMe, this::handleDeleteForEveryone);
 
-        conversationListManager = new ConversationListManager(conversationList, this::showError);
+        conversationListManager = new ConversationListManager(conversationList, message -> AlertUtils.showError(notificationLabel, message));
 
         panelManager = new PanelManager(List.of(conversationsPanel, settingsPanel, friendsPanel));
-
-        friendsManager = new FriendsManager(friendsList, friendRequestsList, blockedUsersList, this::showError);
 
         webSocketConnectionManager = new WebSocketConnectionManager(webSocketService);
 
@@ -127,57 +110,7 @@ public class ChatPageController {
             }
         });
 
-        friendRequestsList.setCellFactory(_ -> new FriendRequestCell(() -> {
-            friendsManager.loadFriendRequests();
-            friendsManager.loadFriends();
-        }));
 
-        friendsList.setCellFactory(_ -> new FriendsCell(
-                friendId -> {
-                    try {
-                        ConversationService conversationService = new ConversationService();
-
-                        ConversationResponseDTO conversation = conversationService.createConversation(friendId);
-
-                        panelManager.showPanel(conversationsPanel);
-                        openConversation(conversation);
-                    } catch (Exception _) {
-                        showError("Could not start conversation");
-                    }
-                },
-                friendId -> {
-                    try {
-                        FriendService friendService = new FriendService();
-
-                        friendService.removeFriend(SessionManager.getInstance().getUserId(), friendId);
-
-                        showFriends();
-                    } catch (Exception _) {
-                        showError("Could not remove friend");
-                    }
-                },
-                friendId -> {
-                    try {
-                        FriendService friendService = new FriendService();
-
-                        friendService.blockFriend(friendId);
-
-                        showFriends();
-                    } catch (Exception _) {
-                        showError("Could not block user");
-                    }
-                }
-        ));
-
-        friendSearchField.setOnKeyPressed(event -> {
-            if(event.getCode() == javafx.scene.input.KeyCode.ENTER){
-                String term = friendSearchField.getText().trim();
-
-                if(term.length() >= 2){
-                    searchUsers(term);
-                }
-            }
-        });
 
         messageInput.setOnKeyPressed(event -> {
             if(event.getCode() == KeyCode.ENTER){
@@ -185,9 +118,7 @@ public class ChatPageController {
             }
         });
 
-        messagesContainer.heightProperty().addListener((_, _, _) -> {
-            messagesScrollPane.setVvalue(1.0);
-        });
+        messagesContainer.heightProperty().addListener((_, _, _) -> messagesScrollPane.setVvalue(1.0));
 
         messagesScrollPane.vvalueProperty().addListener((_, _, newValue) -> {
             if(newValue.doubleValue() <= 0.05 && hasMoreMessages && !isLoadingMore){
@@ -195,39 +126,10 @@ public class ChatPageController {
             }
         });
 
-        blockedUsersList.setCellFactory(_ -> new BlockedUserCell(userId -> {
-            try {
-                FriendService friendService = new FriendService();
-
-                friendService.unblockUser(userId);
-
-                showFriends();
-            } catch (Exception _) {
-                showError("Could not unblock user");
-            }
-        }));
-
         try {
             webSocketConnectionManager.connect(SessionManager.getInstance().getUserId(), this::handleUserQueueEvent, this::handleUserStatusEvent);
         } catch (Exception _) {
-            showError("Could not connect to real time service");
-        }
-    }
-
-    private void searchUsers(String term){
-        try {
-            UserService userService = new UserService();
-
-            List<UserResponseDTO> users = userService.searchUsers(term);
-
-            users = users.stream()
-                    .filter(u -> !u.getId().equals(SessionManager.getInstance().getUserId()))
-                    .toList();
-
-            searchResultsList.getItems().clear();
-            searchResultsList.getItems().addAll(users);
-        } catch (Exception _) {
-            showError("User not found");
+            AlertUtils.showError(notificationLabel, "Could not connect to real time service");
         }
     }
 
@@ -264,7 +166,7 @@ public class ChatPageController {
 
             hasMoreMessages = messagePage.isHasMore();
         } catch (Exception _){
-            showError("Couldn't get the messages");
+            AlertUtils.showError(notificationLabel, "Couldn't get the messages");
         }
     }
 
@@ -283,9 +185,7 @@ public class ChatPageController {
     }
 
     private void handleUserStatusEvent(UserStatusEventDTO event){
-        Platform.runLater(() -> {
-            conversationListManager.updateFriendStatus(event.getUserId(), event.getStatus());
-        });
+        Platform.runLater(() -> conversationListManager.updateFriendStatus(event.getUserId(), event.getStatus()));
     }
 
     private void handleConversationEvent(MessageEventDTO event){
@@ -330,9 +230,7 @@ public class ChatPageController {
                         syncPreviewToNewLastMessage();
                     }
                 }
-                case "STATUS" -> {
-                    handleStatusUpdate(event.getMessageIds(), event.getStatus());
-                }
+                case "STATUS" -> handleStatusUpdate(event.getMessageIds(), event.getStatus());
             }
         });
     }
@@ -447,7 +345,7 @@ public class ChatPageController {
                     conversationListManager.updateConversationPreview(currentConversationId, edited.getMessage(), edited.getSentAt());
                 }
             } catch (Exception _) {
-                showError("Couldn't edit message");
+                AlertUtils.showError(notificationLabel, "Couldn't edit the message");
             }
         });
     }
@@ -457,7 +355,7 @@ public class ChatPageController {
             try {
                 new MessageService().deleteMessageForMe(message.getId());
             } catch (Exception _) {
-                showError("Could not delete message");
+                AlertUtils.showError(notificationLabel, "Couldn't delete the message");
             }
         });
     }
@@ -467,7 +365,7 @@ public class ChatPageController {
             try {
                 new MessageService().deleteMessageForEveryone(message.getId());
             } catch (Exception _) {
-                showError("Could not delete message");
+                AlertUtils.showError(notificationLabel, "Couldn't delete the message");
             }
         });
     }
@@ -484,7 +382,7 @@ public class ChatPageController {
                 syncPreviewToNewLastMessage();
             }
         } catch (Exception _) {
-            showError("Couldn't delete message");
+            AlertUtils.showError(notificationLabel, "Couldn't delete the message");
         }
     }
 
@@ -547,7 +445,6 @@ public class ChatPageController {
     @FXML
     public void showFriends(){
         panelManager.showPanel(friendsPanel);
-        friendsManager.showFriends();
     }
 
     @FXML
@@ -559,7 +456,7 @@ public class ChatPageController {
         try {
             SceneManager.switchTo("login-page.fxml");
         } catch (Exception _) {
-            showError("Can't load loading page");
+            AlertUtils.showError(notificationLabel, "Couldn't load loading page");
         }
     }
 
@@ -568,7 +465,7 @@ public class ChatPageController {
         try {
             SceneManager.switchContent(contentPane, "change-password.fxml");
         } catch (IOException _) {
-            showError("Failed to load change password");
+            AlertUtils.showError(notificationLabel, "Couldn't load change password page");
         }
     }
 
@@ -577,7 +474,7 @@ public class ChatPageController {
         try {
             SceneManager.switchContent(contentPane, "edit-profile.fxml");
         } catch (IOException _) {
-            showError("Failed to load edit profile");
+            AlertUtils.showError(notificationLabel, "Couldn't load edit profile page");
         }
     }
 
@@ -591,13 +488,13 @@ public class ChatPageController {
         String message = messageInput.getText().trim();
 
         if(message.isEmpty()){
-            showError("Can't send empty message");
+            AlertUtils.showError(notificationLabel, "Can't send empty messages");
 
             return;
         }
 
         if(currentConversationId == null){
-            showError("Not a valid conversation");
+            AlertUtils.showError(notificationLabel, "Not a valid conversation");
 
             return;
         }
@@ -624,7 +521,7 @@ public class ChatPageController {
             cancelReply();
 
         } catch (Exception _){
-            showError("Couldn't send message");
+            AlertUtils.showError(notificationLabel, "Couldn't send message");
         }
     }
 
@@ -677,7 +574,8 @@ public class ChatPageController {
                 isLoadingMore = false;
             });
         } catch (Exception _) {
-            showError("Couldn't load older messages");
+            AlertUtils.showError(notificationLabel, "Couldn't load older messages");
+
             isLoadingMore = false;
         }
     }
@@ -692,18 +590,54 @@ public class ChatPageController {
         webSocketService.unsubscribe();
     }
 
-    private void showError(String message){
-        notificationLabel.setText(message);
-        notificationLabel.setVisible(true);
-        notificationLabel.setManaged(true);
+    @FXML
+    public void handleAddFriends(){
+        try {
+            SceneManager.switchContent(contentPane, "add-friend-page.fxml");
+        } catch (Exception _) {
+            AlertUtils.showError(notificationLabel, "Couldn't load add friend page");
+        }
+    }
 
-        PauseTransition pause = new PauseTransition(Duration.seconds(3));
+    @FXML
+    public void handleFriendRequests(){
+        try {
+            SceneManager.switchContent(contentPane, "friend-requests-page.fxml");
+        } catch (Exception _) {
+            AlertUtils.showError(notificationLabel, "Couldn't load friend requests page");
+        }
+    }
 
-        pause.setOnFinished(_ -> {
-            notificationLabel.setVisible(false);
-            notificationLabel.setManaged(false);
-        });
+    @FXML
+    public void handleBlockedUsers(){
+        try {
+            SceneManager.switchContent(contentPane, "blocked-users-page.fxml");
+        } catch (Exception _) {
+            AlertUtils.showError(notificationLabel, "Couldn't load blocked users page");
+        }
+    }
 
-        pause.play();
+    @FXML
+    public void handleSuggestedFriends(){
+        try {
+            SceneManager.switchContent(contentPane, "suggested-users-page.fxml");
+        } catch (Exception _) {
+            AlertUtils.showError(notificationLabel, "Couldn't load suggested friends page");
+        }
+    }
+
+    @FXML
+    public void handleMyFriends(){
+        try {
+            MyFriendsController controller = SceneManager.switchContent(contentPane, "my-friends-page.fxml");
+
+            controller.setOnStartConversation(conversation -> {
+                panelManager.showPanel(conversationsPanel);
+
+                openConversation(conversation);
+            });
+        } catch (Exception _) {
+            AlertUtils.showError(notificationLabel, "Couldn't load friends page");
+        }
     }
 }

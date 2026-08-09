@@ -10,6 +10,7 @@ module com.chatappfrontend.frontend {
     requires java.desktop;
     requires tools.jackson.databind;
     requires com.fasterxml.jackson.datatype.jsr310;
+    requires jakarta.mail;
 
     opens com.chatappfrontend.frontend to javafx.fxml;
     opens com.chatappfrontend.frontend.controller to javafx.fxml;

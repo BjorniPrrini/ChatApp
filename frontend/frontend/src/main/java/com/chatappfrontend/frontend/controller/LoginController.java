@@ -2,12 +2,8 @@ package com.chatappfrontend.frontend.controller;
 
 import com.chatappfrontend.frontend.service.AuthService;
 import com.chatappfrontend.frontend.model.AuthResponseDTO;
-import com.chatappfrontend.frontend.util.AppExecutor;
-import com.chatappfrontend.frontend.util.EmailHistoryManager;
-import com.chatappfrontend.frontend.util.SceneManager;
-import com.chatappfrontend.frontend.util.SessionManager;
+import com.chatappfrontend.frontend.util.*;
 
-import javafx.animation.PauseTransition;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -15,7 +11,6 @@ import javafx.geometry.Side;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.util.Duration;
 
 import java.util.List;
 
@@ -63,7 +58,7 @@ public class LoginController {
         String password = passwordField.getText().trim();
 
         if(email.isEmpty() || password.isEmpty()){
-            showError("Empty fields");
+            AlertUtils.showError(errorLabel, "Empty fields");
 
             return;
         }
@@ -102,12 +97,12 @@ public class LoginController {
             try {
                 SceneManager.switchTo("chat-page.fxml");
             } catch (Exception e) {
-                showError("Invalid email or password");
+                AlertUtils.showError(errorLabel, "Invalid email or password");
             }
         });
 
         loginTask.setOnFailed(_ -> {
-            showError("Invalid email or password");
+            AlertUtils.showError(errorLabel, "Invalid email or password");
 
             loadingSpinner.setVisible(false);
             loadingSpinner.setManaged(false);
@@ -137,7 +132,7 @@ public class LoginController {
         try {
             SceneManager.switchTo("registration-page.fxml");
         } catch (Exception e) {
-            showError("Can't load registration page");
+            AlertUtils.showError(errorLabel, "Couldn't load registration page");
         }
     }
 
@@ -146,7 +141,7 @@ public class LoginController {
         try {
             SceneManager.switchTo("forgot-password.fxml");
         } catch (Exception e) {
-            showError("Can't load page");
+            AlertUtils.showError(errorLabel, "Couldn't load forgot password page");
         }
     }
 
@@ -205,15 +200,5 @@ public class LoginController {
         boolean fieldsFilled = !emailField.getText().trim().isEmpty() && !passwordField.getText().trim().isEmpty();
 
         loginButton.setDisable(!fieldsFilled);
-    }
-
-    private void showError(String message){
-        errorLabel.setText(message);
-        errorLabel.setVisible(true);
-
-        PauseTransition pause = new PauseTransition(Duration.seconds(5));
-
-        pause.setOnFinished(_ -> errorLabel.setVisible(false));
-        pause.play();
     }
 }

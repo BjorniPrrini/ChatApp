@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
@@ -46,29 +47,12 @@
                 </padding>
 
                 <Label text="Friends" styleClass="panel-title"/>
-                <Label text="Find Friends" styleClass="section-title"/>
 
-                <TextField fx:id="friendSearchField" promptText="Search people..." styleClass="search-field"/>
-
-                <ListView fx:id="searchResultsList" prefHeight="180" styleClass="conversation-list"/>
-
-                <Separator/>
-
-                <Label text="Friend Requests" styleClass="section-title"/>
-
-                <ListView fx:id="friendRequestsList" prefHeight="150" styleClass="conversation-list"/>
-
-                <Separator/>
-
-                <Label text="My Friends" styleClass="section-title"/>
-
-                <ListView fx:id="friendsList" prefHeight="200" styleClass="conversation-list"/>
-
-                <Separator/>
-
-                <Label text="Blocked Users" styleClass="section-title"/>
-
-                <ListView fx:id="blockedUsersList" VBox.vgrow="ALWAYS" styleClass="conversation-list"/>
+                <Button text="Add Friends" styleClass="settings-button" onAction="#handleAddFriends"/>
+                <Button text="Friend Requests" styleClass="settings-button" onAction="#handleFriendRequests"/>
+                <Button text="My Friends" styleClass="settings-button" onAction="#handleMyFriends"/>
+                <Button text="Suggested Friends" styleClass="settings-button" onAction="#handleSuggestedFriends"/>
+                <Button text="Blocked Users" styleClass="settings-button" onAction="#handleBlockedUsers"/>
             </VBox>
         </VBox>
 

@@ -2,11 +2,11 @@ package com.chatappfrontend.frontend.controller;
 
 import com.chatappfrontend.frontend.model.UserResponseDTO;
 import com.chatappfrontend.frontend.service.UserService;
-import javafx.animation.PauseTransition;
+import com.chatappfrontend.frontend.util.AlertUtils;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.util.Duration;
 
 public class EditProfileController {
     @FXML
@@ -40,24 +40,11 @@ public class EditProfileController {
             UserService userService = new UserService();
 
             userService.editUserProfile(name, surname, nickname, phoneNumber);
+
+            AlertUtils.showSuccess(successLabel, "Saved changes");
         } catch (Exception e) {
-            showError("Could not update profile");
+            AlertUtils.showError(errorLabel, "Couldn't save changes");
         }
-    }
-
-    private void showError(String message){
-        errorLabel.setText(message);
-        errorLabel.setVisible(true);
-        errorLabel.setManaged(true);
-
-        PauseTransition pause = new PauseTransition(Duration.seconds(3));
-
-        pause.setOnFinished(_ -> {
-            errorLabel.setVisible(false);
-            errorLabel.setManaged(false);
-        });
-
-        pause.play();
     }
 
     private void loadUsersInformation(){
@@ -72,22 +59,7 @@ public class EditProfileController {
             phoneNumberField.setText(userResponseDTO.getPhoneNumber());
             emailField.setText(userResponseDTO.getEmail());
         } catch (Exception e) {
-            showError("Could not get users data");
+            AlertUtils.showError(errorLabel, "Couldn't load user information");
         }
-    }
-
-    private void showSuccess(String message){
-        successLabel.setText(message);
-        successLabel.setVisible(true);
-        successLabel.setManaged(true);
-
-        PauseTransition pause = new PauseTransition(Duration.seconds(3));
-
-        pause.setOnFinished(_ -> {
-            successLabel.setVisible(false);
-            successLabel.setManaged(false);
-        });
-
-        pause.play();
     }
 }

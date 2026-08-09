@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.chatappfrontend.frontend.controller.AddFriendsController" spacing="20" stylesheets="@../styles/main.css">
+    <padding>
+        <Insets top="40" right="40" bottom="40" left="40"/>
+    </padding>
+
+    <Label text="Add Friends" styleClass="panel-title"/>
+
+    <TextField fx:id="searchField" promptText="Search people..." styleClass="search-field"/>
+
+    <Label fx:id="errorLabel" styleClass="error-label" visible="false" managed="false"/>
+
+    <ListView fx:id="searchResultsListView" VBox.vgrow="ALWAYS" styleClass="conversation-list"/>
+</VBox>

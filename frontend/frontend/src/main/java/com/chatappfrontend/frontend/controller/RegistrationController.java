@@ -2,16 +2,11 @@ package com.chatappfrontend.frontend.controller;
 
 import com.chatappfrontend.frontend.model.AuthResponseDTO;
 import com.chatappfrontend.frontend.service.AuthService;
-import com.chatappfrontend.frontend.util.AppExecutor;
-import com.chatappfrontend.frontend.util.EmailHistoryManager;
-import com.chatappfrontend.frontend.util.SceneManager;
-import com.chatappfrontend.frontend.util.SessionManager;
+import com.chatappfrontend.frontend.util.*;
 
-import javafx.animation.PauseTransition;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.util.Duration;
 
 public class RegistrationController {
     @FXML
@@ -68,25 +63,25 @@ public class RegistrationController {
         String phoneNumber = phoneNumberField.getText().trim();
 
         if(name.isEmpty() || surname.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()){
-            showError("Empty fields");
+            AlertUtils.showError(errorLabel, "Empty fields");
 
             return;
         }
 
         if(!password.equals(confirmPassword)){
-            showError("Confirm password does not mach password");
+            AlertUtils.showError(errorLabel, "Confirm password is different than new password");
 
             return;
         }
 
         if(password.length() < 8){
-            showError("Password length should be 8 characters or more");
+            AlertUtils.showError(errorLabel, "Password length should be 8 characters or more");
 
             return;
         }
 
         if(!email.contains("@")){
-            showError("Not a valid email");
+            AlertUtils.showError(errorLabel, "Not a valid email");
 
             return;
         }
@@ -125,12 +120,12 @@ public class RegistrationController {
             try {
                 SceneManager.switchTo("chat-page.fxml");
             } catch (Exception e) {
-                showError("Registration failed");
+                AlertUtils.showError(errorLabel, "Couldn't load chat page");
             }
         });
 
         registerTask.setOnFailed(_ -> {
-            showError("Registration failed");
+            AlertUtils.showError(errorLabel, "Couldn't register the user");
 
             loadingSpinner.setVisible(false);
             loadingSpinner.setManaged(false);
@@ -164,7 +159,7 @@ public class RegistrationController {
         try {
             SceneManager.switchTo("login-page.fxml");
         } catch (Exception e) {
-            showError("Can't load login page");
+            AlertUtils.showError(errorLabel, "Couldn't load login page");
         }
     }
 
@@ -172,16 +167,5 @@ public class RegistrationController {
         boolean filled = !nameField.getText().trim().isEmpty() && !surnameField.getText().trim().isEmpty() && !emailField.getText().trim().isEmpty() && !passwordField.getText().trim().isEmpty() && !confirmPasswordField.getText().trim().isEmpty();
 
         registerButton.setDisable(!filled);
-    }
-
-    private void showError(String message){
-        errorLabel.setText(message);
-        errorLabel.setVisible(true);
-
-        PauseTransition pause = new PauseTransition(Duration.seconds(5));
-
-        pause.setOnFinished(_ -> errorLabel.setVisible(false));
-
-        pause.play();
     }
 }
