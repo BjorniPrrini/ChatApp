@@ -26,6 +26,7 @@ CREATE TABLE conversation_participants(
     joined_at TIMESTAMPTZ DEFAULT NOW(),
     deleted_at TIMESTAMPTZ,
     cleared_at TIMESTAMP,
+    is_admin BOOLEAN NOT NULL DEFAULT false,
     PRIMARY KEY (conversation_id, user_id)
 );
 

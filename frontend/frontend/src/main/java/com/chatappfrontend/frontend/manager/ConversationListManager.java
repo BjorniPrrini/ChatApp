@@ -1,6 +1,7 @@
 package com.chatappfrontend.frontend.manager;
 
 import com.chatappfrontend.frontend.model.ConversationResponseDTO;
+import com.chatappfrontend.frontend.model.ParticipantDTO;
 import com.chatappfrontend.frontend.service.ConversationService;
 
 import javafx.collections.ObservableList;
@@ -76,10 +77,12 @@ public class ConversationListManager {
         boolean isOnline = status.equals("online");
 
         for(ConversationResponseDTO c : conversationList.getItems()){
-            if(c.getOtherUserId().equals(userId)){
-                c.setOnline(isOnline);
+            for(ParticipantDTO participant : c.getParticipants()){
+                if(participant.getUserId().equals(userId)){
+                    participant.setOnline(isOnline);
 
-                break;
+                    break;
+                }
             }
         }
 

@@ -2,6 +2,7 @@ package com.chatappbackend.backend.service.conversation;
 
 import com.chatappbackend.backend.dto.conversation.ConversationRequestDTO;
 import com.chatappbackend.backend.dto.conversation.ConversationResponseDTO;
+import com.chatappbackend.backend.dto.conversation.GroupConversationRequestDTO;
 import com.chatappbackend.backend.entity.Conversation;
 import com.chatappbackend.backend.entity.ConversationParticipant;
 import com.chatappbackend.backend.entity.Message;
@@ -13,8 +14,10 @@ import com.chatappbackend.backend.repository.*;
 import com.chatappbackend.backend.service.blocked.BlockedUserService;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -57,7 +60,7 @@ public class ConversationServiceImpl implements ConversationService{
         if(existing.isPresent()){
             conversationParticipantRepository.restoreForUser(existing.get().getId(), userId);
 
-            return conversationMapper.toConversationResponseDTO(existing.get(), receiver, getLastMessage(existing.get().getId()));
+            return conversationMapper.toConversationResponseDTO(existing.get(), List.of(receiver), getLastMessage(existing.get().getId()));
         }
 
         Conversation conversation = new Conversation();
@@ -82,7 +85,7 @@ public class ConversationServiceImpl implements ConversationService{
         conversationParticipantRepository.save(participant1);
         conversationParticipantRepository.save(participant2);
 
-        return conversationMapper.toConversationResponseDTO(savedConversation, receiver, Optional.empty());
+        return conversationMapper.toConversationResponseDTO(savedConversation, List.of(receiver), Optional.empty());
     }
 
     @Override
@@ -91,9 +94,13 @@ public class ConversationServiceImpl implements ConversationService{
 
         return conversations.stream()
                 .map(conversation -> {
-                    User otherUser = conversationParticipantRepository.findOtherParticipant(conversation.getId(), userId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
+                    List<User> otherUserList = conversationParticipantRepository.findOtherParticipants(conversation.getId(), userId);
 
-                    return conversationMapper.toConversationResponseDTO(conversation, otherUser, getLastMessage(conversation.getId()));
+                    if(otherUserList.isEmpty()){
+                        throw new ResourceNotFoundException("Participant not found");
+                    }
+
+                    return conversationMapper.toConversationResponseDTO(conversation, otherUserList, getLastMessage(conversation.getId()));
                 })
                 .collect(Collectors.toList());
     }
@@ -101,9 +108,13 @@ public class ConversationServiceImpl implements ConversationService{
     @Override
     public ConversationResponseDTO getConversationById(Long userId, Long conversationId) {
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
-        User otherParticipant = conversationParticipantRepository.findOtherParticipant(conversation.getId(), userId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
+        List<User> otherUserList = conversationParticipantRepository.findOtherParticipants(conversation.getId(), userId);
 
-        return conversationMapper.toConversationResponseDTO(conversation, otherParticipant, getLastMessage(conversationId));
+        if(otherUserList.isEmpty()){
+            throw new ResourceNotFoundException("Participant not found");
+        }
+
+        return conversationMapper.toConversationResponseDTO(conversation, otherUserList, getLastMessage(conversationId));
     }
 
     @Override
@@ -121,6 +132,82 @@ public class ConversationServiceImpl implements ConversationService{
         if(deletedParticipants >= participantCount){
             conversationRepository.deleteById(conversationId);
         }
+    }
+
+    @Transactional
+    @Override
+    public ConversationResponseDTO createGroupConversation(Long userId, GroupConversationRequestDTO request) {
+        if(request.getParticipants() == null || request.getParticipants().size() < 2){
+            throw new BadRequestException("A group conversation must have at least 3 members");
+        }
+
+        List<Long> participantsList = new ArrayList<>(request.getParticipants());
+
+        if(participantsList.contains(userId)){
+            throw new BadRequestException("You are already included as the group creator");
+        }
+
+        if(participantsList.stream().distinct().count() != participantsList.size()){
+            throw new BadRequestException("Duplicate participants are not allowed");
+        }
+
+        participantsList.add(userId);
+
+        for(int i = 0; i < participantsList.size(); i++){
+            for(int j = i + 1; j < participantsList.size(); j++){
+                if(blockedUserService.isBlocked(participantsList.get(i), participantsList.get(j))){
+                    throw new BadRequestException("There is a blocking conflict between selected group members");
+                }
+            }
+        }
+
+        for(Long participant : request.getParticipants()){
+            if(!friendRequestRepository.areFriends(userId, participant)){
+                throw new BadRequestException("You are not friends with this user");
+            }
+        }
+
+        Conversation conversation = new Conversation();
+
+        conversation.setCreatedAt(LocalDateTime.now());
+        conversation.setIsGroup(true);
+        conversation.setName(request.getGroupName());
+        conversation.setGroupPicture(request.getGroupPicture());
+
+        Conversation savedConversation = conversationRepository.save(conversation);
+
+        User creator = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        ConversationParticipant creatorParticipant = new ConversationParticipant();
+
+        creatorParticipant.setUser(creator);
+        creatorParticipant.setConversation(savedConversation);
+        creatorParticipant.setJoinedAt(LocalDateTime.now());
+        creatorParticipant.setAdmin(true);
+
+        List<ConversationParticipant> participants = new ArrayList<>();
+
+        participants.add(creatorParticipant);
+
+        List<User> participantList = new ArrayList<>();
+
+        for(Long id : request.getParticipants()){
+            User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+            ConversationParticipant participant = new ConversationParticipant();
+
+            participant.setUser(user);
+            participant.setConversation(savedConversation);
+            participant.setJoinedAt(LocalDateTime.now());
+            participant.setAdmin(false);
+
+            participants.add(participant);
+            participantList.add(user);
+        }
+
+        conversationParticipantRepository.saveAll(participants);
+
+        return conversationMapper.toConversationResponseDTO(savedConversation, participantList, getLastMessage(savedConversation.getId()));
     }
 
     private Optional<Message> getLastMessage(Long conversationId){

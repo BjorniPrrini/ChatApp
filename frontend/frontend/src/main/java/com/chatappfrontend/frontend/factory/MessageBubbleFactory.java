@@ -27,7 +27,7 @@ public class MessageBubbleFactory {
         this.onDeleteForEveryone = onDeleteForEveryone;
     }
 
-    public HBox createMessageBubble(MessageResponseDTO message){
+    public HBox createMessageBubble(MessageResponseDTO message, boolean isGroup){
         HBox hBox = new HBox();
 
         hBox.getProperties().put("messageId", message.getId());
@@ -96,6 +96,15 @@ public class MessageBubbleFactory {
             deleteForMe.setOnAction(_ -> onDeleteForMe.accept(message, hBox));
 
             contextMenu.getItems().add(deleteForMe);
+        }
+
+        if(!isMyMessage && isGroup){
+            Label avatar = new Label(message.getSenderName().substring(0, 1).toUpperCase());
+
+            avatar.setStyle("-fx-background-color: #000000FF; -fx-text-fill: #00ff88; -fx-font-weight: bold; -fx-min-width: 30; -fx-min-height: 30; -fx-max-width: 30; -fx-max-height: 30; -fx-background-radius: 50; -fx-alignment: center;");
+
+            hBox.setSpacing(8);
+            hBox.getChildren().add(avatar);
         }
 
         HBox metadataRow = new HBox(5);

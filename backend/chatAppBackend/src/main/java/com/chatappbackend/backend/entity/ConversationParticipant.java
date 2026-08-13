@@ -28,4 +28,7 @@ public class ConversationParticipant {
 
     @Column(name = "cleared_at")
     private LocalDateTime clearedAt;
+
+    @Column(name = "is_admin", nullable = false)
+    private boolean isAdmin;
 }

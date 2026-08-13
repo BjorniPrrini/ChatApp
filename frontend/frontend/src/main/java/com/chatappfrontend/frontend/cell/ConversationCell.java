@@ -1,6 +1,7 @@
 package com.chatappfrontend.frontend.cell;
 
 import com.chatappfrontend.frontend.model.ConversationResponseDTO;
+import com.chatappfrontend.frontend.model.ParticipantDTO;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.ContextMenu;
@@ -31,11 +32,30 @@ public class ConversationCell extends ListCell<ConversationResponseDTO> {
             return;
         }
 
-        String displayName = conversation.getName().substring(0, 1).toUpperCase() + conversation.getName().substring(1).toLowerCase() + " " + conversation.getSurname().substring(0, 1).toUpperCase() + conversation.getSurname().substring(1).toLowerCase();
+        String displayName;
+        String borderColor;
 
+        if(conversation.isGroup()){
+            displayName = conversation.getGroupName();
+            borderColor = "#424141";
+        }else{
+            ParticipantDTO otherUser = conversation.getParticipants().getFirst();
+
+            displayName = otherUser.getName().substring(0, 1).toUpperCase() + otherUser.getName().substring(1).toLowerCase() + " " + otherUser.getSurname().substring(0, 1).toUpperCase() + otherUser.getSurname().substring(1).toLowerCase();
+            borderColor = otherUser.isOnline() ? "#00ff88" : "#424141";
+        }
+
+        HBox cell = buildCell(conversation, displayName, borderColor);
+
+        cell.setAlignment(Pos.CENTER_LEFT);
+        cell.setStyle("-fx-padding: 8 5;");
+
+        setGraphic(cell);
+        setStyle("-fx-background-color: transparent;");
+    }
+
+    private HBox buildCell(ConversationResponseDTO conversation, String displayName, String borderColor){
         Label avatar = new Label(displayName.substring(0, 1).toUpperCase());
-
-        String borderColor = conversation.isOnline() ? "#00ff88" : "#424141";
 
         avatar.setStyle("-fx-background-color: #000000FF; -fx-text-fill: #00ff88; -fx-font-weight: bold; -fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 50; -fx-alignment: center; -fx-border-color: " + borderColor + "; -fx-border-radius: 20; -fx-border-width: 2;");
 
@@ -61,16 +81,8 @@ public class ConversationCell extends ListCell<ConversationResponseDTO> {
 
         menu.getItems().add(deleteItem);
 
-        cell.setOnContextMenuRequested(event -> {
-            menu.show(cell, event.getScreenX(), event.getScreenY());
-        });
+        cell.setOnContextMenuRequested(event -> menu.show(cell, event.getScreenX(), event.getScreenY()));
 
-        cell.setAlignment(Pos.CENTER_LEFT);
-
-        cell.setStyle("-fx-padding: 8 5;");
-
-        setGraphic(cell);
-
-        setStyle("-fx-background-color: transparent;");
+        return cell;
     }
 }

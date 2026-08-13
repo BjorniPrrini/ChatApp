@@ -28,6 +28,8 @@ public class MessagePaginationManager {
 
     @Setter
     private Long currentConversationId;
+    @Setter
+    private boolean currentConversationIsGroup;
 
     public MessagePaginationManager(VBox messagesContainer, MessageBubbleFactory messageBubbleFactory, ScrollPane scrollPane, Consumer<String> onError) {
         this.messagesContainer = messagesContainer;
@@ -72,7 +74,7 @@ public class MessagePaginationManager {
             double heightBefore = messagesContainer.getHeight();
 
             for(int i = 0; i < olderMessages.size(); i++){
-                HBox bubble = messageBubbleFactory.createMessageBubble(olderMessages.get(i));
+                HBox bubble = messageBubbleFactory.createMessageBubble(olderMessages.get(i), currentConversationIsGroup);
 
                 messagesContainer.getChildren().add(i, bubble);
             }

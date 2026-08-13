@@ -11,11 +11,11 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.List;
 
 public interface ConversationParticipantRepository extends JpaRepository<ConversationParticipant, ConversationParticipantId> {
     @Query("SELECT cp.user FROM ConversationParticipant cp WHERE cp.conversation.id = :conversationId AND cp.user.id != :userId")
-    Optional<User> findOtherParticipant(@Param("conversationId") Long conversationId, @Param("userId") Long userId);
+    List<User> findOtherParticipants(@Param("conversationId") Long conversationId, @Param("userId") Long userId);
     long countByConversationId(Long conversationId);
     @Modifying
     @Transactional

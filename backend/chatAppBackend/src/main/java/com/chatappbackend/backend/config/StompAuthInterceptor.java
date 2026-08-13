@@ -2,6 +2,7 @@ package com.chatappbackend.backend.config;
 
 import com.chatappbackend.backend.util.JwtUtil;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -25,7 +26,7 @@ public class StompAuthInterceptor implements ChannelInterceptor {
     }
 
     @Override
-    public @Nullable Message<?> preSend(Message<?> message, MessageChannel channel){
+    public @Nullable Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel){
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
 
         if(accessor.getCommand() == StompCommand.CONNECT){

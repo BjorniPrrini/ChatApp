@@ -2,8 +2,10 @@ package com.chatappbackend.backend.controller;
 
 import com.chatappbackend.backend.dto.conversation.ConversationRequestDTO;
 import com.chatappbackend.backend.dto.conversation.ConversationResponseDTO;
+import com.chatappbackend.backend.dto.conversation.GroupConversationRequestDTO;
 import com.chatappbackend.backend.entity.User;
 import com.chatappbackend.backend.service.conversation.ConversationService;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +25,13 @@ public class ConversationController {
     @PostMapping("/createConversation")
     public ResponseEntity<ConversationResponseDTO> createConversation(@RequestBody ConversationRequestDTO request){
         ConversationResponseDTO response = service.createConversation(getUser().getId(), request);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/createGroupConversation")
+    public ResponseEntity<ConversationResponseDTO> createGroupConversation(@RequestBody GroupConversationRequestDTO request){
+        ConversationResponseDTO response = service.createGroupConversation(getUser().getId(), request);
 
         return ResponseEntity.ok(response);
     }

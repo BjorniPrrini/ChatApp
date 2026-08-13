@@ -52,17 +52,27 @@ public class MessageServiceImpl implements MessageService{
     public MessageResponseDTO sendMessage(Long userId, MessageRequestDTO request) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         Conversation conversation = conversationRepository.findById(request.getConversationId()).orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
-        User otherUser = conversationParticipantRepository.findOtherParticipant(request.getConversationId(), userId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
+        List<User> otherUserList = conversationParticipantRepository.findOtherParticipants(request.getConversationId(), userId);
 
-        if(blockedUserService.isBlocked(userId, otherUser.getId())){
-            throw new BadRequestException("Cannot send message to this user");
+        if(otherUserList.isEmpty()){
+            throw new ResourceNotFoundException("Participant not found");
         }
 
-        if(!friendRequestRepository.areFriends(userId, otherUser.getId())){
-            throw new BadRequestException("You must be friends to message this user");
+        if(conversation.getIsGroup().equals(false)){
+            User otherUser = otherUserList.getFirst();
+
+            if(blockedUserService.isBlocked(userId, otherUser.getId())){
+                throw new BadRequestException("Cannot send message to this user");
+            }
+
+            if(!friendRequestRepository.areFriends(userId, otherUser.getId())){
+                throw new BadRequestException("You must be friends to message this user");
+            }
         }
 
-        conversationParticipantRepository.restoreForUser(conversation.getId(), otherUser.getId());
+        for(User otherUser : otherUserList){
+            conversationParticipantRepository.restoreForUser(conversation.getId(), otherUser.getId());
+        }
 
         Message message = new Message();
 
@@ -87,7 +97,8 @@ public class MessageServiceImpl implements MessageService{
         MessageResponseDTO dto = messageMapper.toMessageResponseDTO(savedMessage);
 
         messagingTemplate.convertAndSend("/topic/conversation." + conversation.getId(), new MessageEventDTO("NEW", conversation.getId(), dto.getId(), dto, null, null));
-        messagingTemplate.convertAndSend("/queue/user." + otherUser.getId(), new MessageEventDTO("NEW", conversation.getId(), dto.getId(), dto, null, null));
+
+        otherUserList.forEach(otherUser -> messagingTemplate.convertAndSend("/queue/user." + otherUser.getId(), new MessageEventDTO("NEW", conversation.getId(), dto.getId(), dto, null, null)));
 
         return dto;
     }
@@ -198,8 +209,8 @@ public class MessageServiceImpl implements MessageService{
 
             messagingTemplate.convertAndSend("/topic/conversation." + conversationId, statusEvent);
 
-            conversationParticipantRepository.findOtherParticipant(conversationId, userId)
-                    .ifPresent(sender -> messagingTemplate.convertAndSend("/queue/user." + sender.getId(), statusEvent));
+            conversationParticipantRepository.findOtherParticipants(conversationId, userId)
+                    .forEach(sender -> messagingTemplate.convertAndSend("/queue/user." + sender.getId(), statusEvent));
         }
     }
 

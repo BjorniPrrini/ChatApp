@@ -78,6 +78,7 @@ public class ChatPageController {
     private MessageEventManager messageEventManager;
     private MessageActionManager messageActionManager;
     private MessagePaginationManager messagePaginationManager;
+    private boolean currentConversationIsGroup;
 
     @FXML
     public void initialize(){
@@ -130,8 +131,10 @@ public class ChatPageController {
 
     private void setActiveConversationId(Long conversationId){
         messageEventManager.setCurrentConversationId(conversationId);
+        messageEventManager.setCurrentConversationIsGroup(currentConversationIsGroup);
         messageActionManager.setCurrentConversationId(conversationId);
         messagePaginationManager.setCurrentConversationId(conversationId);
+        messagePaginationManager.setCurrentConversationIsGroup(currentConversationIsGroup);
     }
 
     private void openConversation(ConversationResponseDTO selected){
@@ -139,13 +142,19 @@ public class ChatPageController {
 
         currentConversationId = selected.getConversationId();
 
+        currentConversationIsGroup = selected.isGroup();
+
         setActiveConversationId(currentConversationId);
 
         messagePaginationManager.resetPagination();
 
         webSocketConnectionManager.subscribeToConversation(currentConversationId, messageEventManager::handleConversationEvent);
 
-        chatNameLabel.setText(selected.getNickname() != null ? selected.getNickname() : selected.getName() + " " + selected.getSurname());
+        if(selected.isGroup()){
+            chatNameLabel.setText(selected.getGroupName());
+        }else{
+            chatNameLabel.setText(selected.getParticipants().getFirst().getNickname() != null ? selected.getParticipants().getFirst().getNickname() : selected.getParticipants().getFirst().getName() + " " + selected.getParticipants().getFirst().getSurname());
+        }
 
         messagesContainer.getChildren().clear();
 
@@ -157,7 +166,7 @@ public class ChatPageController {
             List<MessageResponseDTO> messages = messagePage.getMessages();
 
             for(MessageResponseDTO message : messages){
-                HBox bubble = messageBubbleFactory.createMessageBubble(message);
+                HBox bubble = messageBubbleFactory.createMessageBubble(message, selected.isGroup());
 
                 messagesContainer.getChildren().add(bubble);
             }
@@ -289,7 +298,7 @@ public class ChatPageController {
                 sent = messageService.sendMessage(currentConversationId, message);
             }
 
-            HBox bubble = messageBubbleFactory.createMessageBubble(sent);
+            HBox bubble = messageBubbleFactory.createMessageBubble(sent, currentConversationIsGroup);
 
             messagesContainer.getChildren().add(bubble);
 

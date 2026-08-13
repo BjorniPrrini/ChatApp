@@ -1,6 +1,7 @@
 package com.chatappfrontend.frontend.service;
 
 import com.chatappfrontend.frontend.model.ConversationResponseDTO;
+import com.chatappfrontend.frontend.model.GroupConversationRequestDTO;
 import com.chatappfrontend.frontend.util.ApiExceptionHandler;
 import com.chatappfrontend.frontend.util.AppConfig;
 import com.chatappfrontend.frontend.util.JsonMapper;
@@ -74,5 +75,32 @@ public class ConversationService {
         }
 
         ApiExceptionHandler.handle(response);
+    }
+
+    public ConversationResponseDTO createGroupConversation(List<Long> participantIds, String groupName, String groupPicture) throws Exception {
+        GroupConversationRequestDTO requestDTO = new GroupConversationRequestDTO();
+
+        requestDTO.setParticipants(participantIds);
+        requestDTO.setGroupName(groupName);
+        requestDTO.setGroupPicture(groupPicture);
+
+        String body = objectMapper.writeValueAsString(requestDTO);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/createGroupConversation"))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return objectMapper.readValue(response.body(), ConversationResponseDTO.class);
+        }
+
+        ApiExceptionHandler.handle(response);
+
+        return null;
     }
 }

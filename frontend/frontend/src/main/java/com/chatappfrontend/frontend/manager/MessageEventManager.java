@@ -28,6 +28,8 @@ public class MessageEventManager {
 
     @Setter
     private Long currentConversationId;
+    @Setter
+    private boolean currentConversationIsGroup;
 
     public MessageEventManager(VBox messageContainer, MessageBubbleFactory messageBubbleFactory, ConversationListManager conversationListManager, WebSocketService webSocketService) {
         this.messagesContainer = messageContainer;
@@ -51,9 +53,7 @@ public class MessageEventManager {
     }
 
     public void handleUserStatusEvent(UserStatusEventDTO event){
-        Platform.runLater(() -> {
-            conversationListManager.updateFriendStatus(event.getUserId(), event.getStatus());
-        });
+        Platform.runLater(() -> conversationListManager.updateFriendStatus(event.getUserId(), event.getStatus()));
     }
 
     public void handleConversationEvent(MessageEventDTO event){
@@ -73,7 +73,7 @@ public class MessageEventManager {
                     boolean alreadyShown = messagesContainer.getChildren().stream().anyMatch(node -> message.getId().equals(node.getProperties().get("messageId")));
 
                     if(!alreadyShown){
-                        HBox bubble = messageBubbleFactory.createMessageBubble(message);
+                        HBox bubble = messageBubbleFactory.createMessageBubble(message, currentConversationIsGroup);
 
                         messagesContainer.getChildren().add(bubble);
                     }
@@ -134,7 +134,7 @@ public class MessageEventManager {
             Node node = messagesContainer.getChildren().get(i);
 
             if(message.getId().equals(node.getProperties().get("messageId"))){
-                HBox newBubble = messageBubbleFactory.createMessageBubble(message);
+                HBox newBubble = messageBubbleFactory.createMessageBubble(message, currentConversationIsGroup);
 
                 messagesContainer.getChildren().set(i, newBubble);
 
