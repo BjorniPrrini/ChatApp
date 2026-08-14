@@ -26,7 +26,11 @@
 
                 <Label text="Chats" styleClass="panel-title"/>
 
-                <TextField fx:id="searchField" promptText="Search users..." styleClass="search-field"/>
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <TextField fx:id="searchField" promptText="Search users..." styleClass="search-field" HBox.hgrow="ALWAYS"/>
+
+                    <Button fx:id="createConversationButton" text="+" onAction="#handleOpenStartChatPopup"/>
+                </HBox>
 
                 <ListView fx:id="conversationList" VBox.vgrow="ALWAYS" styleClass="conversation-list"/>
             </VBox>

@@ -11,6 +11,7 @@ import com.chatappfrontend.frontend.manager.WebSocketConnectionManager;
 import com.chatappfrontend.frontend.model.*;
 import com.chatappfrontend.frontend.service.*;
 import com.chatappfrontend.frontend.util.AlertUtils;
+import com.chatappfrontend.frontend.util.PopupManager;
 import com.chatappfrontend.frontend.util.SceneManager;
 import com.chatappfrontend.frontend.util.SessionManager;
 
@@ -22,6 +23,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.List;
@@ -67,6 +69,8 @@ public class ChatPageController {
     private StackPane contentPane;
     @FXML
     private VBox chatArea;
+    @FXML
+    private Button createConversationButton;
 
     private Long currentConversationId;
     private final WebSocketService webSocketService = new WebSocketService();
@@ -269,6 +273,22 @@ public class ChatPageController {
     @FXML
     public void handleProfilePicture(){
 
+    }
+
+    @FXML
+    public void handleOpenStartChatPopup(){
+        try {
+            PopupManager.openPopup("Create Conversation", "start-chat-popup.fxml", (StartChatPopupController controller, Stage stage) -> controller.setOnStartConversation(conversation -> {
+                    stage.close();
+
+                    panelManager.showPanel(conversationsPanel);
+
+                    openConversation(conversation);
+                })
+            );
+        } catch (IOException _) {
+            AlertUtils.showError(notificationLabel, "Couldn't open create conversation popup");
+        }
     }
 
     @FXML

@@ -137,6 +137,10 @@ public class ConversationServiceImpl implements ConversationService{
     @Transactional
     @Override
     public ConversationResponseDTO createGroupConversation(Long userId, GroupConversationRequestDTO request) {
+        if(conversationRepository.existsGroupByNameForUser(userId,request.getGroupName())){
+            throw new BadRequestException("You already have a group with this name");
+        }
+
         if(request.getParticipants() == null || request.getParticipants().size() < 2){
             throw new BadRequestException("A group conversation must have at least 3 members");
         }

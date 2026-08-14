@@ -76,7 +76,7 @@ public class ForgotPasswordController {
             codeField.setVisible(true);
 
             sendCodeButton.setText("Reset password");
-        } catch (Exception e) {
+        } catch (Exception _) {
             AlertUtils.showError(errorLabel, "Couldn't send code");
         } finally {
             loadingSpinner.setManaged(false);
@@ -89,7 +89,7 @@ public class ForgotPasswordController {
     public void goLoginPage(){
         try {
             SceneManager.switchTo("login-page.fxml");
-        } catch (Exception e) {
+        } catch (Exception _) {
             AlertUtils.showError(errorLabel, "Couldn't load login page");
         }
     }
@@ -143,7 +143,7 @@ public class ForgotPasswordController {
             service.resetPassword(userEmail, code, newPassword, confirmPassword);
 
             SceneManager.switchTo("login-page.fxml");
-        } catch (Exception e) {
+        } catch (Exception _) {
             AlertUtils.showError(errorLabel, "Failed to reset password");
         }
     }

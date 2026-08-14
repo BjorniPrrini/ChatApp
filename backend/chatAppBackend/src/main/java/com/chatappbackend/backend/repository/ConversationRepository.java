@@ -14,4 +14,6 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
     Optional<Conversation> findDMBetweenUsers(@Param("userId") Long userId, @Param("receiverId") Long receiverId);
     @Query("SELECT cp.conversation FROM ConversationParticipant cp WHERE cp.user.id = :userId AND cp.deletedAt IS NULL")
     List<Conversation> findConversationsByUserId(@Param("userId") Long userId);
+    @Query("SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END FROM Conversation c JOIN ConversationParticipant cp ON cp.conversation.id = c.id WHERE cp.user.id = :userId AND c.isGroup = true AND LOWER(c.name) = LOWER(:groupName)")
+    boolean existsGroupByNameForUser(@Param("userId") Long userId, @Param("groupName") String groupName);
 }

@@ -42,7 +42,7 @@ public class EditProfileController {
             userService.editUserProfile(name, surname, nickname, phoneNumber);
 
             AlertUtils.showSuccess(successLabel, "Saved changes");
-        } catch (Exception e) {
+        } catch (Exception _) {
             AlertUtils.showError(errorLabel, "Couldn't save changes");
         }
     }
@@ -58,7 +58,7 @@ public class EditProfileController {
             nicknameField.setText(userResponseDTO.getNickname());
             phoneNumberField.setText(userResponseDTO.getPhoneNumber());
             emailField.setText(userResponseDTO.getEmail());
-        } catch (Exception e) {
+        } catch (Exception _) {
             AlertUtils.showError(errorLabel, "Couldn't load user information");
         }
     }

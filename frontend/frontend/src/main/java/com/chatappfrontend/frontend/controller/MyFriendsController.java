@@ -34,7 +34,7 @@ public class MyFriendsController {
                         ConversationResponseDTO conversation = conversationService.createConversation(friendId);
 
                         onStartConversation.accept(conversation);
-                    } catch (Exception e) {
+                    } catch (Exception _) {
                         AlertUtils.showError(errorLabel, "Couldn't start conversation");
                     }
                 },

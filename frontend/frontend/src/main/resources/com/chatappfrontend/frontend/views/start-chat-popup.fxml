@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.chatappfrontend.frontend.controller.StartChatPopupController" stylesheets="@../styles/main.css" prefWidth="360" prefHeight="450" styleClass="fixed-panel">
+    <padding><Insets top="15" left="15" right="15" bottom="15"/></padding>
+
+    <VBox fx:id="choiceView" spacing="12" VBox.vgrow="ALWAYS">
+        <Label text="Start something new" styleClass="panel-title"/>
+
+        <Button fx:id="newChatButton" text="New Chat" styleClass="primary-button" onAction="#showSingleSelectView" maxWidth="Infinity"/>
+        <Button fx:id="newGroupButton" text="New Group" styleClass="primary-button" onAction="#showMultiSelectView" maxWidth="Infinity"/>
+    </VBox>
+
+    <VBox fx:id="singleSelectView" spacing="10" visible="false" managed="false" VBox.vgrow="ALWAYS">
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Button text="Back" styleClass="settings-button" onAction="#showChoiceView"/>
+
+            <Label text="New Chat" styleClass="panel-title"/>
+        </HBox>
+
+        <Label fx:id="errorLabel" visible="false" managed="false" styleClass="error-label"/>
+
+        <ListView fx:id="singleSelectFriendList" VBox.vgrow="ALWAYS" styleClass="conversation-list"/>
+    </VBox>
+
+    <VBox fx:id="multiSelectView" spacing="10" visible="false" managed="false" VBox.vgrow="ALWAYS">
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Button text="Back" styleClass="settings-button" onAction="#showChoiceView"/>
+
+            <Label text="New Group" styleClass="panel-title"/>
+        </HBox>
+
+        <Label fx:id="selectedCountLabel" text="0 selected" styleClass="notification-label"/>
+
+        <ListView fx:id="multiSelectFriendList" VBox.vgrow="ALWAYS" styleClass="conversation-list"/>
+
+        <Button fx:id="nextButton" text="Next" styleClass="primary-button" onAction="#showGroupDetailsView" maxWidth="Infinity" disable="true"/>
+    </VBox>
+
+    <VBox fx:id="groupDetailsView" spacing="12" visible="false" managed="false" VBox.vgrow="ALWAYS">
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Button text="Back" styleClass="settings-button" onAction="#showMultiSelectView"/>
+
+            <Label text="Group Details" styleClass="panel-title"/>
+        </HBox>
+
+        <TextField fx:id="groupNameField" promptText="Group name..." styleClass="search-field"/>
+
+        <Button fx:id="uploadGroupPictureButton" text="Upload Group Picture" styleClass="settings-button" onAction="#handleUploadGroupPicture"/>
+
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <Button fx:id="createGroupButton" text="Create Group" styleClass="primary-button" onAction="#handleCreateGroup" maxWidth="Infinity"/>
+    </VBox>
+</VBox>

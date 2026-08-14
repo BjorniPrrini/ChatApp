@@ -109,9 +109,9 @@ public class MessageServiceImpl implements MessageService{
 
         LocalDateTime clearedAt = conversationParticipantRepository.findClearedAt(conversationId, userId);
 
-        if(clearedAt == null){
-            clearedAt = LocalDateTime.MIN;
-        }
+         if(clearedAt == null){
+             clearedAt = LocalDateTime.of(1970,1,1,0,0);
+         }
 
         List<Message> messages = messageRepository.findMessages(userId, conversationId, before, PageRequest.of(0, 50), clearedAt);
 

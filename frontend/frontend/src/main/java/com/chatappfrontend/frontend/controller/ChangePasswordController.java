@@ -47,7 +47,7 @@ public class ChangePasswordController {
             currentPasswordField.clear();
             newPasswordField.clear();
             confirmPasswordField.clear();
-        } catch (Exception e) {
+        } catch (Exception _) {
             AlertUtils.showError(errorLabel, "Couldn't change password");
         }
     }
