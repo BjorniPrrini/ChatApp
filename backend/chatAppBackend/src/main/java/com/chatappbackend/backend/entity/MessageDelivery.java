@@ -7,10 +7,10 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "message_reads")
-@IdClass(MessageReadId.class)
+@Table(name = "message_deliveries")
+@IdClass(MessageDeliveryId.class)
 @Data
-public class MessageRead {
+public class MessageDelivery {
     @Id
     @ManyToOne
     @JoinColumn(name = "message_id", nullable = false)
@@ -21,6 +21,6 @@ public class MessageRead {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "read_at")
-    private LocalDateTime readAt;
+    @Column(name = "delivered_at")
+    private LocalDateTime deliveredAt;
 }

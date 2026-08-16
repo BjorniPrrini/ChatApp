@@ -32,4 +32,6 @@ public interface ConversationParticipantRepository extends JpaRepository<Convers
     @Transactional
     @Query("UPDATE ConversationParticipant cp SET cp.deletedAt = NULL WHERE cp.conversation.id = :conversationId AND cp.user.id = :userId")
     void restoreForUser(@Param("conversationId") Long conversationId, @Param("userId") Long userId);
+    @Query("SELECT COUNT(cp.user) FROM ConversationParticipant cp WHERE cp.conversation.id = :conversationId AND cp.user.id != :userId AND cp.deletedAt IS NULL")
+    long countActiveOtherParticipants(@Param("conversationId") Long conversationId, @Param("userId") Long userId);
 }

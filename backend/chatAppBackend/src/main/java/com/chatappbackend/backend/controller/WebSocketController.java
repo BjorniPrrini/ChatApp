@@ -49,8 +49,10 @@ public class WebSocketController {
     }
 
     @MessageMapping("/chat.delivered")
-    public void markAsDelivered(Long messageId){
-        messageService.markMessageAsDelivered(messageId);
+    public void markAsDelivered(Long messageId, Principal principal){
+        Long userId = Long.parseLong(principal.getName());
+
+        messageService.markMessageAsDelivered(userId, messageId);
     }
 
     @MessageMapping("/chat.markAllDelivered")

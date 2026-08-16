@@ -4,10 +4,7 @@ import com.chatappbackend.backend.dto.message.MessageEventDTO;
 import com.chatappbackend.backend.dto.message.MessagePageDTO;
 import com.chatappbackend.backend.dto.message.MessageRequestDTO;
 import com.chatappbackend.backend.dto.message.MessageResponseDTO;
-import com.chatappbackend.backend.entity.Conversation;
-import com.chatappbackend.backend.entity.Message;
-import com.chatappbackend.backend.entity.MessageDelete;
-import com.chatappbackend.backend.entity.User;
+import com.chatappbackend.backend.entity.*;
 import com.chatappbackend.backend.exception.BadRequestException;
 import com.chatappbackend.backend.exception.ForbiddenException;
 import com.chatappbackend.backend.exception.ResourceNotFoundException;
@@ -15,6 +12,7 @@ import com.chatappbackend.backend.mapper.MessageMapper;
 import com.chatappbackend.backend.repository.*;
 import com.chatappbackend.backend.service.blocked.BlockedUserService;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -35,8 +33,10 @@ public class MessageServiceImpl implements MessageService{
     private final FriendRequestRepository friendRequestRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final MessageMapper messageMapper;
+    private final MessageDeliveryRepository messageDeliveryRepository;
+    private final MessageReadRepository messageReadRepository;
 
-    public MessageServiceImpl(UserRepository userRepository, ConversationRepository conversationRepository, MessageRepository messageRepository, MessageDeleteRepository messageDeleteRepository, ConversationParticipantRepository conversationParticipantRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository, SimpMessagingTemplate messagingTemplate, MessageMapper messageMapper){
+    public MessageServiceImpl(UserRepository userRepository, ConversationRepository conversationRepository, MessageRepository messageRepository, MessageDeleteRepository messageDeleteRepository, ConversationParticipantRepository conversationParticipantRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository, SimpMessagingTemplate messagingTemplate, MessageMapper messageMapper, MessageDeliveryRepository messageDeliveryRepository, MessageReadRepository messageReadRepository){
         this.userRepository = userRepository;
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
@@ -46,6 +46,8 @@ public class MessageServiceImpl implements MessageService{
         this.friendRequestRepository = friendRequestRepository;
         this.messagingTemplate = messagingTemplate;
         this.messageMapper = messageMapper;
+        this.messageDeliveryRepository = messageDeliveryRepository;
+        this.messageReadRepository = messageReadRepository;
     }
 
     @Override
@@ -104,14 +106,15 @@ public class MessageServiceImpl implements MessageService{
     }
 
     @Override
+    @Transactional
     public MessagePageDTO getMessages(Long userId, Long conversationId, LocalDateTime before) {
         markConversationAsRead(userId, conversationId);
 
         LocalDateTime clearedAt = conversationParticipantRepository.findClearedAt(conversationId, userId);
 
-         if(clearedAt == null){
-             clearedAt = LocalDateTime.of(1970,1,1,0,0);
-         }
+        if(clearedAt == null){
+            clearedAt = LocalDateTime.of(1970,1,1,0,0);
+        }
 
         List<Message> messages = messageRepository.findMessages(userId, conversationId, before, PageRequest.of(0, 50), clearedAt);
 
@@ -194,45 +197,87 @@ public class MessageServiceImpl implements MessageService{
     }
 
     @Override
+    @Transactional
     public void markConversationAsRead(Long userId, Long conversationId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
         List<Long> unreadMessagesList = messageRepository.findUnreadMessageIds(conversationId, userId);
 
-        messageRepository.markMessagesAsRead(conversationId, userId);
+        unreadMessagesList.forEach(messageId -> {
+                    Message message = messageRepository.findByIdForUpdate(messageId).orElseThrow(() -> new ResourceNotFoundException("Message not found"));
 
-        if(!unreadMessagesList.isEmpty()){
-            MessageEventDTO statusEvent = new MessageEventDTO();
+                    MessageRead messageRead = new MessageRead();
 
-            statusEvent.setType("STATUS");
-            statusEvent.setConversationId(conversationId);
-            statusEvent.setMessageIds(unreadMessagesList);
-            statusEvent.setStatus("read");
+                    messageRead.setMessage(message);
+                    messageRead.setUser(user);
+                    messageRead.setReadAt(LocalDateTime.now());
 
-            messagingTemplate.convertAndSend("/topic/conversation." + conversationId, statusEvent);
+                    try {
+                        messageReadRepository.save(messageRead);
+                    } catch (DataIntegrityViolationException _) {
 
-            conversationParticipantRepository.findOtherParticipants(conversationId, userId)
-                    .forEach(sender -> messagingTemplate.convertAndSend("/queue/user." + sender.getId(), statusEvent));
-        }
+                    }
+
+                    long countParticipants = conversationParticipantRepository.countActiveOtherParticipants(conversationId, message.getSender().getId());
+                    long countRead = messageReadRepository.countByMessage(message);
+
+                    if(countParticipants == countRead){
+                        message.setStatus("read");
+
+                        messageRepository.save(message);
+
+                        MessageEventDTO event = new MessageEventDTO();
+
+                        event.setStatus("read");
+                        event.setMessageIds(List.of(messageId));
+                        event.setType("STATUS");
+                        event.setConversationId(message.getConversation().getId());
+
+                        messagingTemplate.convertAndSend("/topic/conversation." + message.getConversation().getId(), event);
+                        messagingTemplate.convertAndSend("/queue/user." + message.getSender().getId(), event);
+                    }
+                });
     }
 
     @Override
-    public void markMessageAsDelivered(Long messageId){
-        Message message = messageRepository.findById(messageId).orElseThrow(() -> new ResourceNotFoundException("Message not found"));
+    public void markMessageAsDelivered(Long userId, Long messageId){
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        Message message = messageRepository.findByIdForUpdate(messageId).orElseThrow(() -> new ResourceNotFoundException("Message not found"));
 
-        if(message.getStatus().equals("read")){
-            return;
+        MessageDelivery messageDelivery = new MessageDelivery();
+
+        messageDelivery.setMessage(message);
+        messageDelivery.setUser(user);
+        messageDelivery.setDeliveredAt(LocalDateTime.now());
+
+        try {
+            messageDeliveryRepository.save(messageDelivery);
+        } catch (DataIntegrityViolationException _) {
+
         }
 
-        messageRepository.markAsDelivered(messageId);
+        long countParticipants = conversationParticipantRepository.countActiveOtherParticipants(message.getConversation().getId(), message.getSender().getId());
+        long countDelivery = messageDeliveryRepository.countByMessage(message);
 
-        MessageEventDTO messageEventDTO = new MessageEventDTO();
+        if(countParticipants == countDelivery){
+            if(statusRank(message.getStatus()) > statusRank("delivered")){
+                return;
+            }
 
-        messageEventDTO.setConversationId(message.getConversation().getId());
-        messageEventDTO.setType("STATUS");
-        messageEventDTO.setMessageIds(List.of(messageId));
-        messageEventDTO.setStatus("delivered");
+            message.setStatus("delivered");
 
-        messagingTemplate.convertAndSend("/topic/conversation." + message.getConversation().getId(), messageEventDTO);
-        messagingTemplate.convertAndSend("/queue/user." + message.getSender().getId(), messageEventDTO);
+            messageRepository.save(message);
+
+            MessageEventDTO event = new MessageEventDTO();
+
+            event.setStatus("delivered");
+            event.setMessageIds(List.of(messageId));
+            event.setType("STATUS");
+            event.setConversationId(message.getConversation().getId());
+
+            messagingTemplate.convertAndSend("/topic/conversation." + message.getConversation().getId(), event);
+            messagingTemplate.convertAndSend("/queue/user." + message.getSender().getId(), event);
+        }
     }
 
     @Override
@@ -244,39 +289,15 @@ public class MessageServiceImpl implements MessageService{
             return;
         }
 
-        List<Long> messageIds = undelivered.stream()
-                .map(UndeliveredMessageProjection::getMessageId)
-                .toList();
+        undelivered.forEach(message -> markMessageAsDelivered(userId, message.getMessageId()));
+    }
 
-        messageRepository.markMessagesAsDelivered(messageIds);
-
-        Map<Long, List<UndeliveredMessageProjection>> byConversation = undelivered.stream()
-                .collect(Collectors.groupingBy(UndeliveredMessageProjection::getConversationId));
-
-        for(Map.Entry<Long, List<UndeliveredMessageProjection>> entry : byConversation.entrySet()){
-            Long conversationId = entry.getKey();
-            List<UndeliveredMessageProjection> messagesInConversation = entry.getValue();
-
-            List<Long> idsInConversation = messagesInConversation.stream()
-                    .map(UndeliveredMessageProjection::getMessageId)
-                    .toList();
-
-            MessageEventDTO event = new MessageEventDTO();
-
-            event.setConversationId(conversationId);
-            event.setType("STATUS");
-            event.setMessageIds(idsInConversation);
-            event.setStatus("delivered");
-
-            messagingTemplate.convertAndSend("/topic/conversation." + conversationId, event);
-
-            Set<Long> senderIds = messagesInConversation.stream()
-                    .map(UndeliveredMessageProjection::getSenderId)
-                    .collect(Collectors.toSet());
-
-            for(Long senderId : senderIds){
-                messagingTemplate.convertAndSend("/queue/user." + senderId, event);
-            }
-        }
+    private int statusRank(String status){
+        return switch(status){
+            case "sent" -> 1;
+            case "delivered" -> 2;
+            case "read" -> 3;
+            default -> 0;
+        };
     }
 }

@@ -13,6 +13,6 @@ public interface MessageService {
     void deleteMessageForEveryone(Long userId, Long messageId);
     MessageResponseDTO editMessage(Long userId, Long messageId, String newMessage);
     void markConversationAsRead(Long userId, Long conversationId);
-    void markMessageAsDelivered(Long messageId);
+    void markMessageAsDelivered(Long userId, Long messageId);
     void markAllUndeliveredAsDelivered(Long userId);
 }

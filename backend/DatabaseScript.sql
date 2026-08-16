@@ -67,6 +67,13 @@ CREATE TABLE message_reads(
     PRIMARY KEY (message_id, user_id)
 );
 
+CREATE TABLE message_deliveries(
+    message_id BIGINT NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    delivered_at TIMESTAMPTZ DEFAULT NOW(),
+    PRIMARY KEY (message_id, user_id)
+);
+
 CREATE TABLE message_deletes(
     message_id BIGINT NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -118,6 +125,9 @@ CREATE INDEX idx_conversation_participants_user
 
 CREATE INDEX idx_message_reads_user
     ON message_reads(user_id);
+
+CREATE INDEX idx_message_deliveries_user
+    ON message_deliveries(user_id);
 
 CREATE INDEX idx_notifications_user
     ON notifications(user_id, is_read);
