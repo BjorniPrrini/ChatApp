@@ -2,6 +2,7 @@ package com.chatappbackend.backend.mapper;
 
 import com.chatappbackend.backend.dto.auth.AuthResponseDTO;
 import com.chatappbackend.backend.entity.User;
+
 import org.springframework.stereotype.Component;
 
 @Component

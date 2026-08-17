@@ -17,6 +17,7 @@ CREATE TABLE conversations(
     name VARCHAR(255),
     is_group BOOLEAN DEFAULT FALSE,
     group_picture VARCHAR(500),
+    allow_participants_invite BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -26,6 +27,7 @@ CREATE TABLE conversation_participants(
     joined_at TIMESTAMPTZ DEFAULT NOW(),
     deleted_at TIMESTAMPTZ,
     cleared_at TIMESTAMP,
+    left_at TIMESTAMP NULL,
     is_admin BOOLEAN NOT NULL DEFAULT false,
     PRIMARY KEY (conversation_id, user_id)
 );

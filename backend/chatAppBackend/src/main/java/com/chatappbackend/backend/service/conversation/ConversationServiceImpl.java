@@ -1,13 +1,12 @@
 package com.chatappbackend.backend.service.conversation;
 
-import com.chatappbackend.backend.dto.conversation.ConversationRequestDTO;
-import com.chatappbackend.backend.dto.conversation.ConversationResponseDTO;
-import com.chatappbackend.backend.dto.conversation.GroupConversationRequestDTO;
+import com.chatappbackend.backend.dto.conversation.*;
 import com.chatappbackend.backend.entity.Conversation;
 import com.chatappbackend.backend.entity.ConversationParticipant;
 import com.chatappbackend.backend.entity.Message;
 import com.chatappbackend.backend.entity.User;
 import com.chatappbackend.backend.exception.BadRequestException;
+import com.chatappbackend.backend.exception.ForbiddenException;
 import com.chatappbackend.backend.exception.ResourceNotFoundException;
 import com.chatappbackend.backend.mapper.ConversationMapper;
 import com.chatappbackend.backend.repository.*;
@@ -20,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @Service
@@ -212,6 +212,164 @@ public class ConversationServiceImpl implements ConversationService{
         conversationParticipantRepository.saveAll(participants);
 
         return conversationMapper.toConversationResponseDTO(savedConversation, participantList, getLastMessage(savedConversation.getId()));
+    }
+
+    @Override
+    @Transactional
+    public void kickParticipant(Long userId, Long removeUserId, Long conversationId) {
+        ConversationParticipant admin = conversationParticipantRepository.findByConversationIdAndUserId(conversationId, userId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
+
+        if(!admin.isAdmin()){
+            throw new ForbiddenException("You aren't an admin in this conversation");
+        }
+
+        removeParticipant(removeUserId, conversationId);
+    }
+
+    @Override
+    @Transactional
+    public void leaveGroup(Long userId, Long conversationId) {
+        removeParticipant(userId, conversationId);
+    }
+
+    @Override
+    @Transactional
+    public void removeParticipant(Long removeUserId, Long conversationId) {
+        ConversationParticipant participantToRemove = conversationParticipantRepository.findByConversationIdAndUserId(conversationId, removeUserId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
+
+        participantToRemove.setLeftAt(LocalDateTime.now());
+
+        conversationParticipantRepository.save(participantToRemove);
+
+        if(!participantToRemove.isAdmin()){
+            return;
+        }
+
+        List<ConversationParticipant> participantsActiveList = conversationParticipantRepository.findActiveParticipants(conversationId);
+
+        if(participantsActiveList.isEmpty()){
+            return;
+        }
+
+        List<ConversationParticipant> adminList = participantsActiveList.stream()
+                .filter(ConversationParticipant::isAdmin)
+                .toList();
+
+        if(!adminList.isEmpty()){
+            return;
+        }
+
+        ConversationParticipant chosenAdmin = participantsActiveList.get(ThreadLocalRandom.current().nextInt(participantsActiveList.size()));
+
+        chosenAdmin.setAdmin(true);
+
+        conversationParticipantRepository.save(chosenAdmin);
+    }
+
+    @Override
+    @Transactional
+    public ParticipantDTO addParticipant(Long userId, Long addedUserId, Long conversationId) {
+        ConversationParticipant admin = conversationParticipantRepository.findByConversationIdAndUserId(conversationId, userId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
+        Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
+        User addedUser = userRepository.findById(addedUserId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if(!admin.isAdmin() && !conversation.isAllowParticipantsInvite()){
+            throw new ForbiddenException("You are not an admin and you don't have permission to add users");
+        }
+
+        Optional<ConversationParticipant> existingParticipant = conversationParticipantRepository.findByConversationIdAndUserId(conversationId, addedUserId);
+
+        if(existingParticipant.isEmpty()){
+            ConversationParticipant cp = new ConversationParticipant();
+
+            cp.setAdmin(false);
+            cp.setJoinedAt(LocalDateTime.now());
+            cp.setConversation(conversation);
+            cp.setUser(addedUser);
+
+            conversationParticipantRepository.save(cp);
+
+            return conversationMapper.toParticipantDTO(addedUser);
+        }
+
+        ConversationParticipant conversationParticipant = existingParticipant.get();
+
+        if(conversationParticipant.getLeftAt() == null){
+            throw new BadRequestException("User is already a participant");
+        }
+
+        conversationParticipant.setJoinedAt(LocalDateTime.now());
+        conversationParticipant.setLeftAt(null);
+
+        conversationParticipantRepository.save(conversationParticipant);
+
+        return conversationMapper.toParticipantDTO(addedUser);
+    }
+
+    @Override
+    public void promoteUserToAdmin(Long userId, Long promoteUserId, Long conversationId){
+        ConversationParticipant admin = conversationParticipantRepository.findByConversationIdAndUserId(conversationId, userId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
+        ConversationParticipant userToPromote = conversationParticipantRepository.findByConversationIdAndUserId(conversationId, promoteUserId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
+
+        if(!admin.isAdmin()){
+            throw new ForbiddenException("You are not an admin");
+        }
+
+        if(userToPromote.isAdmin()){
+            throw new BadRequestException("Participant is already an admin");
+        }
+
+        userToPromote.setAdmin(true);
+
+        conversationParticipantRepository.save(userToPromote);
+    }
+
+    @Override
+    public void demoteAdminToUser(Long userId, Long demoteUserId, Long conversationId){
+        ConversationParticipant admin = conversationParticipantRepository.findByConversationIdAndUserId(conversationId, userId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
+        ConversationParticipant adminToDemote = conversationParticipantRepository.findByConversationIdAndUserId(conversationId, demoteUserId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
+
+        if(!admin.isAdmin()){
+            throw new ForbiddenException("You are not an admin");
+        }
+
+        if(!adminToDemote.isAdmin()){
+            throw new BadRequestException("Participant is not an admin");
+        }
+
+        List<ConversationParticipant> participants = conversationParticipantRepository.findActiveParticipants(conversationId);
+
+        List<ConversationParticipant> admins = participants.stream()
+                .filter(ConversationParticipant::isAdmin)
+                .toList();
+
+        if(admins.size() == 1){
+            throw new BadRequestException("There is only 1 admin left");
+        }
+
+        adminToDemote.setAdmin(false);
+
+        conversationParticipantRepository.save(adminToDemote);
+    }
+
+    @Override
+    public void updateGroupDetails(UpdateGroupRequestDTO request, Long userId) {
+        ConversationParticipant user = conversationParticipantRepository.findByConversationIdAndUserId(request.getConversationId(), userId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
+        Conversation conversation = conversationRepository.findById(request.getConversationId()).orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
+
+        if(user.getLeftAt() != null){
+            throw new ForbiddenException("You are not part of this conversation anymore");
+        }
+
+        if(request.getGroupPicture() != null){
+            conversation.setGroupPicture(request.getGroupPicture());
+        }
+
+        if(request.getGroupName() != null){
+            conversation.setName(request.getGroupName());
+        }
+
+        conversationRepository.save(conversation);
     }
 
     private Optional<Message> getLastMessage(Long conversationId){

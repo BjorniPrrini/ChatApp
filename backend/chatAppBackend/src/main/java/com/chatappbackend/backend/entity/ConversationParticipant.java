@@ -31,4 +31,7 @@ public class ConversationParticipant {
 
     @Column(name = "is_admin", nullable = false)
     private boolean isAdmin;
+
+    @Column(name = "left_at")
+    private LocalDateTime leftAt;
 }

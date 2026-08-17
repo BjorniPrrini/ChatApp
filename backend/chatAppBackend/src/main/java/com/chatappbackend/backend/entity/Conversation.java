@@ -23,4 +23,7 @@ public class Conversation {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "allow_participants_invite")
+    private boolean allowParticipantsInvite;
 }

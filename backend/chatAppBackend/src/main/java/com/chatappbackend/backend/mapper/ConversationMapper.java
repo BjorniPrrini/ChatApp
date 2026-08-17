@@ -33,7 +33,7 @@ public class ConversationMapper {
         return response;
     }
 
-    private ParticipantDTO toParticipantDTO(User user){
+    public ParticipantDTO toParticipantDTO(User user){
         ParticipantDTO participant = new ParticipantDTO();
 
         participant.setUserId(user.getId());

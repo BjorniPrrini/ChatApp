@@ -110,13 +110,24 @@ public class MessageServiceImpl implements MessageService{
     public MessagePageDTO getMessages(Long userId, Long conversationId, LocalDateTime before) {
         markConversationAsRead(userId, conversationId);
 
-        LocalDateTime clearedAt = conversationParticipantRepository.findClearedAt(conversationId, userId);
+        ConversationParticipant conversationParticipant = conversationParticipantRepository.findByConversationIdAndUserId(conversationId, userId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
+
+        LocalDateTime clearedAt = conversationParticipant.getClearedAt();
+        LocalDateTime joinedAt = conversationParticipant.getJoinedAt();
 
         if(clearedAt == null){
             clearedAt = LocalDateTime.of(1970,1,1,0,0);
         }
 
-        List<Message> messages = messageRepository.findMessages(userId, conversationId, before, PageRequest.of(0, 50), clearedAt);
+        LocalDateTime latestEvent;
+
+        if(clearedAt.isAfter(joinedAt)){
+            latestEvent = clearedAt;
+        }else{
+            latestEvent = joinedAt;
+        }
+
+        List<Message> messages = messageRepository.findMessages(userId, conversationId, before, PageRequest.of(0, 50), latestEvent);
 
         List<MessageResponseDTO> messagesResponse = messages.stream()
                 .map(messageMapper::toMessageResponseDTO)

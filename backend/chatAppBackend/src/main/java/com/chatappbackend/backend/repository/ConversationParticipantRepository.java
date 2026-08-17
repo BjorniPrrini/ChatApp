@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface ConversationParticipantRepository extends JpaRepository<ConversationParticipant, ConversationParticipantId> {
     @Query("SELECT cp.user FROM ConversationParticipant cp WHERE cp.conversation.id = :conversationId AND cp.user.id != :userId")
@@ -34,4 +35,8 @@ public interface ConversationParticipantRepository extends JpaRepository<Convers
     void restoreForUser(@Param("conversationId") Long conversationId, @Param("userId") Long userId);
     @Query("SELECT COUNT(cp.user) FROM ConversationParticipant cp WHERE cp.conversation.id = :conversationId AND cp.user.id != :userId AND cp.deletedAt IS NULL")
     long countActiveOtherParticipants(@Param("conversationId") Long conversationId, @Param("userId") Long userId);
+    @Query("SELECT cp FROM ConversationParticipant cp WHERE cp.conversation.id = :conversationId AND cp.user.id = :userId")
+    Optional<ConversationParticipant> findByConversationIdAndUserId(@Param("conversationId") Long conversationId, @Param("userId") Long userId);
+    @Query("SELECT cp FROM ConversationParticipant cp WHERE cp.conversation.id = :conversationId AND cp.leftAt IS NULL")
+    List<ConversationParticipant> findActiveParticipants(@Param("conversationId") Long conversationId);
 }
