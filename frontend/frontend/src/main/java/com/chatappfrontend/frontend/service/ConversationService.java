@@ -2,6 +2,8 @@ package com.chatappfrontend.frontend.service;
 
 import com.chatappfrontend.frontend.model.ConversationResponseDTO;
 import com.chatappfrontend.frontend.model.GroupConversationRequestDTO;
+import com.chatappfrontend.frontend.model.ParticipantDTO;
+import com.chatappfrontend.frontend.model.UpdateGroupRequestDTO;
 import com.chatappfrontend.frontend.util.ApiExceptionHandler;
 import com.chatappfrontend.frontend.util.AppConfig;
 import com.chatappfrontend.frontend.util.JsonMapper;
@@ -91,6 +93,169 @@ public class ConversationService {
                 .header("Content-Type", "application/json")
                 .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
                 .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return objectMapper.readValue(response.body(), ConversationResponseDTO.class);
+        }
+
+        ApiExceptionHandler.handle(response);
+
+        return null;
+    }
+
+    public void kickParticipant(Long conversationId, Long participantToKickId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/convesation/" + conversationId + "/participant/" + participantToKickId))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .DELETE()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return;
+        }
+
+        ApiExceptionHandler.handle(response);
+    }
+
+    public void leaveGroup(Long conversationId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/leaveGroup/" + conversationId))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .DELETE()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return;
+        }
+
+        ApiExceptionHandler.handle(response);
+    }
+
+    public ParticipantDTO addParticipant(Long conversationId, Long participantToAddId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/conversation/" + conversationId + "/addParticipant/" + participantToAddId))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return objectMapper.readValue(response.body(), ParticipantDTO.class);
+        }
+
+        ApiExceptionHandler.handle(response);
+
+        return null;
+    }
+
+    public void demoteAdmin(Long conversationId, Long demoteUserId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/conversation/" + conversationId + "/demoteUser/" + demoteUserId))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .method("PATCH", HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return;
+        }
+
+        ApiExceptionHandler.handle(response);
+    }
+
+    public void promoteToAdmin(Long conversationId, Long promoteUserId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/conversation/" + conversationId + "/promoteUser/" + promoteUserId))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .method("PATCH", HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return;
+        }
+
+        ApiExceptionHandler.handle(response);
+    }
+
+    public void updateGroupInfo(Long conversationId, String groupName, String groupPicture) throws Exception {
+        String body = objectMapper.writeValueAsString(new UpdateGroupRequestDTO(groupName, groupPicture));
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/conversation/" + conversationId))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .method("PATCH", HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return;
+        }
+
+        ApiExceptionHandler.handle(response);
+    }
+
+    public Boolean isAdmin(Long conversationId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/conversation/" + conversationId + "/participant/self"))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .GET()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return objectMapper.readValue(response.body(), Boolean.class);
+        }
+
+        ApiExceptionHandler.handle(response);
+
+        return false;
+    }
+
+    public List<ParticipantDTO> getFriendsNotInConversation(Long conversationId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/notInConversation/" + conversationId))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .GET()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return objectMapper.readValue(response.body(), objectMapper.getTypeFactory().constructCollectionType(List.class, ParticipantDTO.class));
+        }
+
+        ApiExceptionHandler.handle(response);
+
+        return null;
+    }
+
+    public ConversationResponseDTO getConversationById(Long conversationId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/" + conversationId))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .GET()
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());

@@ -68,6 +68,10 @@
                     </padding>
 
                     <Label fx:id="chatNameLabel" text="Select a conversation" styleClass="chat-name"/>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <Button fx:id="editGroupButton" text="Edit" styleClass="settings-button" onAction="#handleEditGroup" visible="false" managed="false"/>
                 </HBox>
 
                 <Label fx:id="notificationLabel" styleClass="notification-label" visible="false" managed="false"/>

@@ -110,4 +110,8 @@ public class ConversationListManager {
             onError.accept("Failed to delete conversation");
         }
     }
+
+    public void updateConversationGroupInfo(Long conversationId, String newName, String profilePicture){
+
+    }
 }

@@ -2,6 +2,7 @@ package com.chatappbackend.backend.repository;
 
 import com.chatappbackend.backend.entity.FriendRequest;
 
+import com.chatappbackend.backend.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,4 +24,6 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, Lo
     Optional<FriendRequest> findAcceptedFriendship(@Param("userId") Long userId, @Param("friendId") Long friendId);
     @Query("SELECT fr FROM FriendRequest fr WHERE (fr.sender.id IN :userIds OR fr.receiver.id IN :userIds) AND fr.status = 'accepted'")
     List<FriendRequest> findAcceptedFriendshipsForUsers(@Param("userIds") Collection<Long> userIds);
+    @Query("SELECT CASE WHEN fr.sender.id = :userId THEN fr.receiver ELSE fr.sender END FROM FriendRequest fr WHERE (fr.sender.id = :userId OR fr.receiver.id = :userId) AND fr.status = 'accepted' AND NOT EXISTS (SELECT 1 FROM ConversationParticipant cp WHERE cp.conversation.id = :conversationId AND cp.leftAt IS NULL AND cp.user.id = CASE WHEN fr.sender.id = :userId THEN fr.receiver.id ELSE fr.sender.id END)")
+    List<User> findFriendsNotInConversation(@Param("userId") Long userId, @Param("conversationId") Long conversationId);
 }

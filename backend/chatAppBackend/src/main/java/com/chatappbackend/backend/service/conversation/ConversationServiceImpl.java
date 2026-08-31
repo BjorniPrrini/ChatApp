@@ -1,10 +1,7 @@
 package com.chatappbackend.backend.service.conversation;
 
 import com.chatappbackend.backend.dto.conversation.*;
-import com.chatappbackend.backend.entity.Conversation;
-import com.chatappbackend.backend.entity.ConversationParticipant;
-import com.chatappbackend.backend.entity.Message;
-import com.chatappbackend.backend.entity.User;
+import com.chatappbackend.backend.entity.*;
 import com.chatappbackend.backend.exception.BadRequestException;
 import com.chatappbackend.backend.exception.ForbiddenException;
 import com.chatappbackend.backend.exception.ResourceNotFoundException;
@@ -19,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
@@ -353,9 +351,9 @@ public class ConversationServiceImpl implements ConversationService{
     }
 
     @Override
-    public void updateGroupDetails(UpdateGroupRequestDTO request, Long userId) {
-        ConversationParticipant user = conversationParticipantRepository.findByConversationIdAndUserId(request.getConversationId(), userId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
-        Conversation conversation = conversationRepository.findById(request.getConversationId()).orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
+    public void updateGroupDetails(UpdateGroupRequestDTO request, Long userId, Long conversationId) {
+        ConversationParticipant user = conversationParticipantRepository.findByConversationIdAndUserId(conversationId, userId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
+        Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
 
         if(user.getLeftAt() != null){
             throw new ForbiddenException("You are not part of this conversation anymore");
@@ -370,6 +368,22 @@ public class ConversationServiceImpl implements ConversationService{
         }
 
         conversationRepository.save(conversation);
+    }
+
+    @Override
+    public Boolean isAdmin(Long id, Long conversationId) {
+        ConversationParticipant user = conversationParticipantRepository.findByConversationIdAndUserId(conversationId, id).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
+
+        return user.isAdmin();
+    }
+
+    @Override
+    public List<ParticipantDTO> getFriendsNotInGroup(Long userId, Long conversationId) {
+        List<User> friendsNotInConversation = friendRequestRepository.findFriendsNotInConversation(userId, conversationId);
+
+        return friendsNotInConversation.stream()
+                .map(conversationMapper::toParticipantDTO)
+                .toList();
     }
 
     private Optional<Message> getLastMessage(Long conversationId){

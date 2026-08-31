@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.chatappfrontend.frontend.controller.GroupInfoController" styleClass="chat-area">
+    <HBox styleClass="chat-header" alignment="CENTER_LEFT" spacing="10">
+        <padding>
+            <Insets top="10" bottom="10" left="15" right="15"/>
+        </padding>
+
+        <Button text="← Back" styleClass="settings-button" onAction="#handleBack"/>
+
+        <Label text="Group Info" styleClass="chat-name"/>
+    </HBox>
+
+    <Label fx:id="errorLabel" styleClass="notification-label" visible="false" managed="false"/>
+
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="messages-scroll">
+        <VBox spacing="15" alignment="TOP_CENTER">
+            <padding>
+                <Insets top="25" bottom="25" left="20" right="20"/>
+            </padding>
+
+            <StackPane>
+                <Label fx:id="groupPictureView" styleClass="avatar-round"/>
+            </StackPane>
+
+            <Button fx:id="changePictureButton" text="Change Group Picture" styleClass="settings-button" onAction="#handleChangePicture"/>
+
+            <TextField fx:id="groupNameField" promptText="Group name" maxWidth="320" styleClass="search-field"/>
+            <Button fx:id="saveButton" text="Save" styleClass="primary-button" onAction="#handleSave"/>
+
+            <Separator/>
+
+            <HBox alignment="CENTER_LEFT" spacing="8" maxWidth="360">
+                <Label text="Participants" styleClass="panel-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="addParticipantButton" text="+ Add" styleClass="settings-button" onAction="#handleAddParticipant" visible="false" managed="false"/>
+            </HBox>
+
+            <ListView fx:id="participantList" VBox.vgrow="ALWAYS" prefWidth="360" prefHeight="400" styleClass="conversation-list"/>
+        </VBox>
+    </ScrollPane>
+</VBox>

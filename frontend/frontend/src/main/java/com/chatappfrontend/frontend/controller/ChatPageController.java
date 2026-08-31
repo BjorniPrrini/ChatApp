@@ -71,6 +71,8 @@ public class ChatPageController {
     private VBox chatArea;
     @FXML
     private Button createConversationButton;
+    @FXML
+    private Button editGroupButton;
 
     private Long currentConversationId;
     private final WebSocketService webSocketService = new WebSocketService();
@@ -142,6 +144,14 @@ public class ChatPageController {
     }
 
     private void openConversation(ConversationResponseDTO selected){
+        if(selected.isGroup()){
+            editGroupButton.setVisible(true);
+            editGroupButton.setManaged(true);
+        }else{
+            editGroupButton.setVisible(false);
+            editGroupButton.setManaged(false);
+        }
+
         showChatContent();
 
         currentConversationId = selected.getConversationId();
@@ -389,5 +399,30 @@ public class ChatPageController {
         } catch (Exception _) {
             AlertUtils.showError(notificationLabel, "Couldn't load friends page");
         }
+    }
+
+    @FXML
+    public void handleEditGroup(){
+        try {
+            GroupInfoController controller = SceneManager.switchContent(contentPane, "group-info-page.fxml");
+
+            controller.setCurrentConversationId(currentConversationId);
+
+            controller.setOnBack(this::showChatContent);
+
+            controller.loadGroupInformation();
+
+            controller.setOnGroupUpdated(this::refreshGroupHeader);
+        } catch (Exception _) {
+            AlertUtils.showError(notificationLabel, "Couldn't load group information page");
+        }
+    }
+
+    private void refreshGroupHeader(Long conversationId, String newName, String profilePicture){
+        if(currentConversationId.equals(conversationId)){
+            chatNameLabel.setText(newName);
+        }
+
+        conversationListManager.updateConversationGroupInfo(conversationId, newName, profilePicture);
     }
 }

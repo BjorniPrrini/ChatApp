@@ -4,7 +4,6 @@ import lombok.Data;
 
 @Data
 public class UpdateGroupRequestDTO {
-    private long conversationId;
     private String groupName;
     private String groupPicture;
 }
