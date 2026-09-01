@@ -268,4 +268,21 @@ public class ConversationService {
 
         return null;
     }
+
+    public void allowParticipantsInvite(Long conversationId, boolean allow) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/conversation/" + conversationId + "/allowInvite/" + allow))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .method("PATCH", HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode() >= 200 && response.statusCode() < 300){
+            return;
+        }
+
+        ApiExceptionHandler.handle(response);
+    }
 }

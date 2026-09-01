@@ -4,17 +4,12 @@ import com.chatappfrontend.frontend.model.ConversationResponseDTO;
 import com.chatappfrontend.frontend.model.ParticipantDTO;
 import com.chatappfrontend.frontend.service.ConversationService;
 import com.chatappfrontend.frontend.util.AlertUtils;
-
 import com.chatappfrontend.frontend.util.TriConsumer;
+
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 
 import lombok.Setter;
-
-import java.util.function.BiConsumer;
 
 public class GroupInfoController {
     @FXML
@@ -31,6 +26,8 @@ public class GroupInfoController {
     private ListView<ParticipantDTO> participantList;
     @FXML
     private Label errorLabel;
+    @FXML
+    private CheckBox allowInviteToggle;
 
     @Setter
     private Long currentConversationId;
@@ -39,11 +36,24 @@ public class GroupInfoController {
     @Setter
     private TriConsumer<Long, String, String> onGroupUpdated;
 
+    private boolean isAdmin;
+
     public void loadGroupInformation(){
         try {
             ConversationService conversationService = new ConversationService();
 
             ConversationResponseDTO conversationInfo = conversationService.getConversationById(currentConversationId);
+
+            isAdmin = conversationService.isAdmin(currentConversationId);
+
+            boolean canAdd = isAdmin || conversationInfo.isAllowParticipantsInvite();
+
+            addParticipantButton.setVisible(canAdd);
+            addParticipantButton.setManaged(canAdd);
+
+            allowInviteToggle.setVisible(isAdmin);
+            allowInviteToggle.setManaged(isAdmin);
+            allowInviteToggle.setSelected(conversationInfo.isAllowParticipantsInvite());
 
             groupPictureView.setText(conversationInfo.getGroupName().substring(0, 1));
 
@@ -84,7 +94,23 @@ public class GroupInfoController {
 
             onGroupUpdated.accept(currentConversationId, groupName, profilePictureName);
         } catch (Exception _) {
+            AlertUtils.showError(errorLabel, "Couldn't save changes");
+        }
+    }
 
+    public void handleToggleInvite(){
+        try {
+            ConversationService conversationService = new ConversationService();
+
+            boolean allowed = allowInviteToggle.isSelected();
+
+            if(isAdmin){
+                conversationService.allowParticipantsInvite(currentConversationId, allowed);
+            }else{
+                AlertUtils.showError(errorLabel, "You are not an admin");
+            }
+        } catch (Exception _) {
+            AlertUtils.showError(errorLabel, "Couldn't change toggle");
         }
     }
 }

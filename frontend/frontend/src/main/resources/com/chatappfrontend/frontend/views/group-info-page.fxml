@@ -30,13 +30,18 @@
             <Button fx:id="changePictureButton" text="Change Group Picture" styleClass="settings-button" onAction="#handleChangePicture"/>
 
             <TextField fx:id="groupNameField" promptText="Group name" maxWidth="320" styleClass="search-field"/>
+
             <Button fx:id="saveButton" text="Save" styleClass="primary-button" onAction="#handleSave"/>
 
             <Separator/>
 
             <HBox alignment="CENTER_LEFT" spacing="8" maxWidth="360">
                 <Label text="Participants" styleClass="panel-title"/>
+
                 <Region HBox.hgrow="ALWAYS"/>
+
+                <CheckBox fx:id="allowInviteToggle" text="Anyone can add" onAction="#handleToggleInvite" visible="false" managed="false"/>
+
                 <Button fx:id="addParticipantButton" text="+ Add" styleClass="settings-button" onAction="#handleAddParticipant" visible="false" managed="false"/>
             </HBox>
 

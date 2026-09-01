@@ -21,6 +21,7 @@ public class ConversationMapper {
         response.setGroupPicture(conversation.getGroupPicture());
         response.setGroup(conversation.getIsGroup());
         response.setParticipants(otherUsers.stream().map(this::toParticipantDTO).toList());
+        response.setAllowParticipantsInvite(conversation.isAllowParticipantsInvite());
 
         if(lastMessage.isPresent()){
             response.setLastMessage(lastMessage.get().getMessage());

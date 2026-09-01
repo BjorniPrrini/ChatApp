@@ -112,6 +112,28 @@ public class ConversationListManager {
     }
 
     public void updateConversationGroupInfo(Long conversationId, String newName, String profilePicture){
+        if(newName == null && profilePicture == null){
+            return;
+        }
 
+        for(ConversationResponseDTO conversation : conversationList.getItems()){
+            if(conversation.getConversationId().equals(conversationId)){
+                if((newName == null || conversation.getGroupName().equals(newName)) && (profilePicture == null || conversation.getGroupPicture().equals(profilePicture))){
+                    return;
+                }
+
+                if(newName != null){
+                    conversation.setGroupName(newName);
+                }
+
+                if(profilePicture != null){
+                    conversation.setGroupPicture(profilePicture);
+                }
+
+                conversationList.refresh();
+
+                break;
+            }
+        }
     }
 }

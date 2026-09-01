@@ -20,4 +20,5 @@ public class ConversationResponseDTO {
     private boolean isGroup;
     private String groupName;
     private String groupPicture;
+    private boolean allowParticipantsInvite;
 }

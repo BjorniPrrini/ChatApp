@@ -19,4 +19,5 @@ public interface ConversationService {
     void updateGroupDetails(UpdateGroupRequestDTO request, Long userId, Long conversationId);
     Boolean isAdmin(Long id, Long conversationId);
     List<ParticipantDTO> getFriendsNotInGroup(Long userId, Long conversationId);
+    void allowParticipantsInvite(Long conversationId, Long userId, boolean allow);
 }

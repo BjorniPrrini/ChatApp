@@ -14,4 +14,5 @@ public class ConversationResponseDTO {
     private List<ParticipantDTO> participants;
     private String lastMessage;
     private LocalDateTime lastMessageAt;
+    private boolean allowParticipantsInvite;
 }

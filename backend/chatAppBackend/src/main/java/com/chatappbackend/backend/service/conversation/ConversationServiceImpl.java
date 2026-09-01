@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
@@ -384,6 +383,20 @@ public class ConversationServiceImpl implements ConversationService{
         return friendsNotInConversation.stream()
                 .map(conversationMapper::toParticipantDTO)
                 .toList();
+    }
+
+    @Override
+    public void allowParticipantsInvite(Long conversationId, Long userId, boolean allow) {
+        ConversationParticipant admin = conversationParticipantRepository.findByConversationIdAndUserId(conversationId, userId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
+        Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
+
+        if(!admin.isAdmin()){
+            throw new ForbiddenException("You are not an admin");
+        }
+
+        conversation.setAllowParticipantsInvite(allow);
+
+        conversationRepository.save(conversation);
     }
 
     private Optional<Message> getLastMessage(Long conversationId){

@@ -101,6 +101,13 @@ public class ConversationController {
         return ResponseEntity.ok(service.getFriendsNotInGroup(getUser().getId(), conversationId));
     }
 
+    @PatchMapping("/conversation/{conversationId}/allowInvite/{allow}")
+    public ResponseEntity<Void> allowParticipantInvite(@PathVariable Long conversationId, @PathVariable boolean allow){
+        service.allowParticipantsInvite(conversationId, getUser().getId(), allow);
+
+        return ResponseEntity.ok().build();
+    }
+
     private User getUser(){
         return (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
     }
