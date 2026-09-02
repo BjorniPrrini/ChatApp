@@ -408,6 +408,8 @@ public class ChatPageController {
 
             controller.setCurrentConversationId(currentConversationId);
 
+            controller.setContentPane(contentPane);
+
             controller.setOnBack(this::showChatContent);
 
             controller.loadGroupInformation();

@@ -5,7 +5,6 @@
 <?import javafx.geometry.Insets?>
 
 <VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.chatappfrontend.frontend.controller.AddParticipantsController" styleClass="chat-area">
-
     <HBox styleClass="chat-header" alignment="CENTER_LEFT" spacing="10">
         <padding>
             <Insets top="10" bottom="10" left="15" right="15"/>
@@ -21,6 +20,8 @@
         </padding>
 
         <TextField fx:id="searchField" promptText="Search friends..." styleClass="search-field"/>
+
+        <Label fx:id="errorLabel" styleClass="error-label" managed="false" visible="false"/>
 
         <ListView fx:id="friendsList" VBox.vgrow="ALWAYS" styleClass="conversation-list"/>
     </VBox>

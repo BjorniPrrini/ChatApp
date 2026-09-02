@@ -1,13 +1,16 @@
 package com.chatappfrontend.frontend.controller;
 
+import com.chatappfrontend.frontend.cell.ParticipantCell;
 import com.chatappfrontend.frontend.model.ConversationResponseDTO;
 import com.chatappfrontend.frontend.model.ParticipantDTO;
 import com.chatappfrontend.frontend.service.ConversationService;
 import com.chatappfrontend.frontend.util.AlertUtils;
+import com.chatappfrontend.frontend.util.SceneManager;
 import com.chatappfrontend.frontend.util.TriConsumer;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.StackPane;
 
 import lombok.Setter;
 
@@ -35,6 +38,8 @@ public class GroupInfoController {
     private Runnable onBack;
     @Setter
     private TriConsumer<Long, String, String> onGroupUpdated;
+    @Setter
+    private StackPane contentPane;
 
     private boolean isAdmin;
 
@@ -61,6 +66,36 @@ public class GroupInfoController {
 
             groupNameField.setText(conversationInfo.getGroupName());
 
+            participantList.setCellFactory(_ -> new ParticipantCell(isAdmin,
+                    participantId -> {
+                        try {
+                            new ConversationService().promoteToAdmin(currentConversationId, participantId);
+
+                            loadGroupInformation();
+                        } catch (Exception _) {
+                            AlertUtils.showError(errorLabel, "Couldn't promote participant");
+                        }
+                    },
+                    participantId -> {
+                        try {
+                            new ConversationService().demoteAdmin(currentConversationId, participantId);
+
+                            loadGroupInformation();
+                        } catch (Exception _) {
+                            AlertUtils.showError(errorLabel, "Couldn't demote participant");
+                        }
+                    },
+                    participantId -> {
+                        try {
+                            new ConversationService().kickParticipant(currentConversationId, participantId);
+
+                            loadGroupInformation();
+                        } catch (Exception _) {
+                            AlertUtils.showError(errorLabel, "Couldn't kick participant");
+                        }
+                    }
+            ));
+
             participantList.getItems().setAll(conversationInfo.getParticipants());
         } catch (Exception _) {
             AlertUtils.showError(errorLabel, "Couldn't load group information");
@@ -79,13 +114,39 @@ public class GroupInfoController {
 
     @FXML
     public void handleAddParticipant(){
+        try {
+            AddParticipantsController controller = SceneManager.switchContent(contentPane, "add-participants-page.fxml");
 
+            controller.setConversationId(currentConversationId);
+
+            controller.loadFriendList();
+
+            controller.setOnBack(() -> {
+                try {
+                    GroupInfoController groupInfoController = SceneManager.switchContent(contentPane, "group-info-page.fxml");
+
+                    groupInfoController.setCurrentConversationId(currentConversationId);
+
+                    groupInfoController.loadGroupInformation();
+                } catch (Exception _) {
+                    AlertUtils.showError(errorLabel, "Couldn't go back");
+                }
+            });
+        } catch (Exception _) {
+            AlertUtils.showError(errorLabel, "Couldn't load add participants page");
+        }
     }
 
     @FXML
     public void handleSave(){
         String groupName = groupNameField.getText().trim();
         String profilePictureName = groupPictureView.getText().trim();
+
+        if(groupName.isBlank()){
+            AlertUtils.showError(errorLabel, "Group name cannot be empty");
+
+            return;
+        }
 
         try {
             ConversationService conversationService = new ConversationService();

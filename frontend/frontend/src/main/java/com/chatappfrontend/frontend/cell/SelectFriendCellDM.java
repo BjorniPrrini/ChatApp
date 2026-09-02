@@ -10,7 +10,7 @@ import javafx.scene.layout.HBox;
 public class SelectFriendCellDM extends ListCell<FriendResponseDTO> {
     @Override
     protected void updateItem(FriendResponseDTO friend, boolean empty){
-        super.updateItem(friend,empty);
+        super.updateItem(friend, empty);
 
         if(empty || friend == null){
             setGraphic(null);
