@@ -55,8 +55,6 @@ public class AddParticipantsController {
             allFriends.setAll(new ConversationService().getFriendsNotInConversation(conversationId));
         } catch (Exception _) {
             AlertUtils.showError(errorLabel, "Couldn't load friends");
-
-            return;
         }
     }
 

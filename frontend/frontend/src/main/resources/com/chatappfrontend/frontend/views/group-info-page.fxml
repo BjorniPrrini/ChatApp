@@ -35,7 +35,7 @@
 
             <Separator/>
 
-            <HBox alignment="CENTER_LEFT" spacing="8" maxWidth="360">
+            <HBox alignment="CENTER_LEFT" spacing="10" maxWidth="500" prefWidth="500">
                 <Label text="Participants" styleClass="panel-title"/>
 
                 <Region HBox.hgrow="ALWAYS"/>
@@ -45,7 +45,7 @@
                 <Button fx:id="addParticipantButton" text="+ Add" styleClass="settings-button" onAction="#handleAddParticipant" visible="false" managed="false"/>
             </HBox>
 
-            <ListView fx:id="participantList" VBox.vgrow="ALWAYS" prefWidth="360" prefHeight="400" styleClass="conversation-list"/>
+            <ListView fx:id="participantList" VBox.vgrow="ALWAYS" prefWidth="500" prefHeight="400" styleClass="conversation-list"/>
         </VBox>
     </ScrollPane>
 </VBox>

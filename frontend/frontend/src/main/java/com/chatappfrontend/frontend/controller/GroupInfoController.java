@@ -127,6 +127,8 @@ public class GroupInfoController {
 
                     groupInfoController.setCurrentConversationId(currentConversationId);
 
+                    groupInfoController.setOnBack(onBack);
+
                     groupInfoController.loadGroupInformation();
                 } catch (Exception _) {
                     AlertUtils.showError(errorLabel, "Couldn't go back");
