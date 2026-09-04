@@ -36,6 +36,9 @@ public class UserServiceImpl implements UserService{
     private final SimpMessagingTemplate messagingTemplate;
     private final UserMapper userMapper;
 
+    @Value("${file.upload-dir}")
+    private String directoryName;
+
     public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, FriendRequestRepository friendRequestRepository, SimpMessagingTemplate messagingTemplate, UserMapper userMapper){
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -95,9 +98,6 @@ public class UserServiceImpl implements UserService{
                 .map(userMapper::toUserResponseDTO)
                 .collect(Collectors.toList());
     }
-
-    @Value("${file.upload-dir}")
-    private String directoryName;
 
     @Override
     public UserResponseDTO updateProfilePicture(Long userId, MultipartFile file) {

@@ -3,7 +3,6 @@ package com.chatappfrontend.frontend.service;
 import com.chatappfrontend.frontend.model.ConversationResponseDTO;
 import com.chatappfrontend.frontend.model.GroupConversationRequestDTO;
 import com.chatappfrontend.frontend.model.ParticipantDTO;
-import com.chatappfrontend.frontend.model.UpdateGroupRequestDTO;
 import com.chatappfrontend.frontend.util.ApiExceptionHandler;
 import com.chatappfrontend.frontend.util.AppConfig;
 import com.chatappfrontend.frontend.util.JsonMapper;
@@ -11,14 +10,19 @@ import com.chatappfrontend.frontend.util.SessionManager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import okhttp3.*;
+
+import java.io.File;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Files;
 import java.util.List;
 
 public class ConversationService {
     private final HttpClient httpClient = HttpClient.newHttpClient();
+    private final OkHttpClient okHttpClient = new OkHttpClient();
     private final ObjectMapper objectMapper = JsonMapper.get();
     private static final String BASE_URL = AppConfig.get("api.base.url") + "/api/conversation";
 
@@ -193,23 +197,34 @@ public class ConversationService {
         ApiExceptionHandler.handle(response);
     }
 
-    public void updateGroupInfo(Long conversationId, String groupName, String groupPicture) throws Exception {
-        String body = objectMapper.writeValueAsString(new UpdateGroupRequestDTO(groupName, groupPicture));
+    public void updateGroupInfo(Long conversationId, String groupName, File groupPicture) throws Exception {
+        MultipartBody.Builder bodyBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/conversation/" + conversationId))
-                .header("Content-Type", "application/json")
-                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
-                .method("PATCH", HttpRequest.BodyPublishers.ofString(body))
-                .build();
-
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-        if(response.statusCode() >= 200 && response.statusCode() < 300){
-            return;
+        if(groupName != null){
+            bodyBuilder.addFormDataPart("groupName", groupName);
         }
 
-        ApiExceptionHandler.handle(response);
+        if(groupPicture != null){
+            String mimeType = Files.probeContentType(groupPicture.toPath());
+
+            bodyBuilder.addFormDataPart("groupPicture", groupPicture.getName(), RequestBody.create(groupPicture, MediaType.parse(mimeType)));
+        }
+
+        RequestBody body = bodyBuilder.build();
+
+        Request request = new Request.Builder()
+                .url(BASE_URL + "/conversation/" + conversationId)
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .patch(body)
+                .build();
+
+        try (Response response = okHttpClient.newCall(request).execute()) {
+            if(response.isSuccessful()){
+                return;
+            }
+
+            ApiExceptionHandler.handle(response);
+        }
     }
 
     public Boolean isAdmin(Long conversationId) throws Exception {

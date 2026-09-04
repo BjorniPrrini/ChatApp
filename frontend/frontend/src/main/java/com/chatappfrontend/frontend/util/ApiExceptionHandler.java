@@ -3,6 +3,9 @@ package com.chatappfrontend.frontend.util;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+
 import java.net.http.HttpResponse;
 
 public class ApiExceptionHandler {
@@ -18,6 +21,27 @@ public class ApiExceptionHandler {
                 throw new Exception("Session expired. Please login again.");
             default:
                 throw new Exception("Request failed: " + response.statusCode());
+        }
+    }
+
+    public static void handle(Response response) throws Exception {
+        String body = "";
+
+        try (ResponseBody responseBody = response.body()) {
+            if(responseBody != null){
+                body = responseBody.string();
+            }
+        }
+
+        String message = extractMessage(body);
+
+        switch(response.code()){
+            case 400, 404, 403:
+                throw new Exception(message);
+            case 401:
+                throw new Exception("Session expired. Please login again.");
+            default:
+                throw new Exception("Request failed: " + response.code());
         }
     }
 

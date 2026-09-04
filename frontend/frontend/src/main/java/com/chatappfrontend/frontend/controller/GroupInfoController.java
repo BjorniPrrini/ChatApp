@@ -4,15 +4,21 @@ import com.chatappfrontend.frontend.cell.ParticipantCell;
 import com.chatappfrontend.frontend.model.ConversationResponseDTO;
 import com.chatappfrontend.frontend.model.ParticipantDTO;
 import com.chatappfrontend.frontend.service.ConversationService;
-import com.chatappfrontend.frontend.util.AlertUtils;
-import com.chatappfrontend.frontend.util.SceneManager;
-import com.chatappfrontend.frontend.util.TriConsumer;
+import com.chatappfrontend.frontend.util.*;
 
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Circle;
+import javafx.stage.FileChooser;
+import javafx.stage.Window;
 
 import lombok.Setter;
+
+import java.io.File;
 
 public class GroupInfoController {
     @FXML
@@ -42,6 +48,8 @@ public class GroupInfoController {
     private StackPane contentPane;
 
     private boolean isAdmin;
+    private File selectedGroupPicture;
+    private String currentGroupPicture;
 
     public void loadGroupInformation(){
         try {
@@ -60,9 +68,28 @@ public class GroupInfoController {
             allowInviteToggle.setManaged(isAdmin);
             allowInviteToggle.setSelected(conversationInfo.isAllowParticipantsInvite());
 
-            groupPictureView.setText(conversationInfo.getGroupName().substring(0, 1));
+            String groupPicture = conversationInfo.getGroupPicture();
 
-            groupPictureView.setStyle("-fx-background-radius: 50%; -fx-text-fill: white; -fx-background-color: black");
+            this.currentGroupPicture = groupPicture;
+
+            if(groupPicture != null && !groupPicture.isBlank()){
+                ImageCache.load(groupPicture, image -> {
+                    if(groupPicture.equals(this.currentGroupPicture)){
+                        ImageView imageView = new ImageView(image);
+
+                        imageView.setFitWidth(300);
+                        imageView.setFitHeight(300);
+                        imageView.setPreserveRatio(false);
+
+                        Circle clip = new Circle(150, 150, 150);
+
+                        imageView.setClip(clip);
+
+                        groupPictureView.setGraphic(imageView);
+                        groupPictureView.setText("");
+                    }
+                });
+            }
 
             groupNameField.setText(conversationInfo.getGroupName());
 
@@ -109,7 +136,20 @@ public class GroupInfoController {
 
     @FXML
     public void handleChangePicture(){
-        groupPictureView.setText("Changed");
+        FileChooser fileChooser = new FileChooser();
+
+        fileChooser.setTitle("Select group picture");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg"));
+
+        Window owner = changePictureButton.getScene().getWindow();
+
+        File selectedFile = fileChooser.showOpenDialog(owner);
+
+        if(selectedFile == null){
+            return;
+        }
+
+        selectedGroupPicture = selectedFile;
     }
 
     @FXML
@@ -142,23 +182,41 @@ public class GroupInfoController {
     @FXML
     public void handleSave(){
         String groupName = groupNameField.getText().trim();
-        String profilePictureName = groupPictureView.getText().trim();
 
-        if(groupName.isBlank()){
-            AlertUtils.showError(errorLabel, "Group name cannot be empty");
+        Task<Void> task = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                ConversationService conversationService = new ConversationService();
 
-            return;
-        }
+                conversationService.updateGroupInfo(currentConversationId, groupName, selectedGroupPicture);
 
-        try {
-            ConversationService conversationService = new ConversationService();
+                return null;
+            }
+        };
 
-            conversationService.updateGroupInfo(currentConversationId, groupName, profilePictureName);
+        task.setOnSucceeded(_ -> {
+            if(selectedGroupPicture != null){
+                Image image = new Image(selectedGroupPicture.toURI().toString());
 
-            onGroupUpdated.accept(currentConversationId, groupName, profilePictureName);
-        } catch (Exception _) {
-            AlertUtils.showError(errorLabel, "Couldn't save changes");
-        }
+                ImageView imageView = new ImageView(image);
+
+                imageView.setFitWidth(50);
+                imageView.setFitHeight(50);
+                imageView.setPreserveRatio(true);
+
+                Circle clip = new Circle(25, 25, 25);
+
+                imageView.setClip(clip);
+
+                groupPictureView.setGraphic(imageView);
+            }
+
+            onGroupUpdated.accept(currentConversationId, groupName, selectedGroupPicture != null ? selectedGroupPicture.getName() : null);
+        });
+
+        task.setOnFailed(_ -> AlertUtils.showError(errorLabel, "Couldn't save changes"));
+
+        AppExecutor.run(task);
     }
 
     public void handleToggleInvite(){

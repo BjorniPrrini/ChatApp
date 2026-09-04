@@ -1,6 +1,7 @@
 package com.chatappbackend.backend.service.conversation;
 
 import com.chatappbackend.backend.dto.conversation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -16,7 +17,7 @@ public interface ConversationService {
     ParticipantDTO addParticipant(Long userId, Long addedUserId, Long conversationId);
     void demoteAdminToUser(Long userId, Long demoteUserId, Long conversationId);
     void promoteUserToAdmin(Long userId, Long promoteUserId, Long conversationId);
-    void updateGroupDetails(UpdateGroupRequestDTO request, Long userId, Long conversationId);
+    void updateGroupDetails(Long conversationId, Long userId, String groupName, MultipartFile groupPicture);
     Boolean isAdmin(Long id, Long conversationId);
     List<ParticipantDTO> getFriendsNotInGroup(Long userId, Long conversationId);
     void allowParticipantsInvite(Long conversationId, Long userId, boolean allow);

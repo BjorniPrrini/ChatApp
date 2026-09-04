@@ -9,13 +9,21 @@ import com.chatappbackend.backend.mapper.ConversationMapper;
 import com.chatappbackend.backend.repository.*;
 import com.chatappbackend.backend.service.blocked.BlockedUserService;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
@@ -28,6 +36,9 @@ public class ConversationServiceImpl implements ConversationService{
     private final FriendRequestRepository friendRequestRepository;
     private final MessageRepository messageRepository;
     private final ConversationMapper conversationMapper;
+
+    @Value("${file.upload-dir}")
+    private String directoryName;
 
     public ConversationServiceImpl(ConversationRepository conversationRepository, ConversationParticipantRepository conversationParticipantRepository, UserRepository userRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository, MessageRepository messageRepository, ConversationMapper conversationMapper){
         this.conversationRepository = conversationRepository;
@@ -350,7 +361,7 @@ public class ConversationServiceImpl implements ConversationService{
     }
 
     @Override
-    public void updateGroupDetails(UpdateGroupRequestDTO request, Long userId, Long conversationId) {
+    public void updateGroupDetails(Long conversationId, Long userId, String groupName, MultipartFile groupPicture) {
         ConversationParticipant user = conversationParticipantRepository.findByConversationIdAndUserId(conversationId, userId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
 
@@ -358,12 +369,36 @@ public class ConversationServiceImpl implements ConversationService{
             throw new ForbiddenException("You are not part of this conversation anymore");
         }
 
-        if(request.getGroupPicture() != null){
-            conversation.setGroupPicture(request.getGroupPicture());
+        if(groupPicture != null){
+            String originalFilename = groupPicture.getOriginalFilename();
+
+            String extension = originalFilename.substring(originalFilename.lastIndexOf(".")).replaceAll("[^a-zA-Z0-9.]", "");
+
+            String generatedName = UUID.randomUUID() + extension;
+
+            Path uploadPath = Paths.get(directoryName + "groupAvatars/").toAbsolutePath().normalize();
+
+            try {
+                if(!Files.exists(uploadPath)){
+                    Files.createDirectories(uploadPath);
+                }
+
+                Path filePath = uploadPath.resolve(generatedName).normalize();
+
+                if(!filePath.startsWith(uploadPath)){
+                    throw new ForbiddenException("Invalid file path");
+                }
+
+                Files.copy(groupPicture.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                throw new BadRequestException("Failed to save file");
+            }
+
+            conversation.setGroupPicture("uploads/groupAvatars/" + generatedName);
         }
 
-        if(request.getGroupName() != null){
-            conversation.setName(request.getGroupName());
+        if(groupName != null){
+            conversation.setName(groupName);
         }
 
         conversationRepository.save(conversation);

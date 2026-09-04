@@ -12,6 +12,7 @@ module com.chatappfrontend.frontend {
     requires com.fasterxml.jackson.datatype.jsr310;
     requires jakarta.mail;
     requires org.jspecify;
+    requires okhttp3;
 
     opens com.chatappfrontend.frontend to javafx.fxml;
     opens com.chatappfrontend.frontend.controller to javafx.fxml;

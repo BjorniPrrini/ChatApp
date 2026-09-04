@@ -36,5 +36,16 @@ build/
 ### Environment Variables ###
 .env
 
-### Documents ###
-uploads/
+### Uploads ###
+backend/uploads/*
+!backend/uploads/attachments/
+!backend/uploads/avatars/
+!backend/uploads/groupAvatars/
+
+backend/uploads/attachments/*
+backend/uploads/avatars/*
+backend/uploads/groupAvatars/*
+
+!backend/uploads/attachments/.gitkeep
+!backend/uploads/avatars/.gitkeep
+!backend/uploads/groupAvatars/.gitkeep
