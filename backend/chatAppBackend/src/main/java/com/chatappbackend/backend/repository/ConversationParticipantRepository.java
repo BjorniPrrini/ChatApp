@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ConversationParticipantRepository extends JpaRepository<ConversationParticipant, ConversationParticipantId> {
-    @Query("SELECT cp.user FROM ConversationParticipant cp WHERE cp.conversation.id = :conversationId AND cp.user.id != :userId")
+    @Query("SELECT cp.user FROM ConversationParticipant cp WHERE cp.conversation.id = :conversationId AND cp.user.id != :userId AND cp.leftAt IS NULL")
     List<User> findOtherParticipants(@Param("conversationId") Long conversationId, @Param("userId") Long userId);
     long countByConversationId(Long conversationId);
     @Modifying

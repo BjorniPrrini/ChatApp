@@ -18,7 +18,7 @@ public class AlertUtils {
         label.setVisible(true);
         label.setManaged(true);
 
-        PauseTransition delay = new PauseTransition(Duration.seconds(5));
+        PauseTransition delay = new PauseTransition(Duration.seconds(3));
 
         delay.setOnFinished(_ -> hide(label));
 

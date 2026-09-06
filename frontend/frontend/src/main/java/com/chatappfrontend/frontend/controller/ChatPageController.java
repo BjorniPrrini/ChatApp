@@ -130,6 +130,8 @@ public class ChatPageController {
 
         try {
             webSocketConnectionManager.connect(SessionManager.getInstance().getUserId(), messageEventManager::handleUserQueueEvent, messageEventManager::handleUserStatusEvent);
+
+            webSocketConnectionManager.setMembershipHandler(this::handleMembershipEvent);
         } catch (Exception _) {
             AlertUtils.showError(notificationLabel, "Could not connect to real time service");
         }
@@ -410,7 +412,11 @@ public class ChatPageController {
 
             controller.setContentPane(contentPane);
 
-            controller.setOnBack(this::showChatContent);
+            controller.setOnBack(() -> {
+                webSocketConnectionManager.unsubscribe();
+
+                showChatContent();
+            });
 
             controller.loadGroupInformation();
 
@@ -426,5 +432,13 @@ public class ChatPageController {
         }
 
         conversationListManager.updateConversationGroupInfo(conversationId, newName, profilePicture);
+    }
+
+    private void handleMembershipEvent(ConversationMembershipEventDTO event){
+        if(event.getType().equals("KICKED") && event.getConversationId().equals(currentConversationId)){
+            webSocketConnectionManager.unsubscribe();
+
+            AlertUtils.showError(notificationLabel, "You were removed from this group");
+        }
     }
 }

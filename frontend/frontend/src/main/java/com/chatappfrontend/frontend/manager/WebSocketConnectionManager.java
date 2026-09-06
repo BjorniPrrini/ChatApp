@@ -1,5 +1,6 @@
 package com.chatappfrontend.frontend.manager;
 
+import com.chatappfrontend.frontend.model.ConversationMembershipEventDTO;
 import com.chatappfrontend.frontend.model.MessageEventDTO;
 import com.chatappfrontend.frontend.model.UserStatusEventDTO;
 import com.chatappfrontend.frontend.service.WebSocketService;
@@ -24,5 +25,13 @@ public class WebSocketConnectionManager {
     public void subscribeToConversation(Long conversationId, Consumer<MessageEventDTO> onConversationEvent) {
         webSocketService.unsubscribe();
         webSocketService.subscribe(conversationId, onConversationEvent);
+    }
+
+    public void unsubscribe(){
+        webSocketService.unsubscribe();
+    }
+
+    public void setMembershipHandler(Consumer<ConversationMembershipEventDTO> handler){
+        webSocketService.setMembershipHandler(handler);
     }
 }

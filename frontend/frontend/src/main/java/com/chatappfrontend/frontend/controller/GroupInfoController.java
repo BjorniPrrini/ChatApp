@@ -37,6 +37,8 @@ public class GroupInfoController {
     private Label errorLabel;
     @FXML
     private CheckBox allowInviteToggle;
+    @FXML
+    private Button leaveGroup;
 
     @Setter
     private Long currentConversationId;
@@ -51,10 +53,10 @@ public class GroupInfoController {
     private File selectedGroupPicture;
     private String currentGroupPicture;
 
+    private final ConversationService conversationService = new ConversationService();
+
     public void loadGroupInformation(){
         try {
-            ConversationService conversationService = new ConversationService();
-
             ConversationResponseDTO conversationInfo = conversationService.getConversationById(currentConversationId);
 
             isAdmin = conversationService.isAdmin(currentConversationId);
@@ -96,7 +98,7 @@ public class GroupInfoController {
             participantList.setCellFactory(_ -> new ParticipantCell(isAdmin,
                     participantId -> {
                         try {
-                            new ConversationService().promoteToAdmin(currentConversationId, participantId);
+                            conversationService.promoteToAdmin(currentConversationId, participantId);
 
                             loadGroupInformation();
                         } catch (Exception _) {
@@ -105,7 +107,7 @@ public class GroupInfoController {
                     },
                     participantId -> {
                         try {
-                            new ConversationService().demoteAdmin(currentConversationId, participantId);
+                            conversationService.demoteAdmin(currentConversationId, participantId);
 
                             loadGroupInformation();
                         } catch (Exception _) {
@@ -114,7 +116,7 @@ public class GroupInfoController {
                     },
                     participantId -> {
                         try {
-                            new ConversationService().kickParticipant(currentConversationId, participantId);
+                            conversationService.kickParticipant(currentConversationId, participantId);
 
                             loadGroupInformation();
                         } catch (Exception _) {
@@ -183,11 +185,9 @@ public class GroupInfoController {
     public void handleSave(){
         String groupName = groupNameField.getText().trim();
 
-        Task<Void> task = new Task<Void>() {
+        Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                ConversationService conversationService = new ConversationService();
-
                 conversationService.updateGroupInfo(currentConversationId, groupName, selectedGroupPicture);
 
                 return null;
@@ -219,10 +219,9 @@ public class GroupInfoController {
         AppExecutor.run(task);
     }
 
+    @FXML
     public void handleToggleInvite(){
         try {
-            ConversationService conversationService = new ConversationService();
-
             boolean allowed = allowInviteToggle.isSelected();
 
             if(isAdmin){
@@ -232,6 +231,17 @@ public class GroupInfoController {
             }
         } catch (Exception _) {
             AlertUtils.showError(errorLabel, "Couldn't change toggle");
+        }
+    }
+
+    @FXML
+    public void leaveGroup(){
+        try {
+            conversationService.leaveGroup(currentConversationId);
+
+            onBack.run();
+        } catch (Exception _) {
+            AlertUtils.showError(errorLabel, "");
         }
     }
 }

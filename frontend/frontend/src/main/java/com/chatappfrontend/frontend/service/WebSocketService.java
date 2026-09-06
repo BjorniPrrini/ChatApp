@@ -1,12 +1,15 @@
 package com.chatappfrontend.frontend.service;
 
+import com.chatappfrontend.frontend.model.ConversationMembershipEventDTO;
 import com.chatappfrontend.frontend.model.MessageEventDTO;
 import com.chatappfrontend.frontend.model.UserStatusEventDTO;
 import com.chatappfrontend.frontend.util.AppConfig;
 import com.chatappfrontend.frontend.util.JsonMapper;
 import com.chatappfrontend.frontend.util.SessionManager;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Setter;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -24,6 +27,9 @@ public class WebSocketService {
     private String userDestination;
     private Consumer<UserStatusEventDTO> statusHandler;
     private String statusDestination;
+
+    @Setter
+    private Consumer<ConversationMembershipEventDTO> membershipHandler;
 
     public void connect() throws Exception{
         String token = SessionManager.getInstance().getToken();
@@ -97,10 +103,22 @@ public class WebSocketService {
                         MessageEventDTO event = objectMapper.readValue(body, MessageEventDTO.class);
 
                         conversationHandler.accept(event);
-                    }else if(subscriptionId.equals("sub-user") && userHandler != null){
-                        MessageEventDTO event = objectMapper.readValue(body, MessageEventDTO.class);
+                    }else if(subscriptionId.equals("sub-user")){
+                        JsonNode node = objectMapper.readTree(body);
 
-                        userHandler.accept(event);
+                        String type = node.has("type") ? node.get("type").asText() : "";
+
+                        if(type.equals("KICKED") || type.equals("ADDED")){
+                            if(membershipHandler != null){
+                                ConversationMembershipEventDTO event = objectMapper.readValue(body, ConversationMembershipEventDTO.class);
+
+                                membershipHandler.accept(event);
+                            }
+                        }else if(userHandler != null){
+                            MessageEventDTO event = objectMapper.readValue(body, MessageEventDTO.class);
+
+                            userHandler.accept(event);
+                        }
                     }else if(subscriptionId.equals("sub-status") && statusHandler != null){
                         UserStatusEventDTO event = objectMapper.readValue(body, UserStatusEventDTO.class);
 

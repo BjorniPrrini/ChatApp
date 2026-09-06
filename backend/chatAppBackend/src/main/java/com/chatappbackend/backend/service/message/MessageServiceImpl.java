@@ -55,6 +55,11 @@ public class MessageServiceImpl implements MessageService{
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         Conversation conversation = conversationRepository.findById(request.getConversationId()).orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
         List<User> otherUserList = conversationParticipantRepository.findOtherParticipants(request.getConversationId(), userId);
+        ConversationParticipant senderParticipant = conversationParticipantRepository.findByConversationIdAndUserId(conversation.getId(), userId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
+
+        if(senderParticipant.getLeftAt() != null){
+            throw new ForbiddenException("You are not part of this conversation anymore");
+        }
 
         if(otherUserList.isEmpty()){
             throw new ResourceNotFoundException("Participant not found");

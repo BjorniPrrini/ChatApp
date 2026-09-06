@@ -10,6 +10,7 @@ import com.chatappbackend.backend.repository.*;
 import com.chatappbackend.backend.service.blocked.BlockedUserService;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,11 +37,12 @@ public class ConversationServiceImpl implements ConversationService{
     private final FriendRequestRepository friendRequestRepository;
     private final MessageRepository messageRepository;
     private final ConversationMapper conversationMapper;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Value("${file.upload-dir}")
     private String directoryName;
 
-    public ConversationServiceImpl(ConversationRepository conversationRepository, ConversationParticipantRepository conversationParticipantRepository, UserRepository userRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository, MessageRepository messageRepository, ConversationMapper conversationMapper){
+    public ConversationServiceImpl(ConversationRepository conversationRepository, ConversationParticipantRepository conversationParticipantRepository, UserRepository userRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository, MessageRepository messageRepository, ConversationMapper conversationMapper, SimpMessagingTemplate messagingTemplate){
         this.conversationRepository = conversationRepository;
         this.conversationParticipantRepository = conversationParticipantRepository;
         this.userRepository = userRepository;
@@ -48,6 +50,7 @@ public class ConversationServiceImpl implements ConversationService{
         this.friendRequestRepository = friendRequestRepository;
         this.messageRepository = messageRepository;
         this.conversationMapper = conversationMapper;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @Override
@@ -117,6 +120,11 @@ public class ConversationServiceImpl implements ConversationService{
     public ConversationResponseDTO getConversationById(Long userId, Long conversationId) {
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
         List<User> otherUserList = conversationParticipantRepository.findOtherParticipants(conversation.getId(), userId);
+        ConversationParticipant caller = conversationParticipantRepository.findByConversationIdAndUserId(conversationId, userId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
+
+        if(caller.getLeftAt() != null){
+            throw new ForbiddenException("You are not part of this conversation anymore");
+        }
 
         if(otherUserList.isEmpty()){
             throw new ResourceNotFoundException("Participant not found");
@@ -232,6 +240,8 @@ public class ConversationServiceImpl implements ConversationService{
         }
 
         removeParticipant(removeUserId, conversationId);
+
+        messagingTemplate.convertAndSend("/queue/user." + removeUserId, new ConversationMembershipEventDTO("KICKED", conversationId));
     }
 
     @Override

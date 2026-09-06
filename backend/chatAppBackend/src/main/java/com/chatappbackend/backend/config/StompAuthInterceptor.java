@@ -1,5 +1,6 @@
 package com.chatappbackend.backend.config;
 
+import com.chatappbackend.backend.repository.ConversationParticipantRepository;
 import com.chatappbackend.backend.util.JwtUtil;
 
 import org.jspecify.annotations.NonNull;
@@ -19,10 +20,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class StompAuthInterceptor implements ChannelInterceptor {
     private final JwtUtil jwtUtil;
+    private final ConversationParticipantRepository conversationParticipantRepository;
     private final Map<String, Long> sessionUsers = new ConcurrentHashMap<>();
 
-    public StompAuthInterceptor(JwtUtil jwtUtil){
+    public StompAuthInterceptor(JwtUtil jwtUtil, ConversationParticipantRepository conversationParticipantRepository){
         this.jwtUtil = jwtUtil;
+        this.conversationParticipantRepository = conversationParticipantRepository;
     }
 
     @Override
@@ -51,6 +54,27 @@ public class StompAuthInterceptor implements ChannelInterceptor {
 
         if(userId != null){
             accessor.setUser(() -> String.valueOf(userId));
+        }
+
+        if(accessor.getCommand() == StompCommand.SUBSCRIBE){
+            String destination = accessor.getDestination();
+
+            if(destination != null && destination.startsWith("/topic/conversation.")){
+                Long conversationId = Long.parseLong(destination.substring("/topic/conversation.".length()));
+
+                if(userId == null){
+                    throw new MessagingException("Not authenticated");
+                }
+
+                boolean isActiveParticipant = conversationParticipantRepository
+                        .findByConversationIdAndUserId(conversationId, userId)
+                        .map(cp -> cp.getLeftAt() == null)
+                        .orElse(false);
+
+                if(!isActiveParticipant){
+                    throw new MessagingException("Not authorized to subscribe to this conversation");
+                }
+            }
         }
 
         return MessageBuilder.createMessage(message.getPayload(), accessor.getMessageHeaders());

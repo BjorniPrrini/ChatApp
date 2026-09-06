@@ -43,6 +43,8 @@
                 <CheckBox fx:id="allowInviteToggle" text="Anyone can add" onAction="#handleToggleInvite" visible="false" managed="false"/>
 
                 <Button fx:id="addParticipantButton" text="+ Add" styleClass="settings-button" onAction="#handleAddParticipant" visible="false" managed="false"/>
+
+                <Button fx:id="leaveGroup" text="Leave Group" styleClass="settings-button" onAction="#leaveGroup"/>
             </HBox>
 
             <ListView fx:id="participantList" VBox.vgrow="ALWAYS" prefWidth="500" prefHeight="400" styleClass="conversation-list"/>
