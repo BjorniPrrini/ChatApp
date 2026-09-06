@@ -85,6 +85,7 @@ public class ChatPageController {
     private MessageActionManager messageActionManager;
     private MessagePaginationManager messagePaginationManager;
     private boolean currentConversationIsGroup;
+    private final MessageService messageService = new MessageService();
 
     @FXML
     public void initialize(){
@@ -175,8 +176,6 @@ public class ChatPageController {
         messagesContainer.getChildren().clear();
 
         try {
-            MessageService messageService = new MessageService();
-
             MessagePageDTO messagePage = messageService.getMessages(currentConversationId, null);
 
             List<MessageResponseDTO> messages = messagePage.getMessages();
@@ -320,8 +319,6 @@ public class ChatPageController {
         }
 
         try {
-            MessageService messageService = new MessageService();
-
             MessageResponseDTO sent;
 
             if(replyingTo != null){

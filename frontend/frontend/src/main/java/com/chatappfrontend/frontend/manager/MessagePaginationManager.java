@@ -21,6 +21,7 @@ public class MessagePaginationManager {
     private final MessageBubbleFactory messageBubbleFactory;
     private final ScrollPane scrollPane;
     private final Consumer<String> onError;
+    private final MessageService messageService = new MessageService();
 
     private LocalDateTime oldestLoadedMessageTime;
     private boolean hasMoreMessages = true;
@@ -58,8 +59,6 @@ public class MessagePaginationManager {
         isLoadingMore = true;
 
         try {
-            MessageService messageService = new MessageService();
-
             MessagePageDTO messagePage = messageService.getMessages(currentConversationId, oldestLoadedMessageTime);
 
             List<MessageResponseDTO> olderMessages = messagePage.getMessages();

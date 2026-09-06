@@ -23,6 +23,8 @@ public class ForgotPasswordController {
     @FXML
     public ProgressIndicator loadingSpinner;
 
+    private final AuthService authService = new AuthService();
+
     private boolean codeSent = false;
     private boolean codeVerified = false;
     private String userEmail;
@@ -63,9 +65,7 @@ public class ForgotPasswordController {
         errorLabel.setVisible(false);
 
         try {
-            AuthService service = new AuthService();
-
-            service.forgotPassword(email);
+            authService.forgotPassword(email);
 
             codeSent = true;
 
@@ -138,9 +138,7 @@ public class ForgotPasswordController {
         }
 
         try {
-            AuthService service = new AuthService();
-
-            service.resetPassword(userEmail, code, newPassword, confirmPassword);
+            authService.resetPassword(userEmail, code, newPassword, confirmPassword);
 
             SceneManager.switchTo("login-page.fxml");
         } catch (Exception _) {

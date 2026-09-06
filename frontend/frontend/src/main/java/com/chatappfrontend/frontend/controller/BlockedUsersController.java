@@ -15,17 +15,17 @@ public class BlockedUsersController {
     @FXML
     private ListView<FriendResponseDTO> blockedUsersListView;
 
+    private final FriendService friendService = new FriendService();
+
     @FXML
     public void initialize(){
         blockedUsersListView.setCellFactory(_ -> new BlockedUserCell(userId -> {
             try {
-                FriendService friendService = new FriendService();
-
                 friendService.unblockUser(userId);
 
                 loadBlockedUsers();
             } catch (Exception _) {
-
+                AlertUtils.showError(errorLabel, "Couldn't unblock user");
             }
         }));
 
@@ -34,8 +34,6 @@ public class BlockedUsersController {
 
     private void loadBlockedUsers(){
         try {
-            FriendService friendService = new FriendService();
-
             blockedUsersListView.getItems().clear();
             blockedUsersListView.getItems().addAll(friendService.getBlockedUsers());
         } catch (Exception _) {

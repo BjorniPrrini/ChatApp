@@ -11,6 +11,8 @@ import javafx.scene.control.OverrunStyle;
 import javafx.scene.layout.HBox;
 
 public class SuggestedFriendCell extends ListCell<FriendResponseDTO> {
+    private final FriendService friendService = new FriendService();
+
     @Override
     public void updateItem(FriendResponseDTO friend, boolean empty){
         super.updateItem(friend, empty);
@@ -44,8 +46,6 @@ public class SuggestedFriendCell extends ListCell<FriendResponseDTO> {
             addFriend.setText("Sending...");
 
             try {
-                FriendService friendService = new FriendService();
-
                 friendService.sendFriendRequest(friend.getSenderId());
 
                 addFriend.setText("Sent");

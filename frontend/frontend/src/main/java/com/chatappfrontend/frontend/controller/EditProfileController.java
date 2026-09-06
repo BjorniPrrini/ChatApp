@@ -24,6 +24,8 @@ public class EditProfileController {
     @FXML
     private Label successLabel;
 
+    private final UserService userService = new UserService();
+
     @FXML
     public void initialize(){
         loadUsersInformation();
@@ -37,8 +39,6 @@ public class EditProfileController {
         String phoneNumber = phoneNumberField.getText().trim();
 
         try {
-            UserService userService = new UserService();
-
             userService.editUserProfile(name, surname, nickname, phoneNumber);
 
             AlertUtils.showSuccess(successLabel, "Saved changes");
@@ -49,8 +49,6 @@ public class EditProfileController {
 
     private void loadUsersInformation(){
         try {
-            UserService userService = new UserService();
-
             UserResponseDTO userResponseDTO = userService.getUserInformation();
 
             nameField.setText(userResponseDTO.getName());

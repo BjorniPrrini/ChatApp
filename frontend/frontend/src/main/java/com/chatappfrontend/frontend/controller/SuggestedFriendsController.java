@@ -15,6 +15,8 @@ public class SuggestedFriendsController {
     @FXML
     private ListView<FriendResponseDTO> suggestedFriendsListView;
 
+    private final FriendService friendService = new FriendService();
+
     @FXML
     public void initialize(){
         suggestedFriendsListView.setCellFactory(_ -> new SuggestedFriendCell());
@@ -24,8 +26,6 @@ public class SuggestedFriendsController {
 
     private void loadSuggested(){
         try {
-            FriendService friendService = new FriendService();
-
             suggestedFriendsListView.getItems().clear();
             suggestedFriendsListView.getItems().addAll(friendService.getSuggestions());
         } catch (Exception _) {

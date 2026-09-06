@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 public class ConversationListManager {
     private final ListView<ConversationResponseDTO> conversationList;
     private final Consumer<String> onError;
+    private final ConversationService conversationService = new ConversationService();
 
     public ConversationListManager(ListView<ConversationResponseDTO> conversationList, Consumer<String> onError) {
         this.conversationList = conversationList;
@@ -22,9 +23,7 @@ public class ConversationListManager {
 
     public void loadConversations(){
         try {
-            ConversationService service = new ConversationService();
-
-            List<ConversationResponseDTO> conversations = service.getConversations();
+            List<ConversationResponseDTO> conversations = conversationService.getConversations();
 
             conversations.sort((a, b) -> {
                 if(a.getLastMessageAt() == null && b.getLastMessageAt() == null){

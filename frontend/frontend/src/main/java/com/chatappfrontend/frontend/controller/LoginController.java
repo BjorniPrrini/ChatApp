@@ -30,6 +30,8 @@ public class LoginController {
     @FXML
     private Hyperlink togglePasswordLink;
 
+    private final AuthService authService = new AuthService();
+
     private boolean passwordVisible = false;
 
     @FXML
@@ -72,8 +74,6 @@ public class LoginController {
         Task<AuthResponseDTO> loginTask = new Task<>(){
             @Override
             protected AuthResponseDTO call() throws Exception{
-                AuthService authService = new AuthService();
-
                 return authService.login(email, password);
             }
         };

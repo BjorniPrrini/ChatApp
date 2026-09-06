@@ -30,6 +30,7 @@ public class AddParticipantsController {
 
     private final ObservableList<ParticipantDTO> allFriends = FXCollections.observableArrayList();
     private final FilteredList<ParticipantDTO> filteredFriends = new FilteredList<>(allFriends, _ -> true);
+    private final ConversationService conversationService = new ConversationService();
 
     @FXML
     private void initialize() {
@@ -39,8 +40,6 @@ public class AddParticipantsController {
 
         friendsList.setCellFactory(_ -> new AddParticipantToGroupCell(participantId -> {
             try {
-                ConversationService conversationService = new ConversationService();
-
                 conversationService.addParticipant(conversationId, participantId);
 
                 allFriends.removeIf(p -> p.getUserId().equals(participantId));
@@ -52,7 +51,7 @@ public class AddParticipantsController {
 
     public void loadFriendList(){
         try {
-            allFriends.setAll(new ConversationService().getFriendsNotInConversation(conversationId));
+            allFriends.setAll(conversationService.getFriendsNotInConversation(conversationId));
         } catch (Exception _) {
             AlertUtils.showError(errorLabel, "Couldn't load friends");
         }

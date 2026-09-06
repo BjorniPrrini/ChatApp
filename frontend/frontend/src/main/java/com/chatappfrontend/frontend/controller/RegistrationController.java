@@ -36,6 +36,8 @@ public class RegistrationController {
     @FXML
     private Hyperlink togglePasswordLink;
 
+    private final AuthService authService = new AuthService();
+
     private boolean passwordVisible = false;
 
     @FXML
@@ -95,8 +97,6 @@ public class RegistrationController {
         Task<AuthResponseDTO> registerTask = new Task<>(){
             @Override
             protected AuthResponseDTO call() throws Exception {
-                AuthService authService = new AuthService();
-
                 return authService.register(name, surname, email, password, confirmPassword, nickname, phoneNumber);
             }
         };

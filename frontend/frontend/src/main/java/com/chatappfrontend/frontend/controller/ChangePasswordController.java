@@ -19,6 +19,8 @@ public class ChangePasswordController {
     @FXML
     private Label successLabel;
 
+    private final UserService userService = new UserService();
+
     @FXML
     public void handleChangePassword(){
         String oldPassword = currentPasswordField.getText().trim();
@@ -38,8 +40,6 @@ public class ChangePasswordController {
         }
 
         try {
-            UserService userService = new UserService();
-
             userService.changePassword(oldPassword, newPassword, confirmPassword);
 
             AlertUtils.showSuccess(successLabel, "Password changed");

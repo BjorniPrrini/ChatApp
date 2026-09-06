@@ -53,6 +53,9 @@ public class StartChatPopupController {
     @Setter
     private Consumer<ConversationResponseDTO> onStartConversation;
 
+    private final FriendService friendService = new FriendService();
+    private final ConversationService conversationService = new ConversationService();
+
     private final Set<FriendResponseDTO> selectedFriends = new HashSet<>();
 
     @FXML
@@ -83,8 +86,6 @@ public class StartChatPopupController {
 
     private void handleFriendSelected(FriendResponseDTO newFriend){
         try {
-            ConversationService conversationService = new ConversationService();
-
             Long friendId = newFriend.getSenderId().equals(SessionManager.getInstance().getUserId()) ? newFriend.getReceiverId() : newFriend.getSenderId();
 
             ConversationResponseDTO conversation = conversationService.createConversation(friendId);
@@ -124,8 +125,6 @@ public class StartChatPopupController {
                     .map(friend -> friend.getSenderId().equals(SessionManager.getInstance().getUserId()) ? friend.getReceiverId() : friend.getSenderId())
                     .toList();
 
-            ConversationService conversationService = new ConversationService();
-
             ConversationResponseDTO conversation = conversationService.createGroupConversation(participantsId, groupName, null);
 
             if(onStartConversation != null){
@@ -138,8 +137,6 @@ public class StartChatPopupController {
 
     private void loadFriends(){
         try {
-            FriendService friendService = new FriendService();
-
             List<FriendResponseDTO> friends = friendService.getFriends();
 
             singleSelectFriendList.getItems().setAll(friends);

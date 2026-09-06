@@ -24,13 +24,14 @@ public class MyFriendsController {
     @Setter
     private Consumer<ConversationResponseDTO> onStartConversation;
 
+    private final FriendService friendService = new FriendService();
+    private final ConversationService conversationService = new ConversationService();
+
     @FXML
     public void initialize(){
         friendsListView.setCellFactory(_ -> new FriendsCell(
                 friendId -> {
                     try {
-                        ConversationService conversationService = new ConversationService();
-
                         ConversationResponseDTO conversation = conversationService.createConversation(friendId);
 
                         onStartConversation.accept(conversation);
@@ -40,8 +41,6 @@ public class MyFriendsController {
                 },
                 friendId -> {
                     try {
-                        FriendService friendService = new FriendService();
-
                         friendService.removeFriend(SessionManager.getInstance().getUserId(), friendId);
 
                         loadFriends();
@@ -51,8 +50,6 @@ public class MyFriendsController {
                 },
                 friendId -> {
                     try {
-                        FriendService friendService = new FriendService();
-
                         friendService.blockFriend(friendId);
 
                         loadFriends();
@@ -67,8 +64,6 @@ public class MyFriendsController {
 
     private void loadFriends(){
         try {
-            FriendService friendService = new FriendService();
-
             friendsListView.getItems().clear();
             friendsListView.getItems().addAll(friendService.getFriends());
         } catch (Exception _) {

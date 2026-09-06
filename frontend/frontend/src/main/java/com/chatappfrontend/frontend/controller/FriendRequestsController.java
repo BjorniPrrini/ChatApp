@@ -15,6 +15,8 @@ public class FriendRequestsController {
     @FXML
     private ListView<FriendResponseDTO> friendRequestsListView;
 
+    private final FriendService friendService = new FriendService();
+
     @FXML
     public void initialize(){
         friendRequestsListView.setCellFactory(_ -> new FriendRequestCell(this::loadFriendRequests));
@@ -24,8 +26,6 @@ public class FriendRequestsController {
 
     private void loadFriendRequests() {
         try {
-            FriendService friendService = new FriendService();
-
             friendRequestsListView.getItems().clear();
             friendRequestsListView.getItems().addAll(friendService.getFriendRequests());
         } catch (Exception _) {

@@ -16,6 +16,7 @@ public class MessageActionManager {
     private final ConversationListManager conversationListManager;
     private final Consumer<String> onError;
     private final VBox messagesContainer;
+    private final MessageService messageService = new MessageService();
 
     @Setter
     private Long currentConversationId;
@@ -42,8 +43,6 @@ public class MessageActionManager {
             }
 
             try {
-                MessageService messageService = new MessageService();
-
                 MessageResponseDTO editedMessage = messageService.editMessage(message.getId(), trimmed);
 
                 message.setMessage(editedMessage.getMessage());
@@ -62,7 +61,7 @@ public class MessageActionManager {
     public void handleDeleteForMe(MessageResponseDTO message, HBox bubble){
         deleteAndSync(message, bubble, () -> {
             try {
-                new MessageService().deleteMessageForMe(message.getId());
+                messageService.deleteMessageForMe(message.getId());
             } catch (Exception _) {
                 onError.accept("Couldn't delete the message");
             }
@@ -72,7 +71,7 @@ public class MessageActionManager {
     public void handleDeleteForEveryone(MessageResponseDTO message, HBox bubble){
         deleteAndSync(message, bubble, () -> {
             try {
-                new MessageService().deleteMessageForEveryone(message.getId());
+                messageService.deleteMessageForEveryone(message.getId());
             } catch (Exception _) {
                 onError.accept("Couldn't delete the message");
             }

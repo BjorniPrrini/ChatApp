@@ -19,6 +19,8 @@ public class UserCell extends ListCell<UserResponseDTO>{
     private final Set<Long> friendIds;
     private final Set<Long> pendingIds;
 
+    private final FriendService friendService = new FriendService();
+
     public UserCell(Set<Long> friendIds, Set<Long> pendingIds){
         this.friendIds = friendIds;
         this.pendingIds = pendingIds;
@@ -76,8 +78,6 @@ public class UserCell extends ListCell<UserResponseDTO>{
             addButton.setText("Sending...");
 
             try {
-                FriendService friendService = new FriendService();
-
                 friendService.sendFriendRequest(user.getId());
 
                 addButton.setText("Sent");

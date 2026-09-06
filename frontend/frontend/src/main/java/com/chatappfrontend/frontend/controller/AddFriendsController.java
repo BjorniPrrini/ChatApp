@@ -26,6 +26,9 @@ public class AddFriendsController {
     @FXML
     private ListView<UserResponseDTO> searchResultsListView;
 
+    private final UserService userService = new UserService();
+    private final FriendService friendService = new FriendService();
+
     @FXML
     public void initialize(){
         searchResultsListView.setCellFactory(_ -> new UserCell(fetchFriendIds(), fetchPendingIds()));
@@ -43,8 +46,6 @@ public class AddFriendsController {
 
     private Set<Long> fetchFriendIds(){
         try {
-            FriendService friendService = new FriendService();
-
             return friendService.getFriends()
                     .stream()
                     .map(fr -> fr.getSenderId().equals(SessionManager.getInstance().getUserId()) ? fr.getReceiverId() : fr.getSenderId())
@@ -56,8 +57,6 @@ public class AddFriendsController {
 
     private Set<Long> fetchPendingIds(){
         try {
-            FriendService friendService = new FriendService();
-
             List<FriendResponseDTO> sent = friendService.getSentRequests();
 
             return sent.stream()
@@ -70,8 +69,6 @@ public class AddFriendsController {
 
     private void searchUsers(String term){
         try {
-            UserService userService = new UserService();
-
             searchResultsListView.getItems().clear();
             searchResultsListView.getItems().addAll(
                     userService.searchUsers(term)

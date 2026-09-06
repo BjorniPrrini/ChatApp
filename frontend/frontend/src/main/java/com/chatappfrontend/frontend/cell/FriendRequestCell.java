@@ -15,6 +15,7 @@ import javafx.scene.layout.VBox;
 
 public class FriendRequestCell extends ListCell<FriendResponseDTO> {
     private final Runnable onRefresh;
+    private final FriendService friendService = new FriendService();
 
     public FriendRequestCell(Runnable onRefresh) {
         this.onRefresh = onRefresh;
@@ -60,8 +61,6 @@ public class FriendRequestCell extends ListCell<FriendResponseDTO> {
 
         acceptButton.setOnAction(_ -> {
             try {
-                FriendService friendService = new FriendService();
-
                 friendService.acceptFriendRequest(friend.getSenderId());
 
                 onRefresh.run();
@@ -72,8 +71,6 @@ public class FriendRequestCell extends ListCell<FriendResponseDTO> {
 
         rejectButton.setOnAction(_ -> {
             try {
-                FriendService friendService = new FriendService();
-
                 friendService.rejectFriendRequest(friend.getSenderId());
 
                 setGraphic(null);
