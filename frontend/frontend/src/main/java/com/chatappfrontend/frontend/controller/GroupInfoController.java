@@ -75,7 +75,7 @@ public class GroupInfoController {
             this.currentGroupPicture = groupPicture;
 
             if(groupPicture != null && !groupPicture.isBlank()){
-                ImageCache.load(groupPicture, image -> {
+                ImageCache.load(groupPicture, 300, image -> {
                     if(groupPicture.equals(this.currentGroupPicture)){
                         ImageView imageView = new ImageView(image);
 
@@ -168,6 +168,8 @@ public class GroupInfoController {
                     GroupInfoController groupInfoController = SceneManager.switchContent(contentPane, "group-info-page.fxml");
 
                     groupInfoController.setCurrentConversationId(currentConversationId);
+
+                    groupInfoController.setContentPane(contentPane);
 
                     groupInfoController.setOnBack(onBack);
 

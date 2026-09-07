@@ -1,6 +1,7 @@
 package com.chatappfrontend.frontend.cell;
 
 import com.chatappfrontend.frontend.model.ParticipantDTO;
+import com.chatappfrontend.frontend.util.AvatarUtils;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -34,9 +35,13 @@ public class AddParticipantToGroupCell extends ListCell<ParticipantDTO> {
 
         String displayName = participant.getName() + " " + participant.getSurname();
 
-        Label avatar = new Label(participant.getName().substring(0, 1).toUpperCase());
+        String initials = participant.getName().substring(0, 1).toUpperCase() + participant.getSurname().substring(0, 1).toUpperCase();
 
-        avatar.setStyle("-fx-background-color: #00ff88; -fx-text-fill: black; -fx-font-weight: bold; -fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 20; -fx-alignment: center;");
+        Label avatar = new Label(initials);
+
+        avatar.setStyle("-fx-background-color: #00ff88; -fx-text-fill: black; -fx-font-weight: bold; -fx-min-width: 40; -fx-min-height: 40; -fx-max-width: 40; -fx-max-height: 40; -fx-background-radius: 20; -fx-alignment: center;");
+
+        AvatarUtils.applyAvatar(avatar, participant.getProfilePicture(), initials, true, 40);
 
         Label nameLabel = new Label(displayName);
 

@@ -9,6 +9,7 @@ import com.chatappfrontend.frontend.util.SessionManager;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.Setter;
 
 import java.net.URI;

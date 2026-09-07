@@ -11,6 +11,7 @@ public class MessageResponseDTO {
     private Long id;
     private Long senderId;
     private String senderName;
+    private String senderSurname;
     private String senderNickname;
     private String senderProfilePicture;
     private String message;

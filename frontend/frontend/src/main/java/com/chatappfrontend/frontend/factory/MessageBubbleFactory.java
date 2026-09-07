@@ -1,6 +1,7 @@
 package com.chatappfrontend.frontend.factory;
 
 import com.chatappfrontend.frontend.model.MessageResponseDTO;
+import com.chatappfrontend.frontend.util.AvatarUtils;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.ContextMenu;
@@ -99,9 +100,13 @@ public class MessageBubbleFactory {
         }
 
         if(!isMyMessage && isGroup){
-            Label avatar = new Label(message.getSenderName().substring(0, 1).toUpperCase());
+            Label avatar = new Label();
+
+            String initials = message.getSenderName().substring(0, 1).toUpperCase() + message.getSenderSurname().substring(0, 1).toUpperCase();
 
             avatar.setStyle("-fx-background-color: #000000FF; -fx-text-fill: #00ff88; -fx-font-weight: bold; -fx-min-width: 30; -fx-min-height: 30; -fx-max-width: 30; -fx-max-height: 30; -fx-background-radius: 50; -fx-alignment: center;");
+
+            AvatarUtils.applyAvatar(avatar, message.getSenderProfilePicture(), initials, true, 30);
 
             hBox.setSpacing(8);
             hBox.getChildren().add(avatar);

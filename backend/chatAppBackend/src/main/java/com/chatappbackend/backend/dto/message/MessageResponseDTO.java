@@ -10,6 +10,7 @@ public class MessageResponseDTO {
     private Long senderId;
     private String senderName;
     private String senderNickname;
+    private String senderSurname;
     private String senderProfilePicture;
     private String message;
     private String status;

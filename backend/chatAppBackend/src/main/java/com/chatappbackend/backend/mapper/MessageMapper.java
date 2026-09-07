@@ -16,6 +16,7 @@ public class MessageMapper {
         response.setStatus(message.getStatus());
         response.setSenderId(message.getSender().getId());
         response.setSenderName(message.getSender().getName());
+        response.setSenderSurname(message.getSender().getSurname());
         response.setSenderNickname(message.getSender().getNickname());
         response.setSenderProfilePicture(message.getSender().getProfilePicture());
         response.setEditedAt(message.getEditedAt());
