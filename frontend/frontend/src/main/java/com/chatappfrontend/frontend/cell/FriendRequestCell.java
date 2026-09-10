@@ -2,6 +2,7 @@ package com.chatappfrontend.frontend.cell;
 
 import com.chatappfrontend.frontend.model.FriendResponseDTO;
 import com.chatappfrontend.frontend.service.FriendService;
+import com.chatappfrontend.frontend.util.AvatarUtils;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -37,6 +38,10 @@ public class FriendRequestCell extends ListCell<FriendResponseDTO> {
 
         Label avatar = new Label(displayName.substring(0, 1).toUpperCase());
         avatar.setStyle("-fx-background-color: #00ff88; -fx-text-fill: black; -fx-font-weight: bold; -fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 20; -fx-alignment: center;");
+
+        String initials = friend.getName().substring(0, 1) + friend.getSurname().substring(0, 1);
+
+        AvatarUtils.applyAvatar(avatar, friend.getProfilePicture(), initials, true, 40);
 
         Label nameLabel = new Label(displayName);
         nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px;");

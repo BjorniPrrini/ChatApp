@@ -2,6 +2,7 @@ package com.chatappfrontend.frontend.cell;
 
 import com.chatappfrontend.frontend.model.UserResponseDTO;
 import com.chatappfrontend.frontend.service.FriendService;
+import com.chatappfrontend.frontend.util.AvatarUtils;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -41,6 +42,9 @@ public class UserCell extends ListCell<UserResponseDTO>{
         Label avatar = new Label(user.getName().substring(0, 1).toUpperCase() + user.getSurname().substring(0, 1).toUpperCase());
         avatar.setStyle("-fx-background-color: #00ff88; -fx-text-fill: black; -fx-font-weight: bold; -fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 20; -fx-alignment: center;");
 
+        String initials = user.getName().substring(0, 1) + user.getSurname().substring(0, 1);
+
+        AvatarUtils.applyAvatar(avatar, user.getProfilePicture(), initials, true, 40);
 
         Label nameLabel = new Label(displayName);
         nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");

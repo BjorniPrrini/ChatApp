@@ -1,6 +1,7 @@
 package com.chatappfrontend.frontend.cell;
 
 import com.chatappfrontend.frontend.model.FriendResponseDTO;
+import com.chatappfrontend.frontend.util.AvatarUtils;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -26,6 +27,7 @@ public class BlockedUserCell extends ListCell<FriendResponseDTO> {
 
         if(empty || user == null){
             setGraphic(null);
+
             setStyle("-fx-background-color: transparent;");
 
             return;
@@ -36,6 +38,10 @@ public class BlockedUserCell extends ListCell<FriendResponseDTO> {
         Label avatar = new Label(displayName.substring(0, 1).toUpperCase());
 
         avatar.setStyle("-fx-background-color: #555555; -fx-text-fill: white; -fx-font-weight: bold; " + "-fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 20; -fx-alignment: center;");
+
+        String initials = user.getName().substring(0, 1) + user.getSurname().substring(0, 1);
+
+        AvatarUtils.applyAvatar(avatar, user.getProfilePicture(), initials, false, 40);
 
         Label nameLabel = new Label(displayName);
 

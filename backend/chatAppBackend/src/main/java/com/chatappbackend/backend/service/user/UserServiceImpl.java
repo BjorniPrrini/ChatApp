@@ -105,7 +105,13 @@ public class UserServiceImpl implements UserService{
 
         String originalFilename = file.getOriginalFilename();
 
-        String extension = originalFilename.substring(originalFilename.lastIndexOf(".")).replaceAll("[^a-zA-Z0-9.]", "");
+        if(originalFilename == null || originalFilename.isBlank()){
+            throw new BadRequestException("Invalid file");
+        }
+
+        int dotIndex = originalFilename.lastIndexOf(".");
+
+        String extension = dotIndex == -1 ? "" : originalFilename.substring(dotIndex).replaceAll("[^a-zA-Z0-9.]", "");
 
         String generatedName = UUID.randomUUID() + extension;
 
@@ -123,7 +129,7 @@ public class UserServiceImpl implements UserService{
             }
 
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
+        } catch (IOException _) {
             throw new BadRequestException("Failed to save file");
         }
 

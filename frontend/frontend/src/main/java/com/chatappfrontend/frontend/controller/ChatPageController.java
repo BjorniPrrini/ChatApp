@@ -283,7 +283,13 @@ public class ChatPageController {
 
     @FXML
     public void handleProfilePicture(){
+        try {
+            UploadProfilePictureController controller = SceneManager.switchContent(contentPane, "upload-profile-picture.fxml");
 
+            controller.loadProfilePicture();
+        } catch (Exception _) {
+            AlertUtils.showError(notificationLabel, "Couldn't load upload profile picture page");
+        }
     }
 
     @FXML

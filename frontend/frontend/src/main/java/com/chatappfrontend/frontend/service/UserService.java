@@ -9,16 +9,21 @@ import com.chatappfrontend.frontend.util.SessionManager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import okhttp3.*;
+
+import java.io.File;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Files;
 import java.util.List;
 
 public class UserService {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper objectMapper = JsonMapper.get();
     private static final String BASE_URL = AppConfig.get("api.base.url") + "/api/users";
+    private final OkHttpClient okHttpClient = new OkHttpClient();
 
     public List<UserResponseDTO> searchUsers(String searchTerm) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
@@ -100,5 +105,30 @@ public class UserService {
         }
 
         ApiExceptionHandler.handle(response);
+    }
+
+    public UserResponseDTO updateProfilePicture(File file) throws Exception {
+        String mimeType = Files.probeContentType(file.toPath());
+
+        RequestBody body = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("file", file.getName(), RequestBody.create(file, MediaType.parse(mimeType)))
+                .build();
+
+        Request request = new Request.Builder()
+                .url(BASE_URL + "/profile-picture")
+                .header("Authorization", "Bearer " + SessionManager.getInstance().getToken())
+                .put(body)
+                .build();
+
+        try (Response response = okHttpClient.newCall(request).execute()) {
+            if(response.isSuccessful()){
+                return objectMapper.readValue(response.body().string(), UserResponseDTO.class);
+            }
+
+            ApiExceptionHandler.handle(response);
+        }
+
+        return null;
     }
 }

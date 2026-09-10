@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.chatappfrontend.frontend.controller.UploadProfilePictureController" stylesheets="@../styles/main.css" spacing="15" alignment="TOP_CENTER">
+    <padding>
+        <Insets top="15" left="10" right="10" bottom="10"/>
+    </padding>
+
+    <Label text="Profile Picture" styleClass="panel-title"/>
+
+    <Label fx:id="profilePictureView" styleClass="avatar-label" minWidth="300" minHeight="300" maxWidth="500" maxHeight="500" alignment="CENTER"/>
+
+    <Button fx:id="changePictureButton" text="Choose Picture" styleClass="settings-button" onAction="#handleChangePicture"/>
+
+    <Button fx:id="uploadButton" text="Upload" styleClass="primary-button" onAction="#handleUpload"/>
+
+    <Label fx:id="errorLabel" visible="false" managed="false" styleClass="error-label"/>
+</VBox>

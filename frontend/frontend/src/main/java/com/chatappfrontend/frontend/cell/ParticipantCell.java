@@ -1,6 +1,7 @@
 package com.chatappfrontend.frontend.cell;
 
 import com.chatappfrontend.frontend.model.ParticipantDTO;
+import com.chatappfrontend.frontend.util.AvatarUtils;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -39,6 +40,10 @@ public class ParticipantCell extends ListCell<ParticipantDTO> {
         Label avatar = new Label(participant.getName().substring(0, 1).toUpperCase());
 
         avatar.setStyle("-fx-background-color: #00ff88; -fx-text-fill: black; -fx-font-weight: bold; -fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 20; -fx-alignment: center;");
+
+        String initials = participant.getName().substring(0, 1) + participant.getSurname().substring(0, 1);
+
+        AvatarUtils.applyAvatar(avatar, participant.getProfilePicture(), initials, true, 40);
 
         Label nameLabel = new Label(participant.getName() + " " + participant.getSurname());
 
