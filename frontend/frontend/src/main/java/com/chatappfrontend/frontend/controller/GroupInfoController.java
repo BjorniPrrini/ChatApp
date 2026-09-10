@@ -152,6 +152,20 @@ public class GroupInfoController {
         }
 
         selectedGroupPicture = selectedFile;
+
+        Image image = new Image(selectedFile.toURI().toString());
+
+        ImageView imageView = new ImageView(image);
+
+        imageView.setFitWidth(300);
+        imageView.setFitHeight(300);
+        imageView.setPreserveRatio(false);
+
+        Circle clip = new Circle(150, 150, 150);
+
+        imageView.setClip(clip);
+
+        groupPictureView.setGraphic(imageView);
     }
 
     @FXML
@@ -183,6 +197,8 @@ public class GroupInfoController {
         }
     }
 
+    ConversationResponseDTO updatedConversation;
+
     @FXML
     public void handleSave(){
         String groupName = groupNameField.getText().trim();
@@ -190,7 +206,7 @@ public class GroupInfoController {
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                conversationService.updateGroupInfo(currentConversationId, groupName, selectedGroupPicture);
+                updatedConversation = conversationService.updateGroupInfo(currentConversationId, groupName, selectedGroupPicture);
 
                 return null;
             }
@@ -202,18 +218,18 @@ public class GroupInfoController {
 
                 ImageView imageView = new ImageView(image);
 
-                imageView.setFitWidth(50);
-                imageView.setFitHeight(50);
+                imageView.setFitWidth(300);
+                imageView.setFitHeight(300);
                 imageView.setPreserveRatio(true);
 
-                Circle clip = new Circle(25, 25, 25);
+                Circle clip = new Circle(150, 150, 150);
 
                 imageView.setClip(clip);
 
                 groupPictureView.setGraphic(imageView);
             }
 
-            onGroupUpdated.accept(currentConversationId, groupName, selectedGroupPicture != null ? selectedGroupPicture.getName() : null);
+            onGroupUpdated.accept(currentConversationId, groupName, selectedGroupPicture != null ? updatedConversation.getGroupPicture() : null);
         });
 
         task.setOnFailed(_ -> AlertUtils.showError(errorLabel, "Couldn't save changes"));

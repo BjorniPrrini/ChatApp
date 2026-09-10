@@ -17,7 +17,7 @@ public interface ConversationService {
     ParticipantDTO addParticipant(Long userId, Long addedUserId, Long conversationId);
     void demoteAdminToUser(Long userId, Long demoteUserId, Long conversationId);
     void promoteUserToAdmin(Long userId, Long promoteUserId, Long conversationId);
-    void updateGroupDetails(Long conversationId, Long userId, String groupName, MultipartFile groupPicture);
+    ConversationResponseDTO updateGroupDetails(Long conversationId, Long userId, String groupName, MultipartFile groupPicture);
     Boolean isAdmin(Long id, Long conversationId);
     List<ParticipantDTO> getFriendsNotInGroup(Long userId, Long conversationId);
     void allowParticipantsInvite(Long conversationId, Long userId, boolean allow);

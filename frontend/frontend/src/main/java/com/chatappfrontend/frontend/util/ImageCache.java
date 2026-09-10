@@ -98,7 +98,7 @@ public class ImageCache {
         Task<Image> task = new Task<>() {
             @Override
             protected Image call() {
-                return new Image(BASE_URL + "/" + path, size, size, false, false);
+                return new Image(BASE_URL + "/" + path, size, size, false, true);
             }
         };
 

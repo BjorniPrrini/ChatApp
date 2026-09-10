@@ -197,7 +197,7 @@ public class ConversationService {
         ApiExceptionHandler.handle(response);
     }
 
-    public void updateGroupInfo(Long conversationId, String groupName, File groupPicture) throws Exception {
+    public ConversationResponseDTO updateGroupInfo(Long conversationId, String groupName, File groupPicture) throws Exception {
         MultipartBody.Builder bodyBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
 
         if(groupName != null){
@@ -220,11 +220,13 @@ public class ConversationService {
 
         try (Response response = okHttpClient.newCall(request).execute()) {
             if(response.isSuccessful()){
-                return;
+                return objectMapper.readValue(response.body().string(), ConversationResponseDTO.class);
             }
 
             ApiExceptionHandler.handle(response);
         }
+
+        return null;
     }
 
     public Boolean isAdmin(Long conversationId) throws Exception {

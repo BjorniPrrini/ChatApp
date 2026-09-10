@@ -2,6 +2,7 @@ package com.chatappfrontend.frontend.cell;
 
 import com.chatappfrontend.frontend.model.ConversationResponseDTO;
 import com.chatappfrontend.frontend.model.ParticipantDTO;
+import com.chatappfrontend.frontend.util.AvatarUtils;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.ContextMenu;
@@ -34,18 +35,25 @@ public class ConversationCell extends ListCell<ConversationResponseDTO> {
 
         String displayName;
         String borderColor;
+        String profilePicturePath;
 
         if(conversation.isGroup()){
             displayName = conversation.getGroupName();
+
+            profilePicturePath = conversation.getGroupPicture();
+
             borderColor = "#424141";
         }else{
             ParticipantDTO otherUser = conversation.getParticipants().getFirst();
 
             displayName = otherUser.getName().substring(0, 1).toUpperCase() + otherUser.getName().substring(1).toLowerCase() + " " + otherUser.getSurname().substring(0, 1).toUpperCase() + otherUser.getSurname().substring(1).toLowerCase();
+
+            profilePicturePath = otherUser.getProfilePicture();
+
             borderColor = otherUser.isOnline() ? "#00ff88" : "#424141";
         }
 
-        HBox cell = buildCell(conversation, displayName, borderColor);
+        HBox cell = buildCell(conversation, displayName, profilePicturePath, borderColor);
 
         cell.setAlignment(Pos.CENTER_LEFT);
         cell.setStyle("-fx-padding: 8 5;");
@@ -54,10 +62,14 @@ public class ConversationCell extends ListCell<ConversationResponseDTO> {
         setStyle("-fx-background-color: transparent;");
     }
 
-    private HBox buildCell(ConversationResponseDTO conversation, String displayName, String borderColor){
-        Label avatar = new Label(displayName.substring(0, 1).toUpperCase());
+    private HBox buildCell(ConversationResponseDTO conversation, String displayName, String profilePicturePath, String borderColor){
+        Label avatar = new Label();
+
+        String initial = displayName.substring(0, 1);
 
         avatar.setStyle("-fx-background-color: #000000FF; -fx-text-fill: #00ff88; -fx-font-weight: bold; -fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 50; -fx-alignment: center; -fx-border-color: " + borderColor + "; -fx-border-radius: 20; -fx-border-width: 2;");
+
+        AvatarUtils.applyAvatar(avatar, profilePicturePath, initial, true, 40);
 
         Label nameLabel = new Label(displayName);
 

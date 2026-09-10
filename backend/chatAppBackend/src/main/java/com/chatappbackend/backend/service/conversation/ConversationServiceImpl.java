@@ -192,7 +192,7 @@ public class ConversationServiceImpl implements ConversationService{
         conversation.setCreatedAt(LocalDateTime.now());
         conversation.setIsGroup(true);
         conversation.setName(request.getGroupName());
-        conversation.setGroupPicture(request.getGroupPicture());
+        conversation.setGroupPicture("uploads/groupAvatars/" + request.getGroupPicture());
 
         Conversation savedConversation = conversationRepository.save(conversation);
 
@@ -371,7 +371,7 @@ public class ConversationServiceImpl implements ConversationService{
     }
 
     @Override
-    public void updateGroupDetails(Long conversationId, Long userId, String groupName, MultipartFile groupPicture) {
+    public ConversationResponseDTO updateGroupDetails(Long conversationId, Long userId, String groupName, MultipartFile groupPicture) {
         ConversationParticipant user = conversationParticipantRepository.findByConversationIdAndUserId(conversationId, userId).orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
 
@@ -412,6 +412,8 @@ public class ConversationServiceImpl implements ConversationService{
         }
 
         conversationRepository.save(conversation);
+
+        return conversationMapper.toConversationResponseDTO(conversation, List.of(), getLastMessage(conversationId));
     }
 
     @Override

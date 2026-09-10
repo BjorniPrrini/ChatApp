@@ -86,10 +86,8 @@ public class ConversationController {
     }
 
     @PatchMapping("/conversation/{conversationId}")
-    public ResponseEntity<Void> updateGroupInfo(@PathVariable Long conversationId, @RequestParam(required = false) String groupName, @RequestParam(required = false) MultipartFile groupPicture){
-        service.updateGroupDetails(conversationId, getUser().getId(), groupName, groupPicture);
-
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ConversationResponseDTO> updateGroupInfo(@PathVariable Long conversationId, @RequestParam(required = false) String groupName, @RequestParam(required = false) MultipartFile groupPicture){
+        return ResponseEntity.ok(service.updateGroupDetails(conversationId, getUser().getId(), groupName, groupPicture));
     }
 
     @GetMapping("/conversation/{conversationId}/participant/self")
