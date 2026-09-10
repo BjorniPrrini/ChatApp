@@ -37,15 +37,15 @@ build/
 .env
 
 ### Uploads ###
-backend/uploads/*
-!backend/uploads/attachments/
-!backend/uploads/avatars/
-!backend/uploads/groupAvatars/
+backend/chatAppBackend/uploads/*
+!backend/chatAppBackend/uploads/attachments/
+!backend/chatAppBackend/uploads/avatars/
+!backend/chatAppBackend/uploads/groupAvatars/
 
-backend/uploads/attachments/*
-backend/uploads/avatars/*
-backend/uploads/groupAvatars/*
+backend/chatAppBackend/uploads/attachments/*
+backend/chatAppBackend/uploads/avatars/*
+backend/chatAppBackend/uploads/groupAvatars/*
 
-!backend/uploads/attachments/.gitkeep
-!backend/uploads/avatars/.gitkeep
-!backend/uploads/groupAvatars/.gitkeep
+!backend/chatAppBackend/uploads/attachments/.gitkeep
+!backend/chatAppBackend/uploads/avatars/.gitkeep
+!backend/chatAppBackend/uploads/groupAvatars/.gitkeep
