@@ -42,7 +42,7 @@ public class ConversationCell extends ListCell<ConversationResponseDTO> {
 
             profilePicturePath = conversation.getGroupPicture();
 
-            borderColor = "#424141";
+            borderColor = "-app-border-strong";
         }else{
             ParticipantDTO otherUser = conversation.getParticipants().getFirst();
 
@@ -50,7 +50,7 @@ public class ConversationCell extends ListCell<ConversationResponseDTO> {
 
             profilePicturePath = otherUser.getProfilePicture();
 
-            borderColor = otherUser.isOnline() ? "#00ff88" : "#424141";
+            borderColor = otherUser.isOnline() ? "-app-accent" : "-app-border-strong";
         }
 
         HBox cell = buildCell(conversation, displayName, profilePicturePath, borderColor);
@@ -67,19 +67,19 @@ public class ConversationCell extends ListCell<ConversationResponseDTO> {
 
         String initial = displayName.substring(0, 1);
 
-        avatar.setStyle("-fx-background-color: #000000FF; -fx-text-fill: #00ff88; -fx-font-weight: bold; -fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 50; -fx-alignment: center; -fx-border-color: " + borderColor + "; -fx-border-radius: 20; -fx-border-width: 2;");
+        avatar.setStyle("-fx-background-color: -app-bg; -fx-text-fill: -app-accent; -fx-font-weight: bold; -fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 50; -fx-alignment: center; -fx-border-color: " + borderColor + "; -fx-border-radius: 20; -fx-border-width: 2;");
 
         AvatarUtils.applyAvatar(avatar, profilePicturePath, initial, true, 40);
 
         Label nameLabel = new Label(displayName);
 
-        nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px;");
+        nameLabel.setStyle("-fx-text-fill: -app-text; -fx-font-weight: bold; -fx-font-size: 13px;");
 
         String lastMsg = conversation.getLastMessage() != null ? conversation.getLastMessage() : "No messages yet";
 
         Label lastMessageLabel = new Label(lastMsg);
 
-        lastMessageLabel.setStyle("-fx-text-fill: #888888; -fx-font-size: 11px;");
+        lastMessageLabel.setStyle("-fx-text-fill: -app-text-muted; -fx-font-size: 11px;");
 
         VBox textBox = new VBox(3, nameLabel, lastMessageLabel);
 

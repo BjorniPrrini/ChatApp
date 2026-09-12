@@ -39,7 +39,7 @@ public class ParticipantCell extends ListCell<ParticipantDTO> {
 
         Label avatar = new Label(participant.getName().substring(0, 1).toUpperCase());
 
-        avatar.setStyle("-fx-background-color: #00ff88; -fx-text-fill: black; -fx-font-weight: bold; -fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 20; -fx-alignment: center;");
+        avatar.setStyle("-fx-background-color: -app-accent; -fx-text-fill: black; -fx-font-weight: bold; -fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 20; -fx-alignment: center;");
 
         String initials = participant.getName().substring(0, 1) + participant.getSurname().substring(0, 1);
 
@@ -47,11 +47,11 @@ public class ParticipantCell extends ListCell<ParticipantDTO> {
 
         Label nameLabel = new Label(participant.getName() + " " + participant.getSurname());
 
-        nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px;");
+        nameLabel.setStyle("-fx-text-fill: -app-text; -fx-font-weight: bold; -fx-font-size: 13px;");
 
         Label nicknameLabel = new Label(participant.getNickname());
 
-        nicknameLabel.setStyle("-fx-text-fill: #888888; -fx-font-size: 11px;");
+        nicknameLabel.setStyle("-fx-text-fill: -app-text-muted; -fx-font-size: 11px;");
 
         VBox textBox = new VBox(3, nameLabel, nicknameLabel);
 
@@ -63,8 +63,7 @@ public class ParticipantCell extends ListCell<ParticipantDTO> {
         if(viewerIsAdmin){
             Button openMenu = new Button("...");
 
-            openMenu.setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ff4444; -fx-border-color: #ff4444; -fx-border-radius: 5; -fx-background-radius: 5; -fx-cursor: hand; -fx-min-width: 35;");
-
+            openMenu.setStyle("-fx-background-color: -app-bg-input; -fx-text-fill: -app-danger; -fx-border-color: -app-danger; -fx-border-radius: 5; -fx-background-radius: 5; -fx-cursor: hand; -fx-min-width: 35;");
             openMenu.setOnAction(_ -> {
                 ContextMenu contextMenu = new ContextMenu();
 

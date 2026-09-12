@@ -37,21 +37,21 @@ public class FriendRequestCell extends ListCell<FriendResponseDTO> {
         String displayName = friend.getName().substring(0, 1).toUpperCase() + friend.getName().substring(1).toLowerCase() + " " + friend.getSurname().substring(0, 1).toUpperCase() + friend.getSurname().substring(1).toLowerCase();
 
         Label avatar = new Label(displayName.substring(0, 1).toUpperCase());
-        avatar.setStyle("-fx-background-color: #00ff88; -fx-text-fill: black; -fx-font-weight: bold; -fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 20; -fx-alignment: center;");
+        avatar.setStyle("-fx-background-color: -app-accent; -fx-text-fill: black; -fx-font-weight: bold; -fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 20; -fx-alignment: center;");
 
         String initials = friend.getName().substring(0, 1) + friend.getSurname().substring(0, 1);
 
         AvatarUtils.applyAvatar(avatar, friend.getProfilePicture(), initials, true, 40);
 
         Label nameLabel = new Label(displayName);
-        nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px;");
+        nameLabel.setStyle("-fx-text-fill: -app-text; -fx-font-weight: bold; -fx-font-size: 13px;");
 
         nameLabel.setWrapText(false);
         nameLabel.setMaxWidth(150);
         nameLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
 
         Label subtitleLabel = new Label("wants to connect");
-        subtitleLabel.setStyle("-fx-text-fill: #888888; -fx-font-size: 11px;");
+        subtitleLabel.setStyle("-fx-text-fill: -app-text-muted; -fx-font-size: 11px;");
 
         VBox textBox = new VBox(3, nameLabel, subtitleLabel);
 
@@ -59,11 +59,10 @@ public class FriendRequestCell extends ListCell<FriendResponseDTO> {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button acceptButton = new Button("✓");
-        acceptButton.setStyle("-fx-background-color: #00ff88; -fx-text-fill: black; -fx-background-radius: 5; -fx-cursor: hand; -fx-font-weight: bold; -fx-min-width: 35;");
+        acceptButton.setStyle("-fx-background-color: -app-accent; -fx-text-fill: black; -fx-background-radius: 5; -fx-cursor: hand; -fx-font-weight: bold; -fx-min-width: 35;");
 
         Button rejectButton = new Button("✗");
-        rejectButton.setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ff4444; -fx-border-color: #ff4444; -fx-border-radius: 5; -fx-background-radius: 5; -fx-cursor: hand; -fx-min-width: 35;");
-
+        rejectButton.setStyle("-fx-background-color: -app-bg-input; -fx-text-fill: -app-danger; -fx-border-color: -app-danger; -fx-border-radius: 5; -fx-background-radius: 5; -fx-cursor: hand; -fx-min-width: 35;");
         acceptButton.setOnAction(_ -> {
             try {
                 friendService.acceptFriendRequest(friend.getSenderId());

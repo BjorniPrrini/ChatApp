@@ -22,13 +22,13 @@ public class SelectFriendCellDM extends ListCell<FriendResponseDTO> {
 
         Label nameLabel = new Label(friend.getName() + " " + friend.getSurname());
 
-        nameLabel.setStyle("-fx-text-fill: white");
+        nameLabel.setStyle("-fx-text-fill: -app-text;");
 
         HBox box = new HBox(nameLabel);
 
         box.setAlignment(Pos.CENTER_LEFT);
 
-        box.setStyle("-fx-padding: 10; -fx-background-color: #222222; -fx-background-radius: 8;");
+        box.setStyle("-fx-padding: 10; -fx-background-color: -app-bg-input; -fx-background-radius: 8;");
 
         setGraphic(box);
 

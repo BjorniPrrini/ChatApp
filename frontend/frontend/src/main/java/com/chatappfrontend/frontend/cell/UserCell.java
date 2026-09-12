@@ -40,14 +40,14 @@ public class UserCell extends ListCell<UserResponseDTO>{
         String displayName = user.getName().substring(0, 1).toUpperCase() + user.getName().substring(1).toLowerCase() + " " + user.getSurname().substring(0, 1).toUpperCase() + user.getSurname().substring(1).toLowerCase();
 
         Label avatar = new Label(user.getName().substring(0, 1).toUpperCase() + user.getSurname().substring(0, 1).toUpperCase());
-        avatar.setStyle("-fx-background-color: #00ff88; -fx-text-fill: black; -fx-font-weight: bold; -fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 20; -fx-alignment: center;");
+        avatar.setStyle("-fx-background-color: -app-accent; -fx-text-fill: black; -fx-font-weight: bold; -fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 20; -fx-alignment: center;");
 
         String initials = user.getName().substring(0, 1) + user.getSurname().substring(0, 1);
 
         AvatarUtils.applyAvatar(avatar, user.getProfilePicture(), initials, true, 40);
 
         Label nameLabel = new Label(displayName);
-        nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        nameLabel.setStyle("-fx-text-fill: -app-text; -fx-font-weight: bold;");
 
         nameLabel.setWrapText(false);
         nameLabel.setMaxWidth(150);
@@ -55,7 +55,7 @@ public class UserCell extends ListCell<UserResponseDTO>{
 
         Label nicknameLabel = new Label("@" + (user.getNickname() != null ? user.getNickname() : ""));
 
-        nicknameLabel.setStyle("-fx-text-fill: #888888; -fx-font-size: 11px;");
+        nicknameLabel.setStyle("-fx-text-fill: -app-text-muted; -fx-font-size: 11px;");
 
         VBox textBox = new VBox(3, nameLabel, nicknameLabel);
 
@@ -67,14 +67,14 @@ public class UserCell extends ListCell<UserResponseDTO>{
         if(friendIds.contains(user.getId())){
             addButton.setText("Friends");
             addButton.setDisable(true);
-            addButton.setStyle("-fx-background-color: #333333; -fx-text-fill: #888888; -fx-background-radius: 5;");
+            addButton.setStyle("-fx-background-color: -app-bg-disabled; -fx-text-fill: -app-text-muted; -fx-background-radius: 5;");
         }else if(pendingIds.contains(user.getId())){
             addButton.setText("Pending");
             addButton.setDisable(true);
-            addButton.setStyle("-fx-background-color: #ff9900; -fx-text-fill: black; -fx-background-radius: 5;");
+            addButton.setStyle("-fx-background-color: -app-pending; -fx-text-fill: black; -fx-background-radius: 5;");
         }else{
             addButton.setText("Add");
-            addButton.setStyle("-fx-background-color: #00ff88; -fx-text-fill: black; -fx-background-radius: 5; -fx-cursor: hand;");
+            addButton.setStyle("-fx-background-color: -app-accent; -fx-text-fill: black; -fx-background-radius: 5; -fx-cursor: hand;");
         }
 
         addButton.setOnAction(_ -> {
@@ -85,7 +85,7 @@ public class UserCell extends ListCell<UserResponseDTO>{
                 friendService.sendFriendRequest(user.getId());
 
                 addButton.setText("Sent");
-                addButton.setStyle("-fx-background-color: #333333; -fx-text-fill: #888888; -fx-background-radius: 5;");
+                addButton.setStyle("-fx-background-color: -app-bg-disabled; -fx-text-fill: -app-text-muted; -fx-background-radius: 5;");
             } catch(Exception e) {
                 addButton.setDisable(false);
                 addButton.setText("Error");

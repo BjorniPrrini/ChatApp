@@ -170,7 +170,7 @@ public class LoginController {
             HBox row = new HBox(10, emailLabel, removeButton);
 
             row.setAlignment(Pos.CENTER_LEFT);
-            row.setMaxWidth(300);
+            row.setPrefWidth(300);
 
             CustomMenuItem menuItem = new CustomMenuItem(row);
 

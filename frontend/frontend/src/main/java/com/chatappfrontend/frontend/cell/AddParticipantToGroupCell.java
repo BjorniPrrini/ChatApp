@@ -39,13 +39,13 @@ public class AddParticipantToGroupCell extends ListCell<ParticipantDTO> {
 
         Label avatar = new Label(initials);
 
-        avatar.setStyle("-fx-background-color: #00ff88; -fx-text-fill: black; -fx-font-weight: bold; -fx-min-width: 40; -fx-min-height: 40; -fx-max-width: 40; -fx-max-height: 40; -fx-background-radius: 20; -fx-alignment: center;");
+        avatar.setStyle("-fx-background-color: -app-accent; -fx-text-fill: black; -fx-font-weight: bold; -fx-min-width: 40; -fx-min-height: 40; -fx-max-width: 40; -fx-max-height: 40; -fx-background-radius: 20; -fx-alignment: center;");
 
         AvatarUtils.applyAvatar(avatar, participant.getProfilePicture(), initials, true, 40);
 
         Label nameLabel = new Label(displayName);
 
-        nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px;");
+        nameLabel.setStyle("-fx-text-fill: -app-text; -fx-font-weight: bold; -fx-font-size: 13px;");
 
         nameLabel.setWrapText(false);
         nameLabel.setMaxWidth(150);
@@ -56,7 +56,7 @@ public class AddParticipantToGroupCell extends ListCell<ParticipantDTO> {
 
         Button addButton = new Button("Add");
 
-        addButton.setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ff4444; -fx-border-color: #ff4444; -fx-border-radius: 5; -fx-background-radius: 5; -fx-cursor: hand; -fx-min-width: 35;");
+        addButton.setStyle("-fx-background-color: -app-bg-input; -fx-text-fill: -app-danger; -fx-border-color: -app-danger; -fx-border-radius: 5; -fx-background-radius: 5; -fx-cursor: hand; -fx-min-width: 35;");
 
         addButton.setOnAction(_ -> onAdd.accept(participant.getUserId()));
 

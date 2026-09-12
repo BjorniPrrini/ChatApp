@@ -35,7 +35,7 @@ public class SelectFriendCellGroup extends ListCell<FriendResponseDTO> {
 
         Label nameLabel = new Label(friend.getName() + " " + friend.getSurname());
 
-        nameLabel.setStyle("-fx-text-fill: white");
+        nameLabel.setStyle("-fx-text-fill: -app-text;");
 
         HBox box = new HBox(nameLabel);
 
@@ -63,9 +63,9 @@ public class SelectFriendCellGroup extends ListCell<FriendResponseDTO> {
 
     private void applyStyle(HBox box, FriendResponseDTO friend){
         if(selectedFriends.contains(friend)){
-            box.setStyle("-fx-padding: 10; -fx-background-color: #222222; -fx-background-radius: 8; -fx-border-color: #00ff88; -fx-border-width: 2; -fx-border-radius: 8; -fx-effect: dropshadow(gaussian, #00ff88, 2, 0.5, 0, 0);");
+            box.setStyle("-fx-padding: 10; -fx-background-color: -app-bg-input; -fx-background-radius: 8; -fx-border-color: -app-accent; -fx-border-width: 2; -fx-border-radius: 8; -fx-effect: dropshadow(gaussian, -app-accent-glow, 2, 0.5, 0, 0);");
         }else{
-            box.setStyle("-fx-padding: 10; -fx-background-color: #222222; -fx-background-radius: 8;");
+            box.setStyle("-fx-padding: 10; -fx-background-color: -app-bg-input; -fx-background-radius: 8;");
         }
     }
 }

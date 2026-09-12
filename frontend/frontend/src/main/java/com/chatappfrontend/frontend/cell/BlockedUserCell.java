@@ -37,7 +37,7 @@ public class BlockedUserCell extends ListCell<FriendResponseDTO> {
 
         Label avatar = new Label(displayName.substring(0, 1).toUpperCase());
 
-        avatar.setStyle("-fx-background-color: #555555; -fx-text-fill: white; -fx-font-weight: bold; " + "-fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 20; -fx-alignment: center;");
+        avatar.setStyle("-fx-background-color: -app-bg-disabled; -fx-text-fill: -app-text; -fx-font-weight: bold; " + "-fx-min-width: 40; -fx-min-height: 40; -fx-background-radius: 20; -fx-alignment: center;");
 
         String initials = user.getName().substring(0, 1) + user.getSurname().substring(0, 1);
 
@@ -45,7 +45,7 @@ public class BlockedUserCell extends ListCell<FriendResponseDTO> {
 
         Label nameLabel = new Label(displayName);
 
-        nameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px;");
+        nameLabel.setStyle("-fx-text-fill: -app-text; -fx-font-weight: bold; -fx-font-size: 13px;");
         nameLabel.setWrapText(false);
         nameLabel.setMaxWidth(150);
         nameLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
@@ -56,7 +56,7 @@ public class BlockedUserCell extends ListCell<FriendResponseDTO> {
 
         Button unblockButton = new Button("Unblock");
 
-        unblockButton.setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #00ff88; " + "-fx-border-color: #00ff88; -fx-border-radius: 5; -fx-background-radius: 5; -fx-cursor: hand;");
+        unblockButton.setStyle("-fx-background-color: -app-bg-input; -fx-text-fill: -app-accent; " + "-fx-border-color: -app-accent; -fx-border-radius: 5; -fx-background-radius: 5; -fx-cursor: hand;");
 
         unblockButton.setOnAction(_ -> onUnblock.accept(user.getSenderId()));
 
