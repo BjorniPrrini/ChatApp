@@ -30,9 +30,7 @@ public class UserController {
 
     @PutMapping("/updateProfile")
     public ResponseEntity<UserResponseDTO> changeProfile(@RequestBody UserRequestDTO request){
-        UserResponseDTO response = service.updateProfile(getUser().getId(), request);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(service.updateProfile(getUser().getId(), request));
     }
 
     @GetMapping("/searchUsers")

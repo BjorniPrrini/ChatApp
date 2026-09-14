@@ -20,6 +20,8 @@ public class SceneManager {
 
         Scene scene = new Scene(loader.load());
 
+        ThemeStorage.applyTheme(scene);
+
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
     }

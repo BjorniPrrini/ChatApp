@@ -1,6 +1,8 @@
 package com.chatappfrontend.frontend;
 
 import com.chatappfrontend.frontend.util.SceneManager;
+import com.chatappfrontend.frontend.util.ThemeStorage;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -14,6 +16,8 @@ public class App extends Application {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/chatappfrontend/frontend/views/login-page.fxml"));
 
         Scene scene = new Scene(loader.load());
+
+        ThemeStorage.applyTheme(scene);
 
         stage.setTitle("BP-Chat");
         stage.setScene(scene);

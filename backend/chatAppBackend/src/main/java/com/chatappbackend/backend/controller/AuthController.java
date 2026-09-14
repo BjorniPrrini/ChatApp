@@ -20,16 +20,12 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginRequestDTO request){
-        AuthResponseDTO response = service.login(request);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(service.login(request));
     }
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponseDTO> register(@RequestBody RegisterRequestDTO request){
-        AuthResponseDTO response = service.register(request);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(service.register(request));
     }
 
     @PostMapping("/forgot-password")

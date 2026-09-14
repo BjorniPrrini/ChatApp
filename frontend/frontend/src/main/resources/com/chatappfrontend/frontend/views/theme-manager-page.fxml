@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.chatappfrontend.frontend.controller.ThemeManagerController" stylesheets="@../styles/main.css" spacing="15">
+    <padding>
+        <Insets top="15" left="10" right="10" bottom="10"/>
+    </padding>
+
+    <Label text="Theme" styleClass="panel-title"/>
+
+    <VBox spacing="6">
+        <Label text="Accent color" styleClass="section-title"/>
+        <ColorPicker fx:id="accentColorPicker" onAction="#handlePreviewChange"/>
+    </VBox>
+
+    <VBox spacing="6">
+        <Label text="Panel color" styleClass="section-title"/>
+        <ColorPicker fx:id="panelColorPicker" onAction="#handlePreviewChange"/>
+    </VBox>
+
+    <VBox spacing="6">
+        <Label text="Text color" styleClass="section-title"/>
+        <ColorPicker fx:id="textColorPicker" onAction="#handlePreviewChange"/>
+    </VBox>
+
+    <VBox spacing="6">
+        <Label text="Panel transparency" styleClass="section-title"/>
+
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Slider fx:id="opacitySlider" min="0.3" max="1.0" value="0.95" HBox.hgrow="ALWAYS" onMouseReleased="#handlePreviewChange"/>
+            <Label fx:id="opacityValueLabel" text="95%" minWidth="45"/>
+        </HBox>
+    </VBox>
+
+    <VBox spacing="6" VBox.vgrow="ALWAYS">
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Label text="Background image" styleClass="section-title" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="addBackgroundButton" text="Add Image" styleClass="settings-button" onAction="#handleAddBackground"/>
+        </HBox>
+
+        <ListView fx:id="backgroundList" orientation="HORIZONTAL" styleClass="conversation-list" VBox.vgrow="ALWAYS"/>
+    </VBox>
+
+    <HBox spacing="10">
+        <Button text="Reset to Default" styleClass="settings-button" onAction="#handleReset" HBox.hgrow="ALWAYS"/>
+        <Button text="Apply" styleClass="primary-button" onAction="#handleSave" HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <Label fx:id="errorLabel" visible="false" managed="false" styleClass="error-label"/>
+</VBox>

@@ -3,6 +3,7 @@ package com.chatappbackend.backend.controller;
 import com.chatappbackend.backend.dto.notification.NotificationResponseDTO;
 import com.chatappbackend.backend.entity.User;
 import com.chatappbackend.backend.service.notification.NotificationService;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;

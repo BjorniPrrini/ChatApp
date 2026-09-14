@@ -293,6 +293,15 @@ public class ChatPageController {
     }
 
     @FXML
+    public void handleThemeManager(){
+        try {
+            SceneManager.switchContent(contentPane, "theme-manager-page.fxml");
+        } catch (Exception _) {
+            AlertUtils.showError(notificationLabel, "Couldn't load theme manager page");
+        }
+    }
+
+    @FXML
     public void handleOpenStartChatPopup(){
         try {
             PopupManager.openPopup("Create Conversation", "start-chat-popup.fxml", (StartChatPopupController controller, Stage stage) -> controller.setOnStartConversation(conversation -> {

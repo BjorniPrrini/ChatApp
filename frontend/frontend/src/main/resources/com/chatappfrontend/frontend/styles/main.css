@@ -20,11 +20,7 @@
     -app-danger: #ff4444;
     -app-danger-wash: rgba(255, 68, 68, 0.10);
     -app-success: #44cc44;
-    -app-pending:#ff9900;
-
-    -app-radius-sm: 6px;
-    -app-radius-md: 10px;
-    -app-radius-pill: 999px;
+    -app-pending: #ff9900;
 
     -fx-background-color: -app-bg;
     -fx-font-family: "Segoe UI";
@@ -46,8 +42,8 @@
     -fx-text-fill: -app-text;
     -fx-prompt-text-fill: -app-text-faint;
     -fx-border-color: -app-border-strong;
-    -fx-border-radius: -app-radius-md;
-    -fx-background-radius: -app-radius-md;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
     -fx-padding: 12;
 }
 
@@ -61,8 +57,8 @@
     -fx-text-fill: #000000;
     -fx-font-weight: bold;
     -fx-border-color: transparent;
-    -fx-border-radius: -app-radius-md;
-    -fx-background-radius: -app-radius-md;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
     -fx-padding: 12;
     -fx-cursor: hand;
 }
@@ -109,7 +105,7 @@
     -fx-font-size: 20px;
     -fx-cursor: hand;
     -fx-padding: 10;
-    -fx-background-radius: -app-radius-sm;
+    -fx-background-radius: 6;
 }
 
 .icon-button:hover {
@@ -123,7 +119,7 @@
     -fx-font-size: 20px;
     -fx-cursor: hand;
     -fx-padding: 10;
-    -fx-background-radius: -app-radius-sm;
+    -fx-background-radius: 6;
 }
 
 .logout-button:hover {
@@ -149,8 +145,8 @@
     -fx-text-fill: -app-text;
     -fx-prompt-text-fill: -app-text-faint;
     -fx-border-color: -app-border-strong;
-    -fx-border-radius: -app-radius-pill;
-    -fx-background-radius: -app-radius-pill;
+    -fx-border-radius: 999;
+    -fx-background-radius: 999;
     -fx-padding: 8 14;
 }
 
@@ -163,8 +159,8 @@
     -fx-background-color: -app-bg-input;
     -fx-text-fill: -app-text;
     -fx-border-color: -app-border-strong;
-    -fx-border-radius: -app-radius-md;
-    -fx-background-radius: -app-radius-md;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
     -fx-padding: 10 15;
     -fx-cursor: hand;
     -fx-max-width: infinity;
@@ -212,8 +208,8 @@
     -fx-text-fill: -app-text;
     -fx-prompt-text-fill: -app-text-faint;
     -fx-border-color: -app-border-strong;
-    -fx-border-radius: -app-radius-pill;
-    -fx-background-radius: -app-radius-pill;
+    -fx-border-radius: 999;
+    -fx-background-radius: 999;
     -fx-padding: 10 16;
 }
 
@@ -227,9 +223,9 @@
     -fx-text-fill: -app-danger;
     -fx-border-color: -app-danger;
     -fx-border-width: 1;
-    -fx-border-radius: -app-radius-sm;
+    -fx-border-radius: 6;
     -fx-padding: 8 15;
-    -fx-background-radius: -app-radius-sm;
+    -fx-background-radius: 6;
     -fx-max-width: infinity;
 }
 
@@ -256,7 +252,7 @@
     -fx-font-size: 16px;
     -fx-padding: 0;
     -fx-alignment: center;
-    -fx-background-radius: -app-radius-pill;
+    -fx-background-radius: 999;
     -fx-min-width: 32;
     -fx-min-height: 32;
     -fx-max-width: 32;
@@ -272,14 +268,14 @@
     -fx-background-color: -app-bg-panel;
     -fx-border-color: -app-border-strong;
     -fx-border-width: 1;
-    -fx-border-radius: -app-radius-md;
-    -fx-background-radius: -app-radius-md;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
     -fx-padding: 4;
 }
 
 .menu-item {
     -fx-background-color: transparent;
-    -fx-background-radius: -app-radius-sm;
+    -fx-background-radius: 6;
     -fx-padding: 6 12;
 }
 
@@ -302,7 +298,7 @@
     -fx-font-size: 11px;
     -fx-padding: 2 6;
     -fx-cursor: hand;
-    -fx-background-radius: -app-radius-sm;
+    -fx-background-radius: 6;
 }
 
 .email-history-remove:hover {
@@ -338,4 +334,39 @@
 .scroll-bar .decrement-arrow {
     -fx-shape: " ";
     -fx-padding: 0;
+}
+
+.color-picker {
+    -fx-background-color: -app-bg-input;
+    -fx-border-color: -app-border-strong;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-mark-color: -app-text;
+    -fx-padding: 6 10;
+}
+
+.color-picker:hover {
+    -fx-border-color: -app-accent;
+}
+
+.color-picker .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.color-picker .arrow {
+    -fx-background-color: -app-text-muted;
+}
+
+.slider .track {
+    -fx-background-color: -app-bg-input;
+    -fx-background-radius: 999;
+}
+
+.slider .thumb {
+    -fx-background-color: -app-accent;
+    -fx-background-radius: 999;
+}
+
+.slider .thumb:hover {
+    -fx-background-color: -app-accent-dim;
 }

@@ -31,41 +31,35 @@ public class WebSocketController {
 
     @MessageMapping("/chat.send")
     public void sendMessage(MessageRequestDTO request, Principal principal){
-        Long userId = Long.parseLong(principal.getName());
-
-        MessageResponseDTO message = messageService.sendMessage(userId, request);
+        MessageResponseDTO message = messageService.sendMessage(getUserId(principal), request);
 
         messagingTemplate.convertAndSend("/topic/conversation." + request.getConversationId(), message);
 
-        conversationParticipantRepository.findOtherParticipants(request.getConversationId(), userId)
+        conversationParticipantRepository.findOtherParticipants(request.getConversationId(), getUserId(principal))
                 .forEach(receiver -> notificationService.notifyUser(receiver.getId(), "NEW_MESSAGE", "New message from " + message.getSenderName(), message.getMessage()));
     }
 
     @MessageMapping("/chat.read")
     public void markAsRead(Long conversationId, Principal principal){
-        Long userId = Long.parseLong(principal.getName());
-
-        messageService.markConversationAsRead(userId, conversationId);
+        messageService.markConversationAsRead(getUserId(principal), conversationId);
     }
 
     @MessageMapping("/chat.delivered")
     public void markAsDelivered(Long messageId, Principal principal){
-        Long userId = Long.parseLong(principal.getName());
-
-        messageService.markMessageAsDelivered(userId, messageId);
+        messageService.markMessageAsDelivered(getUserId(principal), messageId);
     }
 
     @MessageMapping("/chat.markAllDelivered")
     public void markAllDelivered(Principal principal){
-        Long userId = Long.parseLong(principal.getName());
-
-        messageService.markAllUndeliveredAsDelivered(userId);
+        messageService.markAllUndeliveredAsDelivered(getUserId(principal));
     }
 
     @MessageMapping("/user.online")
     public void markOnline(Principal principal){
-        Long userId = Long.parseLong(principal.getName());
+        userService.setOnlineUser(getUserId(principal));
+    }
 
-        userService.setOnlineUser(userId);
+    private Long getUserId(Principal principal){
+        return Long.parseLong(principal.getName());
     }
 }

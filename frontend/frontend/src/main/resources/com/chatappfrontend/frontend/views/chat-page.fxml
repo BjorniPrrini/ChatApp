@@ -43,6 +43,7 @@
                 <Button text="Change Password" styleClass="settings-button" onAction="#handleChangePassword"/>
                 <Button text="Edit Profile" styleClass="settings-button" onAction="#handleEditProfile"/>
                 <Button text="Upload Profile Picture" styleClass="settings-button" onAction="#handleProfilePicture"/>
+                <Button text="Theme Manager" styleClass="settings-button" onAction="#handleThemeManager"/>
             </VBox>
 
             <VBox fx:id="friendsPanel" visible="false" managed="false" VBox.vgrow="ALWAYS">

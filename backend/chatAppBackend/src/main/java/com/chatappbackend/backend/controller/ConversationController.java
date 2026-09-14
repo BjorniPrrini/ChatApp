@@ -23,16 +23,12 @@ public class ConversationController {
 
     @PostMapping("/createConversation")
     public ResponseEntity<ConversationResponseDTO> createConversation(@RequestBody ConversationRequestDTO request){
-        ConversationResponseDTO response = service.createConversation(getUser().getId(), request);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(service.createConversation(getUser().getId(), request));
     }
 
     @PostMapping("/createGroupConversation")
     public ResponseEntity<ConversationResponseDTO> createGroupConversation(@RequestBody GroupConversationRequestDTO request){
-        ConversationResponseDTO response = service.createGroupConversation(getUser().getId(), request);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(service.createGroupConversation(getUser().getId(), request));
     }
 
     @GetMapping("/getUserConversations")
