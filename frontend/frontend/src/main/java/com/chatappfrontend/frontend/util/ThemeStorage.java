@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.Properties;
 
 public class ThemeStorage {
@@ -97,6 +98,6 @@ public class ThemeStorage {
     }
 
     private static String toRgbaString(Color color, double opacity){
-        return String.format("rgba(%d, %d, %d, %.2f)", (int) Math.round(color.getRed() * 255), (int) Math.round(color.getGreen() * 255), (int) Math.round(color.getBlue() * 255), opacity);
+        return String.format(Locale.US, "rgba(%d, %d, %d, %.2f)", (int) Math.round(color.getRed() * 255), (int) Math.round(color.getGreen() * 255), (int) Math.round(color.getBlue() * 255), opacity);
     }
 }

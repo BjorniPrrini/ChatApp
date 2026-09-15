@@ -356,17 +356,3 @@
 .color-picker .arrow {
     -fx-background-color: -app-text-muted;
 }
-
-.slider .track {
-    -fx-background-color: -app-bg-input;
-    -fx-background-radius: 999;
-}
-
-.slider .thumb {
-    -fx-background-color: -app-accent;
-    -fx-background-radius: 999;
-}
-
-.slider .thumb:hover {
-    -fx-background-color: -app-accent-dim;
-}

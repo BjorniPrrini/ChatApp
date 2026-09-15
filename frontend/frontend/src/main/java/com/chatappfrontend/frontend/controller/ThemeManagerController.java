@@ -90,14 +90,6 @@ public class ThemeManagerController {
         ThemeStorage.save(accent.toString(), text.toString(), panel.toString(), opacity);
     }
 
-    private String toRgbaString(Color color, double opacity){
-        return String.format("rgba(%d, %d, %d, %.2f)", (int) Math.round(color.getRed() * 255), (int) Math.round(color.getGreen() * 255), (int) Math.round(color.getBlue() * 255), opacity);
-    }
-
-    private String toRgbString(Color color){
-        return String.format("#%02x%02x%02x", (int) Math.round(color.getRed() * 255), (int) Math.round(color.getGreen() * 255), (int) Math.round(color.getBlue() * 255));
-    }
-
     private void applyTheme(Color accent, Color panel, Color text, double opacity) {
         Scene scene = accentColorPicker.getScene();
 
