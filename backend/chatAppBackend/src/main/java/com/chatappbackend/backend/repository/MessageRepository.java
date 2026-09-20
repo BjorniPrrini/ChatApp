@@ -25,4 +25,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT m FROM Message m WHERE m.id = :messageId")
     Optional<Message> findByIdForUpdate(@Param("messageId") Long messageId);
+    @Query("SELECT m FROM Message m LEFT JOIN MessageEmbedding me ON me.messageId = m.id WHERE me IS NULL")
+    List<Message> findMessageWithNoEmbedding();
 }

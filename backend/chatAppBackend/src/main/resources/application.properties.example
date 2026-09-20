@@ -27,3 +27,5 @@ spring.web.resources.static-locations=file:uploads/
 spring.mail.enabled=true
 
 spring.web.resources.add-mappings=true
+
+ai.api.key = your_ai_api_key

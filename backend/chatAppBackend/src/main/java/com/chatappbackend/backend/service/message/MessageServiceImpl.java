@@ -6,11 +6,13 @@ import com.chatappbackend.backend.dto.message.MessageRequestDTO;
 import com.chatappbackend.backend.dto.message.MessageResponseDTO;
 import com.chatappbackend.backend.entity.*;
 import com.chatappbackend.backend.exception.BadRequestException;
+import com.chatappbackend.backend.exception.EmbeddingException;
 import com.chatappbackend.backend.exception.ForbiddenException;
 import com.chatappbackend.backend.exception.ResourceNotFoundException;
 import com.chatappbackend.backend.mapper.MessageMapper;
 import com.chatappbackend.backend.repository.*;
 import com.chatappbackend.backend.service.blocked.BlockedUserService;
+import com.chatappbackend.backend.service.embedding.EmbeddingService;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
@@ -35,8 +37,10 @@ public class MessageServiceImpl implements MessageService{
     private final MessageMapper messageMapper;
     private final MessageDeliveryRepository messageDeliveryRepository;
     private final MessageReadRepository messageReadRepository;
+    private final EmbeddingService embeddingService;
+    private final MessageEmbeddingRepository messageEmbeddingRepository;
 
-    public MessageServiceImpl(UserRepository userRepository, ConversationRepository conversationRepository, MessageRepository messageRepository, MessageDeleteRepository messageDeleteRepository, ConversationParticipantRepository conversationParticipantRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository, SimpMessagingTemplate messagingTemplate, MessageMapper messageMapper, MessageDeliveryRepository messageDeliveryRepository, MessageReadRepository messageReadRepository){
+    public MessageServiceImpl(UserRepository userRepository, ConversationRepository conversationRepository, MessageRepository messageRepository, MessageDeleteRepository messageDeleteRepository, ConversationParticipantRepository conversationParticipantRepository, BlockedUserService blockedUserService, FriendRequestRepository friendRequestRepository, SimpMessagingTemplate messagingTemplate, MessageMapper messageMapper, MessageDeliveryRepository messageDeliveryRepository, MessageReadRepository messageReadRepository, EmbeddingService embeddingService, MessageEmbeddingRepository messageEmbeddingRepository){
         this.userRepository = userRepository;
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
@@ -48,6 +52,8 @@ public class MessageServiceImpl implements MessageService{
         this.messageMapper = messageMapper;
         this.messageDeliveryRepository = messageDeliveryRepository;
         this.messageReadRepository = messageReadRepository;
+        this.embeddingService = embeddingService;
+        this.messageEmbeddingRepository = messageEmbeddingRepository;
     }
 
     @Override
@@ -106,6 +112,19 @@ public class MessageServiceImpl implements MessageService{
         messagingTemplate.convertAndSend("/topic/conversation." + conversation.getId(), new MessageEventDTO("NEW", conversation.getId(), dto.getId(), dto, null, null));
 
         otherUserList.forEach(otherUser -> messagingTemplate.convertAndSend("/queue/user." + otherUser.getId(), new MessageEventDTO("NEW", conversation.getId(), dto.getId(), dto, null, null)));
+
+        try {
+            float[] embedding = embeddingService.messageToVector(savedMessage.getMessage());
+
+            MessageEmbedding messageEmbedding = new MessageEmbedding();
+
+            messageEmbedding.setMessage(savedMessage);
+            messageEmbedding.setEmbedding(embedding);
+
+            messageEmbeddingRepository.save(messageEmbedding);
+        } catch (EmbeddingException _) {
+
+        }
 
         return dto;
     }
@@ -231,7 +250,7 @@ public class MessageServiceImpl implements MessageService{
                     try {
                         messageReadRepository.save(messageRead);
                     } catch (DataIntegrityViolationException _) {
-
+                        throw new BadRequestException("Couldn't save message");
                     }
 
                     long countParticipants = conversationParticipantRepository.countActiveOtherParticipants(conversationId, message.getSender().getId());
@@ -269,7 +288,7 @@ public class MessageServiceImpl implements MessageService{
         try {
             messageDeliveryRepository.save(messageDelivery);
         } catch (DataIntegrityViolationException _) {
-
+            throw new BadRequestException("Couldn't save message");
         }
 
         long countParticipants = conversationParticipantRepository.countActiveOtherParticipants(message.getConversation().getId(), message.getSender().getId());

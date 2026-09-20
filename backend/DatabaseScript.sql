@@ -83,6 +83,14 @@ CREATE TABLE message_deletes(
     PRIMARY KEY (message_id, user_id)
 );
 
+CREATE EXTENSION vector;
+
+CREATE TABLE message_embedding(
+    message_id BIGINT NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+    embedding vector(768),
+    PRIMARY KEY (message_id)
+);
+
 CREATE TABLE password_reset_tokens(
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -139,3 +147,5 @@ CREATE INDEX idx_messages_sender
 
 CREATE INDEX idx_blocked_users_blocked
     ON blocked_users(blocked_id);
+
+CREATE INDEX ON message_embedding USING hnsw (embedding vector_cosine_ops);

@@ -1,6 +1,7 @@
 package com.chatappbackend.backend.mapper;
 
 import com.chatappbackend.backend.dto.message.MessageResponseDTO;
+import com.chatappbackend.backend.dto.message.MessageSearchResultDTO;
 import com.chatappbackend.backend.entity.Message;
 
 import org.springframework.stereotype.Component;
@@ -26,6 +27,19 @@ public class MessageMapper {
             response.setReplyToId(message.getReplyTo().getId());
             response.setReplyToMessage(message.getReplyTo().getMessage());
         }
+
+        return response;
+    }
+
+    public MessageSearchResultDTO toMessageSearchResultDTO(Message message){
+        MessageSearchResultDTO response = new MessageSearchResultDTO();
+
+        response.setMessageId(message.getId());
+        response.setConversationId(message.getConversation().getId());
+        response.setSenderName(message.getSender().getName());
+        response.setSenderProfilePicture(message.getSender().getProfilePicture());
+        response.setMessage(message.getMessage());
+        response.setSentAt(message.getSentAt());
 
         return response;
     }
