@@ -9,6 +9,6 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface MessageEmbeddingRepository extends JpaRepository<MessageEmbedding, Long> {
-    @Query(value = "SELECT me.message_id FROM message_embedding me JOIN messages m ON m.id = me.message_id WHERE EXISTS (SELECT 1 FROM conversation_participants cp WHERE cp.conversation_id = m.conversation_id AND cp.user_id = :userId) ORDER BY me.embedding <=> CAST(:queryVector AS vector) LIMIT :limit", nativeQuery = true)
+    @Query(value = "SELECT me.message_id FROM message_embedding me JOIN messages m ON m.id = me.message_id WHERE EXISTS (SELECT 1 FROM conversation_participants cp WHERE cp.conversation_id = m.conversation_id AND cp.user_id = :userId AND m.sent_at > GREATEST(COALESCE(cp.cleared_at, TIMESTAMP '1970-01-01'), cp.joined_at) AND (cp.left_at IS NULL OR m.sent_at < cp.left_at)) AND NOT EXISTS (SELECT 1 FROM message_deletes md WHERE md.message_id = m.id AND md.user_id = :userId) ORDER BY me.embedding <=> CAST(:queryVector AS vector) LIMIT :limit", nativeQuery = true)
     List<Long> searchMessageByVector(@Param("userId") Long userId, @Param("queryVector") String queryVector, @Param("limit") int limit);
 }

@@ -22,5 +22,6 @@ module com.chatappfrontend.frontend {
     exports com.chatappfrontend.frontend.cell;
     opens com.chatappfrontend.frontend.cell to javafx.fxml;
     exports com.chatappfrontend.frontend.model;
+    exports com.chatappfrontend.frontend.model.ui;
     opens com.chatappfrontend.frontend.model to com.fasterxml.jackson.databind, javafx.fxml;
 }

@@ -37,7 +37,7 @@ public class MessageMapper {
         response.setMessageId(message.getId());
         response.setConversationId(message.getConversation().getId());
         response.setSenderName(message.getSender().getName());
-        response.setSenderProfilePicture(message.getSender().getProfilePicture());
+        response.setSenderSurname(message.getSender().getSurname());
         response.setMessage(message.getMessage());
         response.setSentAt(message.getSentAt());
 

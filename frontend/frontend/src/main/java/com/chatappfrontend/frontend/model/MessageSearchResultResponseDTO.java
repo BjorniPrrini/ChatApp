@@ -1,11 +1,11 @@
-package com.chatappbackend.backend.dto.message;
+package com.chatappfrontend.frontend.model;
 
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Data
-public class MessageSearchResultDTO {
+public class MessageSearchResultResponseDTO {
     private Long messageId;
     private Long conversationId;
     private String senderName;

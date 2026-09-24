@@ -2,18 +2,11 @@ package com.chatappfrontend.frontend.controller;
 
 import com.chatappfrontend.frontend.cell.*;
 import com.chatappfrontend.frontend.factory.MessageBubbleFactory;
-import com.chatappfrontend.frontend.manager.ConversationListManager;
-import com.chatappfrontend.frontend.manager.MessageActionManager;
-import com.chatappfrontend.frontend.manager.MessageEventManager;
-import com.chatappfrontend.frontend.manager.MessagePaginationManager;
-import com.chatappfrontend.frontend.manager.PanelManager;
-import com.chatappfrontend.frontend.manager.WebSocketConnectionManager;
+import com.chatappfrontend.frontend.manager.*;
 import com.chatappfrontend.frontend.model.*;
+import com.chatappfrontend.frontend.model.ui.SearchResultItem;
 import com.chatappfrontend.frontend.service.*;
-import com.chatappfrontend.frontend.util.AlertUtils;
-import com.chatappfrontend.frontend.util.PopupManager;
-import com.chatappfrontend.frontend.util.SceneManager;
-import com.chatappfrontend.frontend.util.SessionManager;
+import com.chatappfrontend.frontend.util.*;
 
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -48,7 +41,7 @@ public class ChatPageController {
     @FXML
     private TextField searchField;
     @FXML
-    private ListView<ConversationResponseDTO> conversationList;
+    private ListView<SearchResultItem> conversationList;
     @FXML
     private VBox settingsPanel;
     @FXML
@@ -84,6 +77,7 @@ public class ChatPageController {
     private MessageEventManager messageEventManager;
     private MessageActionManager messageActionManager;
     private MessagePaginationManager messagePaginationManager;
+    private MessageSearchManager messageSearchManager;
     private boolean currentConversationIsGroup;
     private final MessageService messageService = new MessageService();
 
@@ -107,6 +101,8 @@ public class ChatPageController {
 
         messagePaginationManager = new MessagePaginationManager(messagesContainer, messageBubbleFactory, messagesScrollPane, message -> AlertUtils.showError(notificationLabel, message));
 
+        messageSearchManager = new MessageSearchManager(conversationList, message -> AlertUtils.showError(notificationLabel, message));
+
         panelManager = new PanelManager(List.of(conversationsPanel, settingsPanel, friendsPanel));
 
         webSocketConnectionManager = new WebSocketConnectionManager(webSocketService);
@@ -114,16 +110,43 @@ public class ChatPageController {
         conversationListManager.loadConversations();
 
         conversationList.setOnMouseClicked(_ -> {
-            ConversationResponseDTO selected = conversationList.getSelectionModel().getSelectedItem();
+            SearchResultItem selected = conversationList.getSelectionModel().getSelectedItem();
 
-            if(selected != null){
-                openConversation(selected);
+            if(selected == null){
+                return;
+            }
+
+            switch (selected) {
+                case SearchResultItem.ConversationResult(ConversationResponseDTO conversation) -> openConversation(conversation);
+                case SearchResultItem.MessageResult(MessageSearchResultResponseDTO message) -> conversationListManager.openOrFetchConversation(message.getConversationId(), this::openConversation);
+                case SearchResultItem.LoadingResult _ -> {}
             }
         });
 
         messageInput.setOnKeyPressed(event -> {
             if(event.getCode() == KeyCode.ENTER){
                 handleSendMessage();
+            }
+        });
+
+        searchField.setOnKeyPressed(event -> {
+            if(event.getCode() == KeyCode.ENTER){
+                String query = searchField.getText().trim();
+
+                if(query.isEmpty()){
+                    return;
+                }
+
+                messageSearchManager.clearSearchResults();
+                conversationListManager.filter(query);
+                messageSearchManager.search(query);
+            }
+        });
+
+        searchField.textProperty().addListener((_, _, newValue) -> {
+            if(newValue.isEmpty()){
+                messageSearchManager.clearSearchResults();
+                conversationListManager.loadConversations();
             }
         });
 

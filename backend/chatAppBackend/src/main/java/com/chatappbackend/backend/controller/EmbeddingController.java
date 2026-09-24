@@ -24,9 +24,9 @@ public class EmbeddingController {
         this.service = service;
     }
 
-    @GetMapping("/messageSearchResult/{query}")
+    @GetMapping("/messageSearchResult")
     public ResponseEntity<List<MessageSearchResultDTO>> messageSearchResult(@RequestParam String query) throws EmbeddingException {
-        return ResponseEntity.ok(service.searchMessages(getUser().getId(), query, 20));
+        return ResponseEntity.ok(service.searchMessages(getUser().getId(), query, 10));
     }
 
     private User getUser(){

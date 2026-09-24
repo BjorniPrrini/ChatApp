@@ -15,7 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class EmbeddingServiceImpl implements EmbeddingService{
@@ -62,9 +64,16 @@ public class EmbeddingServiceImpl implements EmbeddingService{
 
     @Override
     public List<MessageSearchResultDTO> searchMessages(Long userId, String query, int limit) throws EmbeddingException {
-        List<Message> list = messageRepository.findAllById(messageEmbeddingRepository.searchMessageByVector(userId, toVectorString(messageToVector(query)), limit));
+        List<Long> messageIds = messageEmbeddingRepository.searchMessageByVector(userId, toVectorString(messageToVector(query)), limit);
 
-        return list.stream()
+        List<Message> messages = messageRepository.findAllById(messageIds);
+
+        Map<Long, Message> messageById = messages.stream()
+                .collect(Collectors.toMap(Message::getId, message -> message));
+
+        return messageIds.stream()
+                .map(messageById::get)
+                .filter(Objects::nonNull)
                 .map(messageMapper::toMessageSearchResultDTO)
                 .toList();
     }

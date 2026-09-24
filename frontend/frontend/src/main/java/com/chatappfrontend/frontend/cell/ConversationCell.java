@@ -1,20 +1,24 @@
 package com.chatappfrontend.frontend.cell;
 
 import com.chatappfrontend.frontend.model.ConversationResponseDTO;
+import com.chatappfrontend.frontend.model.MessageSearchResultResponseDTO;
 import com.chatappfrontend.frontend.model.ParticipantDTO;
+import com.chatappfrontend.frontend.model.ui.SearchResultItem;
 import com.chatappfrontend.frontend.util.AvatarUtils;
 
 import javafx.geometry.Pos;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.MenuItem;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.function.Consumer;
 
-public class ConversationCell extends ListCell<ConversationResponseDTO> {
+public class ConversationCell extends ListCell<SearchResultItem> {
     private final Consumer<Long> onDelete;
 
     public ConversationCell(Consumer<Long> onDelete) {
@@ -22,16 +26,32 @@ public class ConversationCell extends ListCell<ConversationResponseDTO> {
     }
 
     @Override
-    protected void updateItem(ConversationResponseDTO conversation, boolean empty) {
-        super.updateItem(conversation, empty);
+    protected void updateItem(SearchResultItem item, boolean empty) {
+        super.updateItem(item, empty);
 
-        if(empty || conversation == null){
+        if(empty || item == null){
             setGraphic(null);
 
             setStyle("-fx-background-color: transparent;");
 
             return;
         }
+
+        HBox cell = switch (item) {
+            case SearchResultItem.ConversationResult(ConversationResponseDTO conversation) -> buildConversationRow(conversation);
+            case SearchResultItem.MessageResult(MessageSearchResultResponseDTO message) -> buildMessageRow(message);
+            case SearchResultItem.LoadingResult ignored -> buildLoadingRow();
+        };
+
+        cell.setAlignment(Pos.CENTER_LEFT);
+        cell.setStyle("-fx-padding: 8 5;");
+
+        setGraphic(cell);
+        setStyle("-fx-background-color: transparent;");
+    }
+
+    private HBox buildConversationRow(ConversationResponseDTO conversation){
+        Label avatar = new Label();
 
         String displayName;
         String borderColor;
@@ -46,24 +66,12 @@ public class ConversationCell extends ListCell<ConversationResponseDTO> {
         }else{
             ParticipantDTO otherUser = conversation.getParticipants().getFirst();
 
-            displayName = otherUser.getName().substring(0, 1).toUpperCase() + otherUser.getName().substring(1).toLowerCase() + " " + otherUser.getSurname().substring(0, 1).toUpperCase() + otherUser.getSurname().substring(1).toLowerCase();
+            displayName = otherUser.getName().substring(0, 1).toUpperCase(Locale.ROOT) + otherUser.getName().substring(1).toLowerCase(Locale.ROOT) + " " + otherUser.getSurname().substring(0, 1).toUpperCase(Locale.ROOT) + otherUser.getSurname().substring(1).toLowerCase(Locale.ROOT);
 
             profilePicturePath = otherUser.getProfilePicture();
 
             borderColor = otherUser.isOnline() ? "-app-accent" : "-app-border-strong";
         }
-
-        HBox cell = buildCell(conversation, displayName, profilePicturePath, borderColor);
-
-        cell.setAlignment(Pos.CENTER_LEFT);
-        cell.setStyle("-fx-padding: 8 5;");
-
-        setGraphic(cell);
-        setStyle("-fx-background-color: transparent;");
-    }
-
-    private HBox buildCell(ConversationResponseDTO conversation, String displayName, String profilePicturePath, String borderColor){
-        Label avatar = new Label();
 
         String initial = displayName.substring(0, 1);
 
@@ -96,5 +104,51 @@ public class ConversationCell extends ListCell<ConversationResponseDTO> {
         cell.setOnContextMenuRequested(event -> menu.show(cell, event.getScreenX(), event.getScreenY()));
 
         return cell;
+    }
+
+    private HBox buildMessageRow(MessageSearchResultResponseDTO message){
+        String fullName = message.getSenderName().substring(0, 1).toUpperCase(Locale.ROOT) + message.getSenderName().substring(1).toLowerCase(Locale.ROOT) + " " + message.getSenderSurname().substring(0, 1).toUpperCase(Locale.ROOT) + message.getSenderSurname().substring(1).toLowerCase(Locale.ROOT);
+        String timeLabelText = formatRelativeTime(message.getSentAt());
+
+        Label nameLabel = new Label(fullName);
+        nameLabel.setStyle("-fx-text-fill: -app-accent; -fx-font-weight: bold; -fx-font-size: 13px;");
+
+        Label messageLabel = new Label(message.getMessage());
+        messageLabel.setStyle("-fx-text-fill: -app-text; -fx-font-size: 12px;");
+
+        Label timeLabel = new Label(timeLabelText);
+        timeLabel.setStyle("-fx-text-fill: -app-text-faint; -fx-font-size: 10px;");
+
+        VBox textBox = new VBox(3, nameLabel, messageLabel, timeLabel);
+
+        return new HBox(10, textBox);
+    }
+
+    private HBox buildLoadingRow(){
+        ProgressIndicator spinner = new ProgressIndicator();
+
+        spinner.setMaxWidth(30);
+
+        return new HBox(10, new VBox(3, spinner, new Label("Searching")));
+    }
+
+    private String formatRelativeTime(LocalDateTime sentAt){
+        LocalDateTime now = LocalDateTime.now();
+        Duration duration = Duration.between(sentAt, now);
+
+        LocalDate sentDate = sentAt.toLocalDate();
+        LocalDate today = now.toLocalDate();
+
+        if(duration.toSeconds() < 60){
+            return "now";
+        }else if(duration.toMinutes() < 60){
+            return duration.toMinutes() + (duration.toMinutes() == 1 ? " minute ago" : " minutes ago");
+        }else if(sentDate.equals(today)){
+            return duration.toHours() + (duration.toHours() == 1 ? " hour ago" : " hours ago");
+        }else if(sentDate.equals(today.minusDays(1))){
+            return "Yesterday";
+        }else{
+            return sentAt.format(DateTimeFormatter.ofPattern("d MM, yyyy"));
+        }
     }
 }
