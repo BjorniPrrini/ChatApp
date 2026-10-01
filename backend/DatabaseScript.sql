@@ -117,7 +117,7 @@ CREATE TABLE notifications(
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE friend_requests (
+CREATE TABLE friend_requests(
     id BIGSERIAL PRIMARY KEY,
     sender_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     receiver_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -125,6 +125,18 @@ CREATE TABLE friend_requests (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(sender_id, receiver_id),
     CHECK (sender_id <> receiver_id)
+);
+
+CREATE TABLE conversation_summaries(
+    conversation_id BIGINT PRIMARY KEY REFERENCES conversations(id) ON DELETE CASCADE,
+    summary_text TEXT NOT NULL,
+    last_message_id BIGINT REFERENCES messages(id) ON DELETE SET NULL
+);
+
+CREATE TABLE user_summary_quota(
+    user_id BIGINT PRIMARY KEY REFERENCES users(id),
+    remaining_quota INT NOT NULL DEFAULT 5,
+    last_reset_date DATE NOT NULL DEFAULT CURRENT_DATE
 );
 
 CREATE INDEX idx_messages_conversation

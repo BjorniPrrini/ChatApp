@@ -29,7 +29,7 @@ public class EmbeddingSweepService {
     public void retryEmbeddings(){
         List<Message> messages = messageRepository.findMessageWithNoEmbedding();
 
-        for (Message message : messages) {
+        for(Message message : messages){
             try {
                 float[] embedding = embeddingService.messageToVector(message.getMessage());
 

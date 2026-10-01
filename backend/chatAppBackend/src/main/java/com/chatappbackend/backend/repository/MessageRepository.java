@@ -27,4 +27,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     Optional<Message> findByIdForUpdate(@Param("messageId") Long messageId);
     @Query("SELECT m FROM Message m LEFT JOIN MessageEmbedding me ON me.messageId = m.id WHERE me IS NULL")
     List<Message> findMessageWithNoEmbedding();
+    @Query("SELECT COUNT(m) FROM Message m WHERE m.conversation.id = :conversationId AND m.id > :lastMessageId")
+    Long countMessagesAfter(@Param("conversationId") Long conversationId, @Param("lastMessageId") Long lastMessageId);
+    List<Message> findByConversationIdOrderByIdDesc(Long conversationId, Pageable pageable);
 }

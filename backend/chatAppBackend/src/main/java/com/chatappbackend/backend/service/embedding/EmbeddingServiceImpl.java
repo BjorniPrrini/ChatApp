@@ -11,6 +11,7 @@ import com.chatappbackend.backend.mapper.MessageMapper;
 import com.chatappbackend.backend.repository.MessageEmbeddingRepository;
 import com.chatappbackend.backend.repository.MessageRepository;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -26,7 +27,7 @@ public class EmbeddingServiceImpl implements EmbeddingService{
     private final MessageEmbeddingRepository messageEmbeddingRepository;
     private final MessageMapper messageMapper;
 
-    public EmbeddingServiceImpl(RestClient restClient, MessageRepository messageRepository, MessageEmbeddingRepository messageEmbeddingRepository, MessageMapper messageMapper) {
+    public EmbeddingServiceImpl(@Qualifier("aiConnect") RestClient restClient, MessageRepository messageRepository, MessageEmbeddingRepository messageEmbeddingRepository, MessageMapper messageMapper) {
         this.restClient = restClient;
         this.messageRepository = messageRepository;
         this.messageEmbeddingRepository = messageEmbeddingRepository;

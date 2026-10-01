@@ -1,6 +1,7 @@
 package com.chatappbackend.backend.entity;
 
 import jakarta.persistence.*;
+
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -10,7 +11,6 @@ import java.time.LocalDateTime;
 @IdClass(MessageDeleteId.class)
 @Data
 public class MessageDelete {
-
     @Id
     @ManyToOne
     @JoinColumn(name = "message_id", nullable = false)
