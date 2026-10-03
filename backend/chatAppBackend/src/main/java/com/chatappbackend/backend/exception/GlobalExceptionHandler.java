@@ -23,4 +23,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDTO> handleForbidden(ForbiddenException e){
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponseDTO(e.getMessage()));
     }
+
+    @ExceptionHandler(SummaryInProgressException.class)
+    public ResponseEntity<ErrorResponseDTO> handleSummaryInProgress(SummaryInProgressException e){
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponseDTO(e.getMessage()));
+    }
+
+    @ExceptionHandler(SummaryGenerationException.class)
+    public ResponseEntity<ErrorResponseDTO> handleSummaryGeneration(SummaryGenerationException e){
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(new ErrorResponseDTO(e.getMessage()));
+    }
 }

@@ -6,8 +6,8 @@ import com.chatappbackend.backend.service.summary.SummaryService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,7 +22,7 @@ public class SummaryController {
         this.service = service;
     }
 
-    @GetMapping("/{conversationId}")
+    @PostMapping("/{conversationId}")
     public ResponseEntity<SummaryResponseDTO> getSummary(@PathVariable("conversationId") Long conversationId){
         return ResponseEntity.ok(service.getSummary(getUser().getId(), conversationId));
     }

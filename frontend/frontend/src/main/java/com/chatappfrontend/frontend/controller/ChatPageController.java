@@ -12,10 +12,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -66,6 +63,14 @@ public class ChatPageController {
     private Button createConversationButton;
     @FXML
     private Button editGroupButton;
+    @FXML
+    private Button summarizeButton;
+    @FXML
+    private HBox conversationContent;
+    @FXML
+    private BorderPane summaryPanel;
+    @FXML
+    private SummaryPanelController summaryPanelController;
 
     private Long currentConversationId;
     private final WebSocketService webSocketService = new WebSocketService();
@@ -83,10 +88,13 @@ public class ChatPageController {
 
     @FXML
     public void initialize(){
+        summarizeButton.setVisible(false);
+        summarizeButton.setManaged(false);
+
         conversationList.setCellFactory(_ -> new ConversationCell(conversationId -> {
             conversationListManager.removeConversation(conversationId);
 
-            if(currentConversationId.equals(conversationId)){
+            if(conversationId.equals(currentConversationId)){
                 clearChatPane();
             }
         }));
@@ -170,6 +178,9 @@ public class ChatPageController {
     }
 
     private void openConversation(ConversationResponseDTO selected){
+        summaryPanel.setVisible(false);
+        summaryPanel.setManaged(false);
+
         if(selected.isGroup()){
             editGroupButton.setVisible(true);
             editGroupButton.setManaged(true);
@@ -181,8 +192,10 @@ public class ChatPageController {
         showChatContent();
 
         currentConversationId = selected.getConversationId();
-
         currentConversationIsGroup = selected.isGroup();
+
+        summarizeButton.setVisible(true);
+        summarizeButton.setManaged(true);
 
         setActiveConversationId(currentConversationId);
 
@@ -380,10 +393,14 @@ public class ChatPageController {
     }
 
     private void clearChatPane(){
+        summaryPanel.setVisible(false);
+        summaryPanel.setManaged(false);
         currentConversationId = null;
         setActiveConversationId(null);
         messagesContainer.getChildren().clear();
         chatNameLabel.setText("");
+        summarizeButton.setVisible(false);
+        summarizeButton.setManaged(false);
         webSocketService.unsubscribe();
     }
 
@@ -475,5 +492,13 @@ public class ChatPageController {
 
             AlertUtils.showError(notificationLabel, "You were removed from this group");
         }
+    }
+
+    @FXML
+    public void handleOpenSummary(){
+        summaryPanel.setVisible(true);
+        summaryPanel.setManaged(true);
+
+        summaryPanelController.startSummarizing(currentConversationId);
     }
 }

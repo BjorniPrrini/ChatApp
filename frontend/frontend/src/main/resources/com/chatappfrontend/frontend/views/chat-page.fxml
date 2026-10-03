@@ -72,18 +72,24 @@
 
                     <Region HBox.hgrow="ALWAYS"/>
 
+                    <Button fx:id="summarizeButton" text="Summarize" styleClass="settings-button" onAction="#handleOpenSummary"/>
+
                     <Button fx:id="editGroupButton" text="Edit" styleClass="settings-button" onAction="#handleEditGroup" visible="false" managed="false"/>
                 </HBox>
 
                 <Label fx:id="notificationLabel" styleClass="notification-label" visible="false" managed="false"/>
 
-                <ScrollPane fx:id="messagesScrollPane" VBox.vgrow="ALWAYS" fitToWidth="true" styleClass="messages-scroll">
-                    <VBox fx:id="messagesContainer" styleClass="messages-container" spacing="8">
-                        <padding>
-                            <Insets top="10" bottom="10" left="15" right="15"/>
-                        </padding>
-                    </VBox>
-                </ScrollPane>
+                <HBox fx:id="conversationContent" VBox.vgrow="ALWAYS">
+                    <ScrollPane fx:id="messagesScrollPane" HBox.hgrow="ALWAYS" fitToWidth="true" styleClass="messages-scroll">
+                        <VBox fx:id="messagesContainer" styleClass="messages-container" spacing="8">
+                            <padding>
+                                <Insets top="10" bottom="10" left="15" right="15"/>
+                            </padding>
+                        </VBox>
+                    </ScrollPane>
+
+                    <fx:include source="summary-panel-page.fxml" fx:id="summaryPanel" visible="false" managed="false"/>
+                </HBox>
 
                 <VBox fx:id="replyPreviewBox" visible="false" managed="false"/>
 

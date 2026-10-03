@@ -58,11 +58,11 @@ public class MessageBubbleFactory {
         messageLabel.setMaxWidth(400);
 
         if(isMyMessage){
-            messageLabel.setStyle("-fx-background-color: #00ff88; -fx-text-fill: black; -fx-padding: 8 12; -fx-background-radius: 15;");
+            messageLabel.getStyleClass().add("my-message");
 
             hBox.setAlignment(Pos.CENTER_RIGHT);
         }else{
-            messageLabel.setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: white; -fx-padding: 8 12; -fx-background-radius: 15;");
+            messageLabel.getStyleClass().add("other-message");
 
             hBox.setAlignment(Pos.CENTER_LEFT);
         }

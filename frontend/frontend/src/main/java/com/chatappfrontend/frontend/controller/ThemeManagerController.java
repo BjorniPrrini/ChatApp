@@ -58,10 +58,6 @@ public class ThemeManagerController {
     }
 
     @FXML
-    public void handleAddBackground(){
-    }
-
-    @FXML
     public void handleReset(){
         String glowColor = AppConfig.get("glow.color");
         String textColor = AppConfig.get("text.color");

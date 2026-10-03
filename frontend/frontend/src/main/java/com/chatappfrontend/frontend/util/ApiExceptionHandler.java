@@ -15,8 +15,10 @@ public class ApiExceptionHandler {
         String message = extractMessage(response.body());
 
         switch(response.statusCode()){
-            case 400, 404, 403:
+            case 400, 404, 403, 502:
                 throw new Exception(message);
+            case 409:
+                throw new SummaryInProgressException(message);
             case 401:
                 throw new Exception("Session expired. Please login again.");
             default:

@@ -356,3 +356,70 @@
 .color-picker .arrow {
     -fx-background-color: -app-text-muted;
 }
+
+.my-message {
+    -fx-background-color: -app-accent;
+    -fx-text-fill: black;
+    -fx-padding: 8 12;
+    -fx-background-radius: 15;
+}
+
+.other-message {
+    -fx-background-color: #1a1a1a;
+    -fx-text-fill: white;
+    -fx-padding: 8 12;
+    -fx-background-radius: 15;
+}
+
+.summary-panel {
+    -fx-background-color: -app-bg-panel;
+    -fx-border-color: -app-border;
+    -fx-border-width: 0 0 0 1;
+}
+
+.summary-header {
+    -fx-background-color: -app-bg-panel;
+    -fx-border-color: -app-border;
+    -fx-border-width: 0 0 1 0;
+}
+
+.summary-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -app-text;
+}
+
+.summary-content {
+    -fx-background-color: transparent;
+}
+
+.summary-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.summary-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.summary-text {
+    -fx-text-fill: -app-text;
+    -fx-font-size: 14px;
+}
+
+.summary-footer {
+    -fx-background-color: -app-bg-panel;
+    -fx-border-color: -app-border;
+    -fx-border-width: 1 0 0 0;
+}
+
+.summary-quota,
+.summary-time {
+    -fx-text-fill: -app-text-muted;
+    -fx-font-size: 12px;
+}
+
+.summary-error {
+    -fx-text-fill: -app-danger;
+    -fx-font-size: 13px;
+}

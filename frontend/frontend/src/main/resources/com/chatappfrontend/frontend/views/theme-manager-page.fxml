@@ -35,15 +35,6 @@
         </HBox>
     </VBox>
 
-    <VBox spacing="6" VBox.vgrow="ALWAYS">
-        <HBox alignment="CENTER_LEFT" spacing="10">
-            <Label text="Background image" styleClass="section-title" HBox.hgrow="ALWAYS"/>
-            <Button fx:id="addBackgroundButton" text="Add Image" styleClass="settings-button" onAction="#handleAddBackground"/>
-        </HBox>
-
-        <ListView fx:id="backgroundList" orientation="HORIZONTAL" styleClass="conversation-list" VBox.vgrow="ALWAYS"/>
-    </VBox>
-
     <HBox spacing="10">
         <Button text="Reset to Default" styleClass="settings-button" onAction="#handleReset" HBox.hgrow="ALWAYS"/>
         <Button text="Apply" styleClass="primary-button" onAction="#handleSave" HBox.hgrow="ALWAYS"/>
